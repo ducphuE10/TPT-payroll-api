@@ -1,19 +1,29 @@
 from fastapi.responses import JSONResponse, StreamingResponse
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Request, status
+
+from sqlalchemy.orm import sessionmaker
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 
 from payroll.exceptions import PayrollException
 from .logging import configure_logging
-from fastapi import FastAPI, Request, status
-from .api import api_router
-
+from .api import api_router, router
 from .database.core import engine
-from sqlalchemy.orm import sessionmaker
-from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 import logging
 
 log = logging.getLogger(__name__)
 configure_logging()
 
 app = FastAPI(prefix="/api/v1", title="Payroll API", version="0.1.0")
+
+origins = ["*"]
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 
 @app.middleware("http")
@@ -76,3 +86,4 @@ app.add_middleware(ExceptionMiddleware)
 
 # we add all API routes to the Web API framework
 app.include_router(api_router)
+app.include_router(router)

@@ -37,7 +37,7 @@ def create_user(
             status_code=status.HTTP_403_FORBIDDEN,
             detail=[
                 {
-                    "msg": "You don't have permissions to create a new user. Please, contact the administrator."
+                    "msg": "You don't have permissions to create a new user. Please, contract the administrator."
                 }
             ],
         )

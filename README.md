@@ -6,7 +6,16 @@
 
 By default, the dependencies are managed with [Poetry](https://python-poetry.org/), go there and install it.
 
-You can install all the dependencies with:
+- Setup Environment
+
+```console
+python3 -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+pre-commit install
+```
+
+- You can install all the dependencies with:
 
 ```console
 poetry install

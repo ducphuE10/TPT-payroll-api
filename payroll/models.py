@@ -1,9 +1,12 @@
-from datetime import datetime, timezone
+from datetime import datetime
+import random
+import string
 
 
 from pydantic import BaseModel
 from pydantic.types import conint, constr, SecretStr
-from sqlalchemy import Column, DateTime
+from sqlalchemy import Column, DateTime, String, func
+from sqlalchemy.ext.declarative import declared_attr
 
 # pydantic type that limits the range of primary keys
 PrimaryKey = conint(gt=0, lt=2147483647)
@@ -15,12 +18,30 @@ CompanySlug = constr(pattern=r"^[\w]+(?:_[\w]+)*$", min_length=3)
 class TimeStampMixin(object):
     """Timestamping mixin"""
 
-    created_at = Column(DateTime, default=datetime.now(timezone.utc))
-    updated_at = Column(
-        DateTime,
-        default=datetime.now(timezone.utc),
-        onupdate=datetime.now(timezone.utc),
-    )
+    created_at = Column(DateTime, default=func.now())
+
+
+class RandomCodeMixin:
+    @staticmethod
+    def generate_random_code(length=8):
+        """Generates a random alphanumeric code of specified length."""
+        characters = string.ascii_letters + string.digits
+        return "".join(random.choice(characters) for _ in range(length))
+
+    @declared_attr
+    def code(cls):
+        return Column(
+            String(20),
+            unique=True,
+            nullable=False,
+            default=lambda: cls.generate_random_code(),
+        )
+
+    @classmethod
+    def generate_and_set_code(cls, target, value, oldvalue, initiator):
+        """Generates and sets a random code if not already set."""
+        if not value:
+            target.code = cls.generate_random_code()
 
 
 # Pydantic models...
