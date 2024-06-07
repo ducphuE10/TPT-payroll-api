@@ -121,6 +121,7 @@ def delete(*, db_session, id: int) -> EmployeeRead:
 
 def upsert_employee(db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
     """Creates or updates an employee based on the code."""
+    print("employee_in", employee_in.code)
     employee_db = get_by_code(db_session=db_session, code=employee_in.code)
     if employee_db:
         # Update existing employee
@@ -141,7 +142,7 @@ def uploadXLSX(*, db_session, file: UploadFile = File(...)):
         errors = []
         for index, row in df.iterrows():
             try:
-                employee = PayrollEmployee(
+                employee = EmployeeCreate(
                     code=row["Code"],
                     name=row["Tên"],
                     date_of_birth=pd.to_datetime(
@@ -186,6 +187,7 @@ def uploadXLSX(*, db_session, file: UploadFile = File(...)):
                     email=row.get("Email"),
                     cv=row.get("CV", None),
                 )
+                print(employee)
                 employees_data.append(employee)
             except ValidationError as e:
                 errors.append(
@@ -200,6 +202,8 @@ def uploadXLSX(*, db_session, file: UploadFile = File(...)):
 
         # Insert all valid records into the database
         for employee_data in employees_data:
+            print(type(employee_data))
+
             upsert_employee(db_session, employee_in=employee_data)
 
         return {"message": "Employees successfully added from the Excel file"}

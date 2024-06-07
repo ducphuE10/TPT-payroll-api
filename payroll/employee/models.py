@@ -61,7 +61,7 @@ class PayrollEmployee(Base, TimeStampMixin):
         return relationship(PayrollPosition, back_populates="employees")
 
     def __repr__(self) -> str:
-        return f"Employee (name={self.position_id!r})"
+        return f"Employee (name={self.name!r})"
 
 
 class EmployeeBase(PayrollBase):
