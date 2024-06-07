@@ -8,6 +8,7 @@ from payroll.auth.views import user_router, auth_router
 from payroll.department.views import department_router
 from payroll.position.views import position_router
 from payroll.contracttype.views import contracttype_router
+from payroll.employee.views import employee_router
 
 # WARNING: Don't use this unless you want unauthenticated routes
 authenticated_api_router = APIRouter()
@@ -40,6 +41,9 @@ router.include_router(department_router, prefix="/departments", tags=["departmen
 router.include_router(position_router, prefix="/positions", tags=["positions"])
 router.include_router(
     contracttype_router, prefix="/contracttypes", tags=["contracttypes"]
+)
+router.include_router(
+    employee_router, prefix="/employees", tags=["employees"]
 )
 
 api_router.include_router(

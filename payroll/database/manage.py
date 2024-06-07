@@ -8,6 +8,7 @@ from payroll.auth.models import PayrollUser, Role, UserRegister  # noqa
 from payroll.department.models import PayrollDepartment  # noqa
 from payroll.position.models import PayrollPosition  # noqa
 from payroll.contracttype.models import PayrollContractType  # noqa
+from payroll.employee.models import PayrollEmployee # noqa
 from payroll.auth.service import get_or_create
 
 log = logging.getLogger(__file__)

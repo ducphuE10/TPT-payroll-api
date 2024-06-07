@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String
 from payroll.database.core import Base
 from payroll.models import Pagination, PayrollBase, TimeStampMixin
@@ -14,6 +14,11 @@ class PayrollPosition(Base, TimeStampMixin):
     description: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))
 
+    @property
+    def employees(self):
+        from payroll.employee.models import PayrollEmployee
+        return relationship(PayrollEmployee, back_populates="position")
+    
     def __repr__(self) -> str:
         return f"Position (name={self.name!r})"
 

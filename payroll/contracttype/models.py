@@ -23,14 +23,14 @@ class PayrollContractType(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)
     code: Mapped[str] = mapped_column(String(10), unique=True)
     name: Mapped[str] = mapped_column(String(30))
-    description: Mapped[str] = mapped_column(String(255))
+    description: Mapped[Optional[str]] = mapped_column(String(255))
     number_of_months: Mapped[int] = mapped_column()
     note: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))
     is_probation: Mapped[bool] = mapped_column()
     tax_policy: Mapped[TaxPolicy]
     insurance_policy: Mapped[InsurancePolicy]
-    template: Mapped[bytes] = mapped_column(LargeBinary)
+    template: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
     created_by: Mapped[str] = mapped_column(String(30))
 
     def __repr__(self) -> str:
