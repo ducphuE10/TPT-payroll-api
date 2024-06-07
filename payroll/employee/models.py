@@ -6,14 +6,17 @@ from sqlalchemy import ForeignKey, LargeBinary, String
 from payroll.database.core import Base
 from payroll.models import Pagination, PayrollBase, TimeStampMixin
 
+
 class Gender(str, Enum):
     Male = "male"
     Female = "female"
-    
+
+
 class Nationality(str, Enum):
     VN = "Vietnam"
     JP = "Japan"
-    
+
+
 class PayrollEmployee(Base, TimeStampMixin):
     __tablename__ = "employees"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -44,19 +47,21 @@ class PayrollEmployee(Base, TimeStampMixin):
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
-    
+
     @property
     def department(self):
         from payroll.department.models import PayrollDepartment
+
         return relationship(PayrollDepartment, back_populates="employee")
-    
+
     @property
     def position(self):
         from payroll.position.models import PayrollPosition
+
         return relationship(PayrollPosition, back_populates="employees")
-    
+
     def __repr__(self) -> str:
-        return f"Employee (name={self.name!r})"
+        return f"Employee (name={self.position_id!r})"
 
 
 class EmployeeBase(PayrollBase):
@@ -88,6 +93,7 @@ class EmployeeBase(PayrollBase):
     email: Optional[str] = None
     cv: Optional[bytes] = None
 
+
 class EmployeeRead(EmployeeBase):
     id: int
     created_at: datetime
@@ -115,7 +121,8 @@ class EmployeeUpdate(PayrollBase):
     mst: Optional[str] = None
     department_id: Optional[int] = None
     position_id: Optional[int] = None
-    
+
+
 class EmployeeCreate(EmployeeBase):
     pass
 

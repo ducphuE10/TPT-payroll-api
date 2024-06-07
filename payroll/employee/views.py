@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, UploadFile
 
 from payroll.employee.models import (
     EmployeeRead,
@@ -7,7 +7,7 @@ from payroll.employee.models import (
     EmployeeUpdate,
 )
 from payroll.database.core import DbSession
-from payroll.employee.service import get_by_id, delete, get, create, update
+from payroll.employee.service import get_by_id, get, create, update, uploadXLSX
 
 employee_router = APIRouter()
 
@@ -37,6 +37,6 @@ def update_employee(*, db_session: DbSession, id: int, employee_in: EmployeeUpda
     return update(db_session=db_session, id=id, employee_in=employee_in)
 
 
-@employee_router.delete("/{id}", response_model=EmployeeRead)
-def delete_employee(*, db_session: DbSession, id: int):
-    return delete(db_session=db_session, id=id)
+@employee_router.post("/import-excel", response_model=EmployeeRead)
+def import_excel(*, db: DbSession, file: UploadFile = File(...)):
+    return uploadXLSX(db_session=db, file=file)
