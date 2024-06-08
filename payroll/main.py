@@ -1,3 +1,4 @@
+import traceback
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request, status
@@ -69,13 +70,12 @@ class ExceptionMiddleware(BaseHTTPMiddleware):
                 },
             )
         except Exception as e:
-            log.exception(e)
+            log.exception("Unexpected exception: %s", e)
             response = JSONResponse(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 content={
-                    "detail": [
-                        {"msg": "Unknown", "loc": ["Unknown"], "type": "Unknown"}
-                    ]
+                    "detail": [{"msg": str(e), "loc": ["Unknown"], "type": "Unknown"}],
+                    "traceback": traceback.format_exc(),
                 },
             )
 
