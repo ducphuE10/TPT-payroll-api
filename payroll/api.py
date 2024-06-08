@@ -33,7 +33,7 @@ api_router = APIRouter(
     },
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/api")
 
 api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 authenticated_api_router.include_router(user_router, prefix="/users", tags=["users"])
@@ -42,9 +42,7 @@ router.include_router(position_router, prefix="/positions", tags=["positions"])
 router.include_router(
     contracttype_router, prefix="/contracttypes", tags=["contracttypes"]
 )
-router.include_router(
-    employee_router, prefix="/employees", tags=["employees"]
-)
+router.include_router(employee_router, prefix="/employees", tags=["employees"])
 
 api_router.include_router(
     authenticated_api_router,
