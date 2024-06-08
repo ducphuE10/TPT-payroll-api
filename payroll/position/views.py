@@ -12,7 +12,7 @@ from payroll.position.service import get_by_id, delete, get, create, update
 position_router = APIRouter()
 
 
-@position_router.get("/", response_model=PositionsRead)
+@position_router.get("", response_model=PositionsRead)
 def retrieve_positions(
     *,
     db_session: DbSession,
@@ -25,7 +25,7 @@ def retrieve_position(*, db_session: DbSession, id: int):
     return get_by_id(db_session=db_session, id=id)
 
 
-@position_router.post("/", response_model=PositionRead)
+@position_router.post("", response_model=PositionRead)
 def create_position(*, position_in: PositionCreate, db_session: DbSession):
     """Creates a new user."""
     position_in.created_by = "admin"

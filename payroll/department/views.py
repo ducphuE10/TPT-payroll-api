@@ -12,7 +12,7 @@ from payroll.department.service import get_by_id, delete, get, create, update
 department_router = APIRouter()
 
 
-@department_router.get("/", response_model=DepartmentsRead)
+@department_router.get("", response_model=DepartmentsRead)
 def retrieve_departments(
     *,
     db_session: DbSession,
@@ -25,7 +25,7 @@ def retrieve_department(*, db_session: DbSession, id: int):
     return get_by_id(db_session=db_session, id=id)
 
 
-@department_router.post("/", response_model=DepartmentRead)
+@department_router.post("", response_model=DepartmentRead)
 def create_department(*, department_in: DepartmentCreate, db_session: DbSession):
     """Creates a new department."""
     department_in.created_by = "admin"

@@ -12,7 +12,7 @@ contracttype_router = APIRouter()
 ContractTypeRead
 
 
-@contracttype_router.get("/", response_model=ContractTypesRead)
+@contracttype_router.get("", response_model=ContractTypesRead)
 def retrieve_contracttypes(
     *,
     db_session: DbSession,
@@ -25,7 +25,7 @@ def retrieve_contracttype(*, db_session: DbSession, id: int):
     return get_by_id(db_session=db_session, id=id)
 
 
-@contracttype_router.post("/", response_model=ContractTypeRead)
+@contracttype_router.post("", response_model=ContractTypeRead)
 def create_contracttype(*, contracttype_in: ContractTypeCreate, db_session: DbSession):
     """Creates a new contracttpye."""
     contracttype_in.created_by = "admin"

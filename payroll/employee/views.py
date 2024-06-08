@@ -1,4 +1,4 @@
-from fastapi import APIRouter, File, UploadFile
+from fastapi import APIRouter, File, Form, UploadFile
 
 from payroll.employee.models import (
     EmployeeRead,
@@ -38,5 +38,7 @@ def update_employee(*, db_session: DbSession, id: int, employee_in: EmployeeUpda
 
 
 @employee_router.post("/import-excel")
-def import_excel(*, db: DbSession, file: UploadFile = File(...)):
-    return uploadXLSX(db_session=db, file=file)
+def import_excel(
+    *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
+):
+    return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)
