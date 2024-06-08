@@ -65,20 +65,20 @@ class EmployeeBase(PayrollBase):
     name: str
     date_of_birth: date
     gender: Gender
-    nationality: Nationality
+    nationality: Optional[Nationality] = None
     ethnic: Optional[str] = None
     religion: Optional[str] = None
-    cccd: str
-    cccd_date: date
-    cccd_place: str
-    domicile: str
-    permanent_addr: str
+    cccd: Optional[str] = None
+    cccd_date: Optional[date] = None
+    cccd_place: Optional[str] = None
+    domicile: Optional[str] = None
+    permanent_addr: Optional[str] = None
     temp_addr: Optional[str] = None
-    phone: str
+    phone: Optional[str] = None
     academic_level: Optional[str] = None
-    bank_account: str
-    bank_holder_name: str
-    bank_name: str
+    bank_account: Optional[str] = None
+    bank_holder_name: Optional[str] = None
+    bank_name: Optional[str] = None
     mst: str
     kcb_number: Optional[str] = None
     hospital_info: Optional[str] = None
