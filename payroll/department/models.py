@@ -5,6 +5,7 @@ from sqlalchemy import String
 from payroll.database.core import Base
 from payroll.models import Pagination, PayrollBase, TimeStampMixin
 
+
 class PayrollDepartment(Base, TimeStampMixin):
     __tablename__ = "departments"
     id: Mapped[int] = mapped_column(primary_key=True)
@@ -12,12 +13,15 @@ class PayrollDepartment(Base, TimeStampMixin):
     name: Mapped[str] = mapped_column(String(30))
     description: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))
+    employees: Mapped["PayrollEmployee"] = relationship(
+        "PayrollEmployee", back_populates="department"
+    )
 
-    @property
-    def employees(self):
-        from payroll.employee.models import PayrollEmployee
-        return relationship(PayrollEmployee, back_populates="department")
-    
+    # @property
+    # def employees(self):
+    #     from payroll.employee.models import PayrollEmployee
+    #     return relationship(PayrollEmployee, back_populates="department")
+
     def __repr__(self) -> str:
         return f"Department (name={self.name!r})"
 

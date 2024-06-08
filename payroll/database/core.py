@@ -11,7 +11,9 @@ engine = create_engine(
 
 
 class Base(DeclarativeBase):
-    pass
+    def dict(self):
+        """Returns a dict representation of a model."""
+        return {c.name: getattr(self, c.name) for c in self.__table__.columns}
 
 
 def get_db(request: Request):

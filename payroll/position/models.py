@@ -13,12 +13,15 @@ class PayrollPosition(Base, TimeStampMixin):
     name: Mapped[str] = mapped_column(String(30))
     description: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))
+    employees: Mapped[List["PayrollEmployee"]] = relationship(
+        "PayrollEmployee", back_populates="position"
+    )
 
-    @property
-    def employees(self):
-        from payroll.employee.models import PayrollEmployee
-        return relationship(PayrollEmployee, back_populates="position")
-    
+    # @property
+    # def employees(self):
+    #     from payroll.employee.models import PayrollEmployee
+    #     return relationship(PayrollEmployee, back_populates="position")
+
     def __repr__(self) -> str:
         return f"Position (name={self.name!r})"
 

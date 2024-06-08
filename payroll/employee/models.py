@@ -4,7 +4,9 @@ from typing import List, Optional
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import ForeignKey, LargeBinary, String
 from payroll.database.core import Base
+from payroll.department.models import PayrollDepartment
 from payroll.models import Pagination, PayrollBase, TimeStampMixin
+from payroll.position.models import PayrollPosition
 
 
 class Gender(str, Enum):
@@ -47,18 +49,12 @@ class PayrollEmployee(Base, TimeStampMixin):
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
-
-    @property
-    def department(self):
-        from payroll.department.models import PayrollDepartment
-
-        return relationship(PayrollDepartment, back_populates="employee")
-
-    @property
-    def position(self):
-        from payroll.position.models import PayrollPosition
-
-        return relationship(PayrollPosition, back_populates="employees")
+    department: Mapped["PayrollDepartment"] = relationship(
+        "PayrollDepartment", back_populates="employees"
+    )
+    position: Mapped["PayrollPosition"] = relationship(
+        "PayrollPosition", back_populates="employees"
+    )
 
     def __repr__(self) -> str:
         return f"Employee (name={self.name!r})"
@@ -121,6 +117,26 @@ class EmployeeUpdate(PayrollBase):
     mst: Optional[str] = None
     department_id: Optional[int] = None
     position_id: Optional[int] = None
+
+
+class EmployeeImport(PayrollBase):
+    code: str = None
+    name: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    gender: Optional[Gender] = None
+    nationality: Optional[Nationality] = None
+    cccd: Optional[str] = None
+    cccd_date: Optional[date] = None
+    cccd_place: Optional[str] = None
+    domicile: Optional[str] = None
+    permanent_addr: Optional[str] = None
+    phone: Optional[str] = None
+    bank_account: Optional[str] = None
+    bank_holder_name: Optional[str] = None
+    bank_name: Optional[str] = None
+    mst: Optional[str] = None
+    department_code: Optional[str] = None
+    position_code: Optional[str] = None
 
 
 class EmployeeCreate(EmployeeBase):

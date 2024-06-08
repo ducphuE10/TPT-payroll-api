@@ -2,15 +2,24 @@ import logging
 from fastapi import File, HTTPException, UploadFile, status
 import pandas as pd
 from io import BytesIO
+from .constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
 
 from pydantic import ValidationError
 
 from payroll.employee.models import (
+    EmployeeImport,
     PayrollEmployee,
     EmployeeRead,
     EmployeeCreate,
     EmployeesRead,
     EmployeeUpdate,
+)
+from payroll.department.service import (
+    get_by_code as get_department_by_code,
+)
+
+from payroll.position.service import (
+    get_by_code as get_position_by_code,
 )
 
 log = logging.getLogger(__name__)
@@ -119,172 +128,145 @@ def delete(*, db_session, id: int) -> EmployeeRead:
     return employee
 
 
-def upsert_employee(db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
+def create_employee_by_xlsx(*, db_session, employee_in: EmployeeImport) -> EmployeeRead:
+    """Creates a new employee."""
+    employee = PayrollEmployee(**employee_in.model_dump())
+    employee_db = get_by_code(db_session=db_session, code=employee.code)
+    if employee_db:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Employee already exists",
+        )
+    if employee_in.department_code:
+        department = get_department_by_code(
+            db_session=db_session, code=employee_in.department_code
+        )
+        employee.department = department
+    if employee_in.position_code:
+        position = get_position_by_code(
+            db_session=db_session, code=employee_in.position_code
+        )
+        employee.position = position
+    db_session.add(employee)
+    db_session.commit()
+    return employee
+
+
+def update_employee_by_xlsx(
+    *, db_session, employee_db: PayrollEmployee, employee_in: EmployeeImport
+) -> EmployeeRead:
+    """Updates a employee with the given data."""
+
+    employee_data = employee_db.dict()
+    update_data = employee_in.model_dump(exclude_unset=True)
+
+    for field in employee_data:
+        if field in update_data:
+            setattr(employee_db, field, update_data[field])
+    if employee_in.department_code:
+        department = get_department_by_code(
+            db_session=db_session, code=employee_in.department_code
+        )
+        employee_db.department = department
+    if employee_in.position_code:
+        position = get_position_by_code(
+            db_session=db_session, code=employee_in.position_code
+        )
+        employee_db.position = position
+
+    db_session.commit()
+    return employee_db
+
+
+def upsert_employee(db_session, employee_in: EmployeeImport) -> PayrollEmployee:
     """Creates or updates an employee based on the code."""
     employee_db = get_by_code(db_session=db_session, code=employee_in.code)
     if employee_db:
         # Convert EmployeeCreate to EmployeeUpdate
-        employee_update = EmployeeUpdate(**employee_in.model_dump(exclude_unset=True))
+        employee_update = EmployeeImport(**employee_in.model_dump(exclude_unset=True))
         # Update existing employee
-        update(db_session=db_session, id=employee_db.id, employee_in=employee_update)
+        update_employee_by_xlsx(
+            db_session=db_session, employee_db=employee_db, employee_in=employee_update
+        )
     else:
         # Create new employee
-        create(db_session=db_session, employee_in=employee_in)
+        create_employee_by_xlsx(db_session=db_session, employee_in=employee_in)
     return employee_db
 
 
 def uploadXLSX(*, db_session, file: UploadFile = File(...)):
-    try:
-        data = BytesIO(file.file.read())
-        _data = pd.read_excel(data)
-        df = pd.DataFrame(
-            _data,
-            columns=[
-                "Code",
-                "Tên",
-                "Ngày sinh",
-                "Giới tính",
-                "Quốc tịch",
-                "Dân tộc",
-                "Tôn giáo",
-                "CCCD",
-                "Ngày cấp CCCD",
-                "Nơi cấp CCCD",
-                "Hộ khẩu thường trú",
-                "Địa chỉ thường trú",
-                "Địa chỉ tạm trú",
-                "Số điện thoại",
-                "Trình độ học vấn",
-                "Số tài khoản",
-                "Tên chủ tài khoản",
-                "Tên ngân hàng",
-                "Mã số thuế",
-                "Số sổ BHXH",
-                "Thông tin bảo hiểm y tế",
-                "Ngày vào làm",
-                "Ghi chú",
-                "ID Phòng ban",
-                "ID Chức vụ",
-                "Email",
-                "CV",
-            ],
-        )
+    data = BytesIO(file.file.read())
+    _data = pd.read_excel(data)
 
-        df.dropna(how="all", inplace=True)
+    df = pd.DataFrame(
+        _data,
+        columns=[
+            "Code",
+            "Tên",
+            "Ngày sinh",
+            "Giới tính",
+            "Quốc tịch",
+            "Dân tộc",
+            "Tôn giáo",
+            "CCCD",
+            "Ngày cấp CCCD",
+            "Nơi cấp CCCD",
+            "Hộ khẩu thường trú",
+            "Địa chỉ thường trú",
+            "Địa chỉ tạm trú",
+            "Số điện thoại",
+            "Trình độ học vấn",
+            "Số tài khoản",
+            "Tên chủ tài khoản",
+            "Tên ngân hàng",
+            "Mã số thuế",
+            "Số sổ BHXH",
+            "Thông tin bảo hiểm y tế",
+            "Ngày vào làm",
+            "Ghi chú",
+            "Mã Phòng ban",
+            "Mã Chức vụ",
+            "Email",
+            "CV",
+        ],
+    )
 
-        # Validate all rows before inserting
-        employees_data = []
-        errors = []
+    # rename columns
+    print({k: v for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
+    df.dropna(subset=["Code"], inplace=True)
+    df = df.rename(columns={v: k for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
+    df = df.astype(DTYPES_MAP)
+    # convert date columns to datetime
+    print(df.head())
+    df["date_of_birth"] = pd.to_datetime(df["date_of_birth"], errors="coerce")
+    df["cccd_date"] = pd.to_datetime(df["cccd_date"], errors="coerce")
+    df["start_work"] = pd.to_datetime(df["start_work"], errors="coerce")
 
-        for index, row in df.iterrows():
-            try:
-                if pd.isna(row["Code"]):
-                    print(f"Skipping row {index + 2} due to NaN in 'Code'")
-                    continue
-                employee_data = {
-                    "code": row["Code"],
-                    "name": row["Tên"],
-                    "date_of_birth": pd.to_datetime(
-                        row["Ngày sinh"], errors="coerce"
-                    ).date()
-                    if pd.notna(row["Ngày sinh"])
-                    else None,
-                    "gender": row["Giới tính"]
-                    if pd.notna(row.get("Giới tính"))
-                    else None,
-                    "nationality": row["Quốc tịch"]
-                    if pd.notna(row.get("Quốc tịch"))
-                    else None,
-                    "ethnic": row["Dân tộc"] if pd.notna(row.get("Dân tộc")) else None,
-                    "religion": row["Tôn giáo"]
-                    if pd.notna(row.get("Tôn giáo"))
-                    else None,
-                    "cccd": str(row["CCCD"]).split(".")[0],
-                    "cccd_date": pd.to_datetime(
-                        row["Ngày cấp CCCD"], errors="coerce"
-                    ).date()
-                    if pd.notna(row["Ngày cấp CCCD"])
-                    else None,
-                    "cccd_place": row["Nơi cấp CCCD"]
-                    if pd.notna(row.get("Nơi cấp CCCD"))
-                    else None,
-                    "domicile": row["Hộ khẩu thường trú"]
-                    if pd.notna(row.get("Hộ khẩu thường trú"))
-                    else None,
-                    "permanent_addr": row.get("Địa chỉ thường trú")
-                    if pd.notna(row.get("Địa chỉ thường trú"))
-                    else None,
-                    "temp_addr": row.get("Địa chỉ tạm trú")
-                    if pd.notna(row.get("Địa chỉ tạm trú"))
-                    else None,
-                    "phone": row["Số điện thoại"]
-                    if pd.notna(row.get("Số điện thoại"))
-                    else None,
-                    "academic_level": row.get("Trình độ học vấn")
-                    if pd.notna(row.get("Trình độ học vấn"))
-                    else None,
-                    "bank_account": str(row["Số tài khoản"]).split(".")[0]
-                    if pd.notna(row.get("Số tài khoản"))
-                    else None,
-                    "bank_holder_name": row["Tên chủ tài khoản"]
-                    if pd.notna(row.get("Tên chủ tài khoản"))
-                    else None,
-                    "bank_name": row["Tên ngân hàng"]
-                    if pd.notna(row.get("Tên ngân hàng"))
-                    else None,
-                    "mst": str(row["Mã số thuế"]).split(".")[0]
-                    if pd.notna(row.get("Mã số thuế"))
-                    else None,
-                    "kcb_number": row.get("Số sổ BHXH")
-                    if pd.notna(row.get("Số sổ BHXH"))
-                    else None,
-                    "hospital_info": row.get("Thông tin bảo hiểm y tế")
-                    if pd.notna(row.get("Thông tin bảo hiểm y tế"))
-                    else None,
-                    "start_work": pd.to_datetime(
-                        row.get("Ngày vào làm"), errors="coerce"
-                    ).date()
-                    if pd.notna(row.get("Ngày vào làm"))
-                    else None,
-                    "note": row.get("Ghi chú")
-                    if pd.notna(row.get("Ghi chú"))
-                    else None,
-                    "department_id": int(row["ID Phòng ban"])
-                    if pd.notna(row["ID Phòng ban"])
-                    else None,
-                    "position_id": int(row["ID Chức vụ"])
-                    if pd.notna(row["ID Chức vụ"])
-                    else None,
-                    "email": row.get("Email") if pd.notna(row.get("Email")) else None,
-                    "cv": row["CV"] if pd.notna(row.get("CV")) else None,
-                }
-                print(f"Employee data: {employee_data.get('position_id')}")
-                employees_data.append(employee_data)
-            except ValidationError as e:
-                errors.append(
-                    {"row": index + 2, "errors": e.errors()}
-                )  # +2 to account for header and 0-indexing
+    # Validate all rows before inserting
+    employees_data = []
+    errors = []
 
-        if errors:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail={"errors": errors},
-            )
+    for index, row in df.iterrows():
+        try:
+            if pd.isna(row["code"]):
+                print(f"Skipping row {index + 2} due to NaN in 'Code'")
+                continue
+            employee_data = row.to_dict()
+            employee = EmployeeImport.model_validate(employee_data)
+            employees_data.append(employee)
+        except ValidationError as e:
+            errors.append(
+                {"row": index + 2, "errors": e.errors()}
+            )  # +2 to account for header and 0-indexing
 
-        # Insert all valid records into the database
-        for employee_data in employees_data:
-            try:
-                employee = EmployeeCreate(**employee_data)
-                upsert_employee(db_session=db_session, employee_in=employee)
-            except ValidationError as e:
-                print(f"Validation error during upsert: {e.errors()}")
-            except Exception as e:
-                print(f"Error during upsert: {str(e)}")
-
-        return {"message": "Employees successfully added from the Excel file"}
-
-    except Exception:
+    if errors:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid file",
+            detail={"errors": errors},
         )
+
+    # Insert all valid records into the database
+    for employee_data in employees_data:
+        upsert_employee(db_session=db_session, employee_in=employee_data)
+
+    return {"message": "Employees successfully added from the Excel file"}
