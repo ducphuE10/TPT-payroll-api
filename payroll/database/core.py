@@ -1,7 +1,7 @@
 from typing import Annotated
 from fastapi import Depends, Request
 from sqlalchemy import create_engine
-from sqlalchemy.orm import DeclarativeBase, Session
+from sqlalchemy.orm import Session, sessionmaker, DeclarativeBase
 from payroll.config import settings
 
 print(settings.SQLALCHEMY_DATABASE_URI)
@@ -20,4 +20,5 @@ def get_db(request: Request):
     return request.state.db
 
 
+SessionLocal = sessionmaker(bind=engine)
 DbSession = Annotated[Session, Depends(get_db)]

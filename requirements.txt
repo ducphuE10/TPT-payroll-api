@@ -1,1 +1,1 @@
-poetrypoetry==1.8.3
+poetry==1.8.3

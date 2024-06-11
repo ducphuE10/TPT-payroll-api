@@ -14,7 +14,7 @@ class Settings(BaseSettings):
     model_config = SettingsConfigDict(
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
-    API_V1_STR: str = "/api/v1"
+    API_VERSION_PREFIX: str
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"

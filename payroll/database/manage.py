@@ -5,10 +5,10 @@ from payroll.config import settings
 from .core import Base
 
 from payroll.auth.models import PayrollUser, Role, UserRegister  # noqa
-from payroll.department.models import PayrollDepartment  # noqa
-from payroll.position.models import PayrollPosition  # noqa
-from payroll.contracttype.models import PayrollContractType  # noqa
-from payroll.employee.models import PayrollEmployee # noqa
+from payroll.models import PayrollDepartment  # noqa
+from payroll.models import PayrollPosition  # noqa
+from payroll.models import PayrollContractType  # noqa
+from payroll.models import PayrollEmployee  # noqa
 from payroll.auth.service import get_or_create
 
 log = logging.getLogger(__file__)

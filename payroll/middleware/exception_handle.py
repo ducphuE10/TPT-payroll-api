@@ -14,13 +14,13 @@ async def application_error_handler(
 ) -> JSONResponse:
     log.error(f"Application error: {exc.code} - {exc.text}")
     return JSONResponse(
-        status_code=500,
+        status_code=exc.http_status,
         content={"error": exc.code, "message": exc.text},
     )
 
 
 async def system_error_handler(request: Request, exc: SystemException) -> JSONResponse:
     return JSONResponse(
-        status_code=400,
+        status_code=exc.http_status,
         content={"error": exc.code, "message": exc.text},
     )

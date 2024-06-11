@@ -37,5 +37,14 @@ def get_user_email(authorization, **kwargs):
 def get_error_message_dict():
     return {
         "SYSTEM_EXCEPTION": {"ERR_SM_99999": "Lỗi hệ thống, vui lòng thử lại sau."},
-        "APP_EXCEPTION": {"ERR_SM_1000": "Lỗi hệ thống, vui lòng thử lại sau."},
+        "APP_EXCEPTION": {
+            "ERR_INVALID_INPUT": "Dữ liệu đầu vào không hợp lệ.",
+            "ERR_RESOURCE_NOT_FOUND": "Không tìm thấy tài nguyên.",
+            "ERR_RESOURCE_CONFLICT": "Xung đột tài nguyên.",
+            "ERR_RESOURCE_ALREADY_EXISTS": "Tài nguyên đã tồn tại.",
+            "ERR_FORBIDDEN_ACTION": "Hành động bị cấm.",
+            "ERR_USER_WITH_EMAIL_ALREADY_EXISTS": "Người dùng với email đã tồn tại.",
+            "ERR_INVALID_USERNAME_OR_PASSWORD": "Tên đăng nhập hoặc mật khẩu không hợp lệ.",
+            "ERR_CANNOT_CREATE_ADMIN_USER": "Không thể tạo người dùng quản trị.",
+        },
     }

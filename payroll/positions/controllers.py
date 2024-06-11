@@ -1,13 +1,19 @@
 from fastapi import APIRouter
 
-from payroll.position.models import (
+from payroll.positions.schemas import (
     PositionRead,
     PositionCreate,
     PositionsRead,
     PositionUpdate,
 )
 from payroll.database.core import DbSession
-from payroll.position.service import get_by_id, delete, get, create, update
+from payroll.positions.repositories import (
+    get_all,
+    get_one_by_id,
+    create,
+    update,
+    delete,
+)
 
 position_router = APIRouter()
 
@@ -17,12 +23,12 @@ def retrieve_positions(
     *,
     db_session: DbSession,
 ):
-    return get(db_session=db_session)
+    return get_all(db_session=db_session)
 
 
 @position_router.get("/{id}", response_model=PositionRead)
 def retrieve_position(*, db_session: DbSession, id: int):
-    return get_by_id(db_session=db_session, id=id)
+    return get_one_by_id(db_session=db_session, id=id)
 
 
 @position_router.post("", response_model=PositionRead)
