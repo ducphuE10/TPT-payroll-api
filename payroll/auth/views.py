@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter
 
 from payroll.auth.models import (
     Role,
@@ -11,12 +11,9 @@ from payroll.auth.models import (
 )
 from payroll.auth.service import CurrentUser, create, get_by_email
 from payroll.database.core import DbSession
+from payroll.exception.app_exception import AppException
+from payroll.exception.error_message import ErrorMessages
 
-from payroll.exceptions import (
-    ForbiddenError,
-    InvalidConfigurationError,
-    UnauthorizedError,
-)
 
 auth_router = APIRouter()
 user_router = APIRouter()
@@ -33,17 +30,11 @@ def create_user(
 ):
     """Creates a new user."""
     if current_user.role != Role.ADMIN:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=[
-                {
-                    "msg": "You don't have permissions to create a new user. Please, contract the administrator."
-                }
-            ],
-        )
+        raise AppException(ErrorMessages.ForbiddenAction())
+
     user = get_by_email(db_session=db_session, email=user_in.email)
     if user:
-        raise InvalidConfigurationError(msg="User with this email already exists.")
+        raise AppException(ErrorMessages.UserWithEmailAlreadyExists())
     user = create(db_session=db_session, user_in=user_in)
     return user
 
@@ -65,7 +56,7 @@ def login_user(
     user = get_by_email(db_session=db_session, email=user_in.email)
     if user and user.check_password(user_in.password):
         return {"token": user.token}
-    raise UnauthorizedError(msg="Invalid username or password.")
+    raise AppException(ErrorMessages.InvalidUsernameOrPassword())
 
 
 @auth_router.post("/register", response_model=UserRegisterResponse)
@@ -75,8 +66,8 @@ def register_user(
 ):
     user = get_by_email(db_session=db_session, email=user_in.email)
     if user:
-        raise InvalidConfigurationError(msg="User with this email already exists.")
+        raise AppException(ErrorMessages.UserWithEmailAlreadyExists())
     if user_in.role == Role.ADMIN:
-        raise ForbiddenError(msg="You can't create an admin user.")
+        raise AppException(ErrorMessages.CannotCreateAdminUser())
     user = create(db_session=db_session, user_in=user_in)
     return user

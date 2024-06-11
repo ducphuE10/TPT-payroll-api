@@ -32,11 +32,9 @@ def database_init():
 
 def entrypoint():
     """The entry that the CLI is executed from"""
-    from .exceptions import PayrollException
-
     try:
         payroll_cli()
-    except PayrollException as e:
+    except Exception as e:
         click.secho(f"ERROR: {e}", bold=True, fg="red")
 
 

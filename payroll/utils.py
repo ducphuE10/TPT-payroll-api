@@ -32,3 +32,10 @@ def get_user_email(authorization, **kwargs):
             detail=[{"msg": "Could not validate credentials"}],
         ) from None
     return data["email"]
+
+
+def get_error_message_dict():
+    return {
+        "SYSTEM_EXCEPTION": {"ERR_SM_99999": "Lỗi hệ thống, vui lòng thử lại sau."},
+        "APP_EXCEPTION": {"ERR_SM_1000": "Lỗi hệ thống, vui lòng thử lại sau."},
+    }
