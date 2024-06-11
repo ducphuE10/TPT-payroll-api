@@ -1,3 +1,4 @@
+import os
 import traceback
 from fastapi.responses import JSONResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -15,9 +16,14 @@ import logging
 log = logging.getLogger(__name__)
 configure_logging()
 
-app = FastAPI(prefix="/api/v1", title="Payroll API", version="0.1.0")
+api_version_prefix = os.getenv("API_VERSION_PREFIX", "/api/v1")
+api_version = os.getenv("API_VERSION", "0.1.0")
 
-origins = ["*"]
+app = FastAPI(prefix=api_version_prefix, title="Payroll API", version=api_version)
+
+
+origins = os.getenv("CORS_ALLOWED_ORIGINS", "*").split(",")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,

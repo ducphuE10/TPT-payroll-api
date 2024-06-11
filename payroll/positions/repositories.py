@@ -1,7 +1,7 @@
 import logging
 from fastapi import HTTPException, status
-from payroll.position.models import (
-    PayrollPosition,
+from payroll.models import PayrollPosition
+from payroll.positions.schemas import (
     PositionRead,
     PositionCreate,
     PositionsRead,
@@ -24,7 +24,7 @@ def get_position_by_id(*, db_session, id: int) -> PositionRead:
     return position
 
 
-def get_by_code(*, db_session, code: str) -> PositionRead:
+def get_position_by_code(*, db_session, code: str) -> PositionRead:
     """Returns a position based on the given code."""
     position = (
         db_session.query(PayrollPosition).filter(PayrollPosition.code == code).first()
@@ -32,13 +32,13 @@ def get_by_code(*, db_session, code: str) -> PositionRead:
     return position
 
 
-def get(*, db_session) -> PositionsRead:
+def get_all(*, db_session) -> PositionsRead:
     """Returns all positions."""
     data = db_session.query(PayrollPosition).all()
     return PositionsRead(data=data)
 
 
-def get_by_id(*, db_session, id: int) -> PositionRead:
+def get_one_by_id(*, db_session, id: int) -> PositionRead:
     """Returns a position based on the given id."""
     position = get_position_by_id(db_session=db_session, id=id)
 
@@ -53,7 +53,7 @@ def get_by_id(*, db_session, id: int) -> PositionRead:
 def create(*, db_session, position_in: PositionCreate) -> PositionRead:
     """Creates a new position."""
     position = PayrollPosition(**position_in.model_dump())
-    position_db = get_by_code(db_session=db_session, code=position.code)
+    position_db = get_position_by_code(db_session=db_session, code=position.code)
     if position_db:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -76,19 +76,6 @@ def update(*, db_session, id: int, position_in: PositionUpdate) -> PositionRead:
 
     update_data = position_in.model_dump(exclude_unset=True)
 
-    existing_position = (
-        db_session.query(PayrollPosition)
-        .filter(
-            PayrollPosition.code == update_data.get("code"), PayrollPosition.id != id
-        )
-        .first()
-    )
-
-    if existing_position:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Position name already exists",
-        )
     db_session.query(PayrollPosition).filter(PayrollPosition.id == id).update(
         update_data, synchronize_session=False
     )

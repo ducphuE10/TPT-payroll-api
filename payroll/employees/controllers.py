@@ -1,13 +1,19 @@
 from fastapi import APIRouter, File, Form, UploadFile
 
-from payroll.employee.models import (
+from payroll.employees.schemas import (
     EmployeeRead,
     EmployeeCreate,
     EmployeesRead,
     EmployeeUpdate,
 )
 from payroll.database.core import DbSession
-from payroll.employee.service import get_by_id, get, create, update, uploadXLSX
+from payroll.employees.repositories import (
+    get_all,
+    get_employee_by_id,
+    create,
+    update,
+)
+from payroll.employees.services import uploadXLSX
 
 employee_router = APIRouter()
 
@@ -17,12 +23,12 @@ def retrieve_employees(
     *,
     db_session: DbSession,
 ):
-    return get(db_session=db_session)
+    return get_all(db_session=db_session)
 
 
 @employee_router.get("/{id}", response_model=EmployeeRead)
 def retrieve_employee(*, db_session: DbSession, id: int):
-    return get_by_id(db_session=db_session, id=id)
+    return get_employee_by_id(db_session=db_session, id=id)
 
 
 @employee_router.post("", response_model=EmployeeRead)

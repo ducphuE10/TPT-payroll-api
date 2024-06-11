@@ -1,12 +1,13 @@
 import logging
 from fastapi import HTTPException, status
-from payroll.department.models import (
-    PayrollDepartment,
+
+from payroll.departments.schemas import (
     DepartmentRead,
     DepartmentCreate,
     DepartmentsRead,
     DepartmentUpdate,
 )
+from payroll.models import PayrollDepartment
 
 log = logging.getLogger(__name__)
 
@@ -24,7 +25,7 @@ def get_department_by_id(*, db_session, id: int) -> DepartmentRead:
     return department
 
 
-def get_by_code(*, db_session, code: str) -> DepartmentRead:
+def get_department_by_code(*, db_session, code: str) -> DepartmentRead:
     """Returns a department based on the given code."""
     department = (
         db_session.query(PayrollDepartment)
@@ -34,13 +35,13 @@ def get_by_code(*, db_session, code: str) -> DepartmentRead:
     return department
 
 
-def get(*, db_session) -> DepartmentsRead:
+def get_all(*, db_session) -> DepartmentsRead:
     """Returns all departments."""
     data = db_session.query(PayrollDepartment).all()
     return DepartmentsRead(data=data)
 
 
-def get_by_id(*, db_session, id: int) -> DepartmentRead:
+def get_one_by_id(*, db_session, id: int) -> DepartmentRead:
     """Returns a department based on the given id."""
     department = get_department_by_id(db_session=db_session, id=id)
 
@@ -55,7 +56,7 @@ def get_by_id(*, db_session, id: int) -> DepartmentRead:
 def create(*, db_session, department_in: DepartmentCreate) -> DepartmentRead:
     """Creates a new department."""
     department = PayrollDepartment(**department_in.model_dump())
-    department_db = get_by_code(db_session=db_session, code=department.code)
+    department_db = get_department_by_code(db_session=db_session, code=department.code)
     if department_db:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -78,20 +79,6 @@ def update(*, db_session, id: int, department_in: DepartmentUpdate) -> Departmen
 
     update_data = department_in.model_dump(exclude_unset=True)
 
-    existing_department = (
-        db_session.query(PayrollDepartment)
-        .filter(
-            PayrollDepartment.code == update_data.get("code"),
-            PayrollDepartment.id != id,
-        )
-        .first()
-    )
-
-    if existing_department:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Department name already exists",
-        )
     db_session.query(PayrollDepartment).filter(PayrollDepartment.id == id).update(
         update_data, synchronize_session=False
     )

@@ -5,8 +5,8 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy.exc import IntegrityError
 from payroll.auth.models import PayrollUser, UserCreate, UserRegister
 from payroll.config import settings
-from payroll.utils import get_user_email
-from payroll.utils import TokenDep
+from payroll.utils_functions import get_user_email
+from payroll.utils_functions import TokenDep
 
 
 log = logging.getLogger(__name__)

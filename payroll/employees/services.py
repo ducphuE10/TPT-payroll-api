@@ -2,24 +2,22 @@ import logging
 from fastapi import File, HTTPException, UploadFile, status
 import pandas as pd
 from io import BytesIO
+
+from payroll.employees.repositories import get_employee_by_code
+from payroll.models import PayrollEmployee
 from .constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
 
 from pydantic import ValidationError
 
-from payroll.employee.models import (
+from payroll.employees.schemas import (
     EmployeeImport,
-    PayrollEmployee,
-    EmployeeRead,
-    EmployeeCreate,
-    EmployeesRead,
-    EmployeeUpdate,
 )
-from payroll.department.service import (
-    get_by_code as get_department_by_code,
+from payroll.departments.repositories import (
+    get_department_by_code,
 )
 
-from payroll.position.service import (
-    get_by_code as get_position_by_code,
+from payroll.positions.repositories import (
+    get_position_by_code,
 )
 
 log = logging.getLogger(__name__)
@@ -30,104 +28,6 @@ InvalidCredentialException = HTTPException(
 )
 
 
-def get_employee_by_id(*, db_session, id: int) -> PayrollEmployee:
-    """Returns a employee based on the given id."""
-    employee = (
-        db_session.query(PayrollEmployee).filter(PayrollEmployee.id == id).first()
-    )
-    return employee
-
-
-def get_by_code(*, db_session, code: str) -> PayrollEmployee:
-    """Returns a employee based on the given code."""
-    employee = (
-        db_session.query(PayrollEmployee).filter(PayrollEmployee.code == code).first()
-    )
-    return employee
-
-
-def get(*, db_session) -> EmployeesRead:
-    """Returns all employees."""
-    data = db_session.query(PayrollEmployee).all()
-    return EmployeesRead(data=data)
-
-
-def get_by_id(*, db_session, id: int) -> PayrollEmployee:
-    """Returns a employee based on the given id."""
-    employee = get_employee_by_id(db_session=db_session, id=id)
-
-    if not employee:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Employee not found",
-        )
-    return employee
-
-
-def create(*, db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
-    """Creates a new employee."""
-    employee = PayrollEmployee(**employee_in.model_dump())
-    employee_db = get_by_code(db_session=db_session, code=employee.code)
-    if employee_db:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Employee already exists",
-        )
-    db_session.add(employee)
-    db_session.commit()
-    return employee
-
-
-def update(*, db_session, id: int, employee_in: EmployeeUpdate) -> PayrollEmployee:
-    """Updates a employee with the given data."""
-    employee_db = get_employee_by_id(db_session=db_session, id=id)
-
-    if not employee_db:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Employee not found",
-        )
-
-    update_data = employee_in.model_dump(exclude_unset=True)
-
-    existing_employee = (
-        db_session.query(PayrollEmployee)
-        .filter(
-            PayrollEmployee.code == update_data.get("code"), PayrollEmployee.id != id
-        )
-        .first()
-    )
-
-    if existing_employee:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Employee name already exists",
-        )
-    db_session.query(PayrollEmployee).filter(PayrollEmployee.id == id).update(
-        update_data, synchronize_session=False
-    )
-
-    db_session.commit()
-    return employee_db
-
-
-def delete(*, db_session, id: int) -> PayrollEmployee:
-    """Deletes a employee based on the given id."""
-    query = db_session.query(PayrollEmployee).filter(PayrollEmployee.id == id)
-    employee = query.first()
-
-    if not employee:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Employee not found",
-        )
-
-    db_session.query(PayrollEmployee).filter(PayrollEmployee.id == id).delete()
-
-    db_session.commit()
-    return employee
-
-
 def create_employee_by_xlsx(
     *, db_session, employee_in: EmployeeImport
 ) -> PayrollEmployee:
@@ -135,7 +35,7 @@ def create_employee_by_xlsx(
     employee = PayrollEmployee(
         **employee_in.model_dump(exclude={"department_code", "position_code"})
     )
-    employee_db = get_by_code(db_session=db_session, code=employee.code)
+    employee_db = get_employee_by_code(db_session=db_session, code=employee.code)
     if employee_db:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -186,7 +86,7 @@ def upsert_employee(
     db_session, employee_in: EmployeeImport, update_on_exists: bool
 ) -> PayrollEmployee:
     """Creates or updates an employee based on the code."""
-    employee_db = get_by_code(db_session=db_session, code=employee_in.code)
+    employee_db = get_employee_by_code(db_session=db_session, code=employee_in.code)
     if employee_db:
         if not update_on_exists:
             return employee_db
