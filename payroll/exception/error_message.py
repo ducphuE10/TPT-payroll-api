@@ -59,3 +59,8 @@ class ErrorMessages:
         code = "ERR_CANNOT_CREATE_ADMIN_USER"
         text = json_data["APP_EXCEPTION"][code]
         http_status = status.HTTP_403_FORBIDDEN
+
+    class ExistDependEmployee(BaseMessage):
+        code = "ERR_EXIST_DEPEND_EMPLOYEE"
+        text = json_data["APP_EXCEPTION"][code]
+        http_status = status.HTTP_400_BAD_REQUEST

@@ -86,7 +86,7 @@ def delete(*, db_session, id: int) -> PayrollDepartment:
         raise AppException(ErrorMessages.ResourceNotFound())
     
     if check_depend_employee(db_session=db_session, department_id=department.id):
-            raise AppException("Cannot delete department because employees are associated with this department.")
+        raise AppException(ErrorMessages.ExistDependEmployee())
         
     db_session.query(PayrollDepartment).filter(PayrollDepartment.id == id).delete()
 

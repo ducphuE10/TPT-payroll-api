@@ -45,12 +45,15 @@ def get_error_message_dict():
             "ERR_USER_WITH_EMAIL_ALREADY_EXISTS": "Người dùng với email đã tồn tại.",
             "ERR_INVALID_USERNAME_OR_PASSWORD": "Tên đăng nhập hoặc mật khẩu không hợp lệ.",
             "ERR_CANNOT_CREATE_ADMIN_USER": "Không thể tạo người dùng quản trị.",
+            "ERR_EXIST_DEPEND_EMPLOYEE": "Không thể xóa do tồn tại các nhân viên liên quan",
         },
     }
 
 def check_depend_employee(db_session: Session, *, department_id: int = None, position_id: int = None) -> bool:
     if department_id is not None:
+        print("ddddddddddddddd", db_session.query(PayrollEmployee).filter(PayrollEmployee.department_id == department_id).count())
         return db_session.query(PayrollEmployee).filter(PayrollEmployee.department_id == department_id).count() > 0
     if position_id is not None:
+        print("ccccccccccccccc", db_session.query(PayrollEmployee).filter(PayrollEmployee.position_id == position_id).count())
         return db_session.query(PayrollEmployee).filter(PayrollEmployee.position_id == position_id).count() > 0
     return False
