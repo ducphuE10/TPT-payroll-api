@@ -12,6 +12,7 @@ from payroll.employees.repositories import (
     get_employee_by_id,
     create,
     update,
+    delete
 )
 from payroll.employees.services import uploadXLSX
 
@@ -41,6 +42,10 @@ def create_employee(*, employee_in: EmployeeCreate, db_session: DbSession):
 @employee_router.put("/{id}", response_model=EmployeeRead)
 def update_employee(*, db_session: DbSession, id: int, employee_in: EmployeeUpdate):
     return update(db_session=db_session, id=id, employee_in=employee_in)
+
+@employee_router.delete("/{id}", response_model=EmployeeRead)
+def delete_employee(*, db_session: DbSession, id: int):
+    return delete(db_session=db_session, id=id)
 
 
 @employee_router.post("/import-excel")
