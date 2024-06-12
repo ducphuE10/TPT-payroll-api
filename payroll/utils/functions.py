@@ -6,6 +6,8 @@ from payroll.config import settings
 import logging
 from typing import Annotated
 from fastapi.security import APIKeyHeader
+from payroll.models import PayrollEmployee
+from sqlalchemy.orm import Session
 
 logger = logging.getLogger(__name__)
 
@@ -45,3 +47,10 @@ def get_error_message_dict():
             "ERR_CANNOT_CREATE_ADMIN_USER": "Không thể tạo người dùng quản trị.",
         },
     }
+
+def check_depend_employee(db_session: Session, *, department_id: int = None, position_id: int = None) -> bool:
+    if department_id is not None:
+        return db_session.query(PayrollEmployee).filter(PayrollEmployee.department_id == department_id).count() > 0
+    if position_id is not None:
+        return db_session.query(PayrollEmployee).filter(PayrollEmployee.position_id == position_id).count() > 0
+    return False

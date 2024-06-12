@@ -8,6 +8,7 @@ from payroll.positions.schemas import (
     PositionsRead,
     PositionUpdate,
 )
+from payroll.utils.functions import check_depend_employee
 
 log = logging.getLogger(__name__)
 
@@ -79,6 +80,9 @@ def delete(*, db_session, id: int) -> PayrollPosition:
     if not position:
         raise AppException(ErrorMessages.ResourceNotFound())
 
+    if check_depend_employee(db_session=db_session, position_id=position.id):
+        raise AppException("Cannot delete position because employees are associated with this position.")
+    
     db_session.query(PayrollPosition).filter(PayrollPosition.id == id).delete()
 
     db_session.commit()

@@ -9,6 +9,7 @@ from payroll.departments.schemas import (
 from payroll.exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollDepartment
+from payroll.utils.functions import check_depend_employee
 
 log = logging.getLogger(__name__)
 
@@ -83,7 +84,10 @@ def delete(*, db_session, id: int) -> PayrollDepartment:
 
     if not department:
         raise AppException(ErrorMessages.ResourceNotFound())
-
+    
+    if check_depend_employee(db_session=db_session, department_id=department.id):
+            raise AppException("Cannot delete department because employees are associated with this department.")
+        
     db_session.query(PayrollDepartment).filter(PayrollDepartment.id == id).delete()
 
     db_session.commit()
