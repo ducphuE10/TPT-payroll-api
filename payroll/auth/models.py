@@ -10,7 +10,7 @@ from jose import jwt
 
 from payroll.config import settings
 from payroll.database.core import Base
-from payroll.utils_models import Pagination, PayrollBase, TimeStampMixin
+from payroll.utils.models import Pagination, PayrollBase, TimeStampMixin
 from pydantic import field_validator
 from pydantic.networks import EmailStr
 from sqlalchemy import LargeBinary, String

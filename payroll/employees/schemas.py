@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import List, Optional
-from payroll.utils_models import Gender, Nationality, Pagination, PayrollBase
+from payroll.utils.models import Gender, Nationality, Pagination, PayrollBase
 
 
 class EmployeeBase(PayrollBase):

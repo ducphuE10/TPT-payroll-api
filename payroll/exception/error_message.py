@@ -1,5 +1,5 @@
 from fastapi import status
-from payroll.utils_functions import get_error_message_dict
+from payroll.utils.functions import get_error_message_dict
 
 json_data = get_error_message_dict()
 

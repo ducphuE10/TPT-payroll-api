@@ -1,20 +1,16 @@
 import logging
 from typing import Annotated, Optional
 
-from fastapi import Depends, HTTPException, Request, status
+from fastapi import Depends, Request
 from sqlalchemy.exc import IntegrityError
 from payroll.auth.models import PayrollUser, UserCreate, UserRegister
 from payroll.config import settings
-from payroll.utils_functions import get_user_email
-from payroll.utils_functions import TokenDep
-
+from payroll.exception.error_message import ErrorMessages
+from payroll.utils.functions import get_user_email
+from payroll.utils.functions import TokenDep
+from payroll.exception import AppException
 
 log = logging.getLogger(__name__)
-
-InvalidCredentialException = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail=[{"msg": "Could not validate credentials"}],
-)
 
 
 def get(*, db_session, user_id: int) -> Optional[PayrollUser]:
@@ -60,7 +56,7 @@ def get_current_user(request: Request, authorization: TokenDep) -> PayrollUser:
         log.exception(
             f"Unable to determine user email based on configured auth provider or no default auth user email defined. Provider: {settings.AUTHENTICATION_PROVIDER_SLUG}"
         )
-        raise InvalidCredentialException
+        raise AppException(ErrorMessages.InvalidUsernameOrPassword())
     return get_by_email(
         db_session=request.state.db,
         email=user_email,

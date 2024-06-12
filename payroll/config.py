@@ -15,6 +15,7 @@ class Settings(BaseSettings):
         env_file=".env", env_ignore_empty=True, extra="ignore"
     )
     API_VERSION_PREFIX: str
+    API_VERSION: str
     LOG_LEVEL: str = "INFO"
     LOG_FORMAT: str = "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     ENVIRONMENT: Literal["local", "staging", "production"] = "local"
@@ -29,6 +30,12 @@ class Settings(BaseSettings):
     AUTHENTICATION_PROVIDER_SLUG: str = "auth-provider-basic"
     SUPERUSER: str
     SUPERUSER_PASSWORD: str
+    CORS_ALLOWED_ORIGINS: str = "*"
+
+    @computed_field
+    @property
+    def CORS_ALLOWED_ORIGINS_LIST(self) -> list[str]:
+        return self.CORS_ALLOWED_ORIGINS.split(",")
 
     @computed_field  # type: ignore[misc]
     @property

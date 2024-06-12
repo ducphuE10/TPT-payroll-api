@@ -1,4 +1,3 @@
-import os
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request
 from payroll.database.core import engine, sessionmaker
@@ -7,6 +6,7 @@ from payroll.middleware.exception_handle import (
     application_error_handler,
     system_error_handler,
 )
+from payroll.config import settings
 from .logging import configure_logging
 from .api import api_router, router
 import logging
@@ -14,16 +14,13 @@ import logging
 log = logging.getLogger(__name__)
 configure_logging()
 
-api_version = os.getenv("API_VERSION", "0.1.0")
 
-app = FastAPI(title="Payroll API", version=api_version)
+app = FastAPI(title="Payroll API", version=settings.API_VERSION)
 
-
-origins = os.getenv("CORS_ALLOWED_ORIGINS", "*").split(",")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=settings.CORS_ALLOWED_ORIGINS_LIST,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

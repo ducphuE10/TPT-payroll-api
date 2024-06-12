@@ -5,7 +5,7 @@ from sqlalchemy import ForeignKey, String, LargeBinary
 from sqlalchemy.orm import relationship
 
 from payroll.database.core import Base
-from payroll.utils_models import (
+from payroll.utils.models import (
     Gender,
     InsurancePolicy,
     Nationality,

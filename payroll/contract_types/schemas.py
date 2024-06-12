@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import List, Optional
 
-from payroll.utils_models import InsurancePolicy, TaxPolicy
-from payroll.utils_models import Pagination, PayrollBase
+from payroll.utils.models import InsurancePolicy, TaxPolicy
+from payroll.utils.models import Pagination, PayrollBase
 
 
 class ContractTypeBase(PayrollBase):

@@ -11,7 +11,7 @@ from payroll.models import PayrollContractType  # noqa
 from payroll.models import PayrollEmployee  # noqa
 from payroll.auth.service import get_or_create
 
-log = logging.getLogger(__file__)
+log = logging.getLogger(__name__)
 
 
 def init_database(engine):

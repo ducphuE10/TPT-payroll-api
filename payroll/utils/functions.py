@@ -1,4 +1,4 @@
-from fastapi import HTTPException, status, Depends
+from fastapi import Depends
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
 from jose.exceptions import JWKError
@@ -27,10 +27,7 @@ def get_user_email(authorization, **kwargs):
     try:
         data = jwt.decode(token, settings.SECRET_KEY.get_secret_value())
     except (JWKError, JWTError):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=[{"msg": "Could not validate credentials"}],
-        ) from None
+        raise Exception("Invalid token")
     return data["email"]
 
 
