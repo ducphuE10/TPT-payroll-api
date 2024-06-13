@@ -34,7 +34,6 @@ def retrieve_position(*, db_session: DbSession, id: int):
 @position_router.post("", response_model=PositionRead)
 def create_position(*, position_in: PositionCreate, db_session: DbSession):
     """Creates a new user."""
-    position_in.created_by = "admin"
     position = create(db_session=db_session, position_in=position_in)
     return position
 

@@ -9,10 +9,10 @@ from payroll.employees.schemas import (
 from payroll.database.core import DbSession
 from payroll.employees.repositories import (
     get_all,
-    get_employee_by_id,
+    get_one_by_id,
     create,
     update,
-    delete
+    delete,
 )
 from payroll.employees.services import uploadXLSX
 
@@ -29,7 +29,7 @@ def retrieve_employees(
 
 @employee_router.get("/{id}", response_model=EmployeeRead)
 def retrieve_employee(*, db_session: DbSession, id: int):
-    return get_employee_by_id(db_session=db_session, id=id)
+    return get_one_by_id(db_session=db_session, id=id)
 
 
 @employee_router.post("", response_model=EmployeeRead)
@@ -42,6 +42,7 @@ def create_employee(*, employee_in: EmployeeCreate, db_session: DbSession):
 @employee_router.put("/{id}", response_model=EmployeeRead)
 def update_employee(*, db_session: DbSession, id: int, employee_in: EmployeeUpdate):
     return update(db_session=db_session, id=id, employee_in=employee_in)
+
 
 @employee_router.delete("/{id}", response_model=EmployeeRead)
 def delete_employee(*, db_session: DbSession, id: int):

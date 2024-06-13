@@ -8,7 +8,6 @@ class PositionBase(PayrollBase):
     code: str  # required
     name: str  # required
     description: Optional[str] = None
-    created_by: str
 
 
 class PositionRead(PositionBase):
@@ -26,7 +25,7 @@ class PositionUpdate(PositionBase):
 
 
 class PositionCreate(PositionBase):
-    created_by: Optional[str] = None
+    pass
 
 
 class PositionPagination(Pagination):
