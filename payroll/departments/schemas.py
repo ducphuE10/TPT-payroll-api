@@ -5,10 +5,10 @@ from payroll.utils.models import Pagination, PayrollBase
 
 
 class DepartmentBase(PayrollBase):
-    code: str
-    name: str
+    code: str  # required
+    name: str  # required
     description: Optional[str] = None
-    created_by: str
+    created_by: str  # required
 
 
 class DepartmentRead(DepartmentBase):

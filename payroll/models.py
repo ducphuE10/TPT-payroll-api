@@ -16,18 +16,17 @@ from payroll.utils.models import (
 
 class PayrollContractType(Base, TimeStampMixin):
     __tablename__ = "contracttypes"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    code: Mapped[str] = mapped_column(String(10), unique=True)
-    name: Mapped[str] = mapped_column(String(30))
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    number_of_months: Mapped[int] = mapped_column()
+    number_of_months: Mapped[int] = mapped_column()  # required
     note: Mapped[Optional[str]] = mapped_column(String(255))
-    created_by: Mapped[str] = mapped_column(String(30))
-    is_probation: Mapped[bool] = mapped_column()
-    tax_policy: Mapped[TaxPolicy]
-    insurance_policy: Mapped[InsurancePolicy]
+    is_probation: Mapped[bool] = mapped_column()  # required
+    tax_policy: Mapped[TaxPolicy]  # required
+    insurance_policy: Mapped[InsurancePolicy]  # required
     template: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
-    created_by: Mapped[str] = mapped_column(String(30))
+    created_by: Mapped[str] = mapped_column(String(30))  # required
 
     def __repr__(self) -> str:
         return f"ContractType (name={self.name!r})"
@@ -35,11 +34,11 @@ class PayrollContractType(Base, TimeStampMixin):
 
 class PayrollDepartment(Base, TimeStampMixin):
     __tablename__ = "departments"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    code: Mapped[str] = mapped_column(String(10), unique=True)
-    name: Mapped[str] = mapped_column(String(30))
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    created_by: Mapped[str] = mapped_column(String(30))
+    created_by: Mapped[str] = mapped_column(String(30))  # required
     employees: Mapped[List["PayrollEmployee"]] = relationship(
         "PayrollEmployee", back_populates="department"
     )
@@ -50,11 +49,10 @@ class PayrollDepartment(Base, TimeStampMixin):
 
 class PayrollPosition(Base, TimeStampMixin):
     __tablename__ = "positions"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    code: Mapped[str] = mapped_column(String(10), unique=True)
-    name: Mapped[str] = mapped_column(String(30))
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    created_by: Mapped[str] = mapped_column(String(30))
     employees: Mapped[List["PayrollEmployee"]] = relationship(
         "PayrollEmployee", back_populates="position"
     )
@@ -65,15 +63,15 @@ class PayrollPosition(Base, TimeStampMixin):
 
 class PayrollEmployee(Base, TimeStampMixin):
     __tablename__ = "employees"
-    id: Mapped[int] = mapped_column(primary_key=True)
-    code: Mapped[str] = mapped_column(String(10), unique=True)
-    name: Mapped[str] = mapped_column(String(30))
-    date_of_birth: Mapped[Optional[date]]
-    gender: Mapped[Gender]
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
+    date_of_birth: Mapped[date]  # required
+    gender: Mapped[Gender]  # required
     nationality: Mapped[Optional[Nationality]]
     ethnic: Mapped[Optional[str]] = mapped_column(String(10))
     religion: Mapped[Optional[str]] = mapped_column(String(30))
-    cccd: Mapped[Optional[str]] = mapped_column(String(30))
+    cccd: Mapped[str] = mapped_column(String(30), unique=True)  # required
     cccd_date: Mapped[Optional[date]]
     cccd_place: Mapped[Optional[str]] = mapped_column(String(255))
     domicile: Mapped[Optional[str]] = mapped_column(String(255))
@@ -84,13 +82,13 @@ class PayrollEmployee(Base, TimeStampMixin):
     bank_account: Mapped[Optional[str]] = mapped_column(String(30))
     bank_holder_name: Mapped[Optional[str]] = mapped_column(String(30))
     bank_name: Mapped[Optional[str]] = mapped_column(String(30))
-    mst: Mapped[str] = mapped_column(String(30))
+    mst: Mapped[str] = mapped_column(String(30), unique=True)  # required
     kcb_number: Mapped[Optional[str]] = mapped_column(String(30))
     hospital_info: Mapped[Optional[str]] = mapped_column(String(255))
     start_work: Mapped[Optional[date]]
     note: Mapped[Optional[str]] = mapped_column(String(255))
-    department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))
-    position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))
+    department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
+    position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
     department: Mapped["PayrollDepartment"] = relationship(

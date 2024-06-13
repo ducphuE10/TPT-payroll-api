@@ -6,16 +6,16 @@ from payroll.utils.models import Pagination, PayrollBase
 
 
 class ContractTypeBase(PayrollBase):
-    code: str
-    name: str
-    description: str
-    number_of_months: int
+    code: str  # required
+    name: str  # required
+    description: Optional[str] = None
+    number_of_months: int  # required
     note: Optional[str] = None
-    created_by: str
-    is_probation: bool
-    tax_policy: TaxPolicy
-    insurance_policy: InsurancePolicy
+    is_probation: bool  # required
+    tax_policy: TaxPolicy  # required
+    insurance_policy: InsurancePolicy  # required
     template: bytes
+    created_by: str  # required
 
 
 class ContractTypeRead(ContractTypeBase):

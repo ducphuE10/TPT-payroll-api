@@ -5,8 +5,8 @@ from payroll.utils.models import Pagination, PayrollBase
 
 
 class PositionBase(PayrollBase):
-    code: str
-    name: str
+    code: str  # required
+    name: str  # required
     description: Optional[str] = None
     created_by: str
 
