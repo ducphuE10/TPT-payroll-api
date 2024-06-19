@@ -1,5 +1,7 @@
 from fastapi import APIRouter, File, Form, UploadFile
 
+from payroll.attendances.repositories import get_employee_attendances
+from payroll.attendances.schemas import AttendancesRead
 from payroll.employees.schemas import (
     EmployeeRead,
     EmployeeCreate,
@@ -30,6 +32,11 @@ def retrieve_employees(
 @employee_router.get("/{id}", response_model=EmployeeRead)
 def retrieve_employee(*, db_session: DbSession, id: int):
     return get_one_by_id(db_session=db_session, id=id)
+
+
+@employee_router.get("/{id}/attendances", response_model=AttendancesRead)
+def retrieve_employee_attendances(*, db_session: DbSession, id: int):
+    return get_employee_attendances(db_session=db_session, id=id)
 
 
 @employee_router.post("", response_model=EmployeeRead)

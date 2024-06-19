@@ -1,7 +1,13 @@
 from datetime import date
 from typing import List, Optional
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, String, LargeBinary
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    String,
+    LargeBinary,
+    UniqueConstraint,
+)
 from sqlalchemy.orm import relationship
 
 from payroll.database.core import Base
@@ -91,6 +97,10 @@ class PayrollEmployee(Base, TimeStampMixin):
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
+
+    attendances: Mapped[List["PayrollAttendance"]] = relationship(
+        "PayrollAttendance", back_populates="employee"
+    )
     department: Mapped["PayrollDepartment"] = relationship(
         "PayrollDepartment", back_populates="employees"
     )
@@ -100,3 +110,32 @@ class PayrollEmployee(Base, TimeStampMixin):
 
     def __repr__(self) -> str:
         return f"Employee (name={self.name!r})"
+
+
+class PayrollAttendance(Base, TimeStampMixin):
+    __tablename__ = "attendances"
+    __table_args__ = (
+        CheckConstraint("work_hours >= 0", name="check_work_hours_non_negative"),
+        CheckConstraint("overtime >= 0", name="check_overtime_non_negative"),
+        CheckConstraint("holiday >= 0", name="check_holiday_non_negative"),
+        CheckConstraint("afm >= 0", name="check_afm_non_negative"),
+        CheckConstraint("wait4work >= 0", name="check_wait4work_non_negative"),
+        UniqueConstraint("employee_name", "day_attendance", name="uix_employee_day"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    employee_name: Mapped[str] = mapped_column(String(30))  # required
+    work_hours: Mapped[Optional[float]]
+    overtime: Mapped[Optional[float]]
+    holiday: Mapped[Optional[float]]
+    afm: Mapped[Optional[float]]
+    wait4work: Mapped[Optional[float]]
+    day_attendance: Mapped[date]
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+
+    employee: Mapped["PayrollEmployee"] = relationship(
+        "PayrollEmployee", back_populates="attendances"
+    )
+
+    def __repr__(self) -> str:
+        return f"Attendance (employee_name={self.employee_name!r}, work_days={self.work_hours!r}, date={self.day_attendance!r})"
