@@ -25,7 +25,6 @@ def get_attendance_by_id(*, db_session, id: int) -> PayrollAttendance:
 
 
 def check_exist_attendance(*, db_session, attendance_in: AttendanceCreate) -> bool:
-    print("BBBBBBBBBBB", attendance_in)
     attendance_db = (
         db_session.query(PayrollAttendance)
         .filter(
@@ -34,7 +33,6 @@ def check_exist_attendance(*, db_session, attendance_in: AttendanceCreate) -> bo
         )
         .first()
     )
-    print("AAAAAAAAAAAAAAAAA", attendance_db)
     return attendance_db is not None
 
 

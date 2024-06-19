@@ -1,6 +1,6 @@
 from datetime import datetime, date
 from typing import List, Optional
-from payroll.utils.models import Pagination, PayrollBase
+from payroll.utils.models import Day, Pagination, PayrollBase
 
 
 class AttendanceBase(PayrollBase):
@@ -10,8 +10,8 @@ class AttendanceBase(PayrollBase):
     holiday: Optional[float]
     afm: Optional[float]
     wait4work: Optional[float]
+    day: Optional[Day]
     day_attendance: date  # required
-    employee_id: int  # required
 
 
 class AttendanceRead(AttendanceBase):
@@ -39,18 +39,12 @@ class AttendanceImport(PayrollBase):
     holiday: Optional[float]
     afm: Optional[float]
     wait4work: Optional[float]
+    day: Optional[Day]
     day_attendance: date  # required
-    employee_id: int  # required
 
 
-class AttendanceCreate(PayrollBase):
-    work_hours: Optional[float]
-    overtime: Optional[float]
-    holiday: Optional[float]
-    afm: Optional[float]
-    wait4work: Optional[float]
-    day_attendance: date  # required
-    employee_id: int  # required
+class AttendanceCreate(AttendanceBase):
+    pass
 
 
 class PositionPagination(Pagination):

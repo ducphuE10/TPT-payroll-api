@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, Form, UploadFile
 
 # , File, Form, UploadFile
 
@@ -16,6 +16,7 @@ from payroll.attendances.repositories import (
     update,
     delete,
 )
+from payroll.attendances.services import uploadXLSX
 
 # from payroll.attendances.services import uploadXLSX
 
@@ -59,8 +60,8 @@ def delete_attendance(*, db_session: DbSession, id: int):
     return delete(db_session=db_session, id=id)
 
 
-# @attendance_router.post("/import-excel")
-# def import_excel(
-#     *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
-# ):
-#     return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)
+@attendance_router.post("/import-excel")
+def import_excel(
+    *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
+):
+    return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)

@@ -1,60 +1,24 @@
-# IMPORT_EMPLOYEES_EXCEL_MAP = {
-#     "code": "Code",
-#     "name": "Tên",
-#     "date_of_birth": "Ngày sinh",
-#     "gender": "Giới tính",
-#     "nationality": "Quốc tịch",
-#     "ethnic": "Dân tộc",
-#     "religion": "Tôn giáo",
-#     "cccd": "CCCD",
-#     "cccd_date": "Ngày cấp CCCD",
-#     "cccd_place": "Nơi cấp CCCD",
-#     "domicile": "Hộ khẩu thường trú",
-#     "permanent_addr": "Địa chỉ thường trú",
-#     "temp_addr": "Địa chỉ tạm trú",
-#     "phone": "Số điện thoại",
-#     "academic_level": "Trình độ học vấn",
-#     "bank_account": "Số tài khoản",
-#     "bank_holder_name": "Tên chủ tài khoản",
-#     "bank_name": "Tên ngân hàng",
-#     "mst": "Mã số thuế",
-#     "kcb_number": "Số sổ BHXH",
-#     "hospital_info": "Thông tin bảo hiểm y tế",
-#     "start_work": "Ngày vào làm",
-#     "note": "Ghi chú",
-#     "department_code": "Mã Phòng ban",
-#     "position_code": "Mã Chức vụ",
-#     "email": "Email",
-#     "cv": "CV",
-# }
+IMPORT_ATTENDANCES_EXCEL_MAP = {
+    "employee_code": "Mã nhân viên",
+    "employee_name": "Tên nhân viên",
+    "work_hours": "Giờ công",
+    "overtime": "Tăng ca",
+    "holiday": "Nghỉ lễ",
+    "afm": "Tai nạn, tang lễ, đám cưới",
+    "wait4work": "Chờ việc",
+    "day_attendance": "Ngày chấm công",
+}
 
 
-# DTYPES_MAP = {
-#     "code": str,
-#     "name": str,
-#     "date_of_birth": str,  # Dates are usually read as strings initially
-#     "gender": str,
-#     "nationality": str,
-#     "ethnic": str,
-#     "religion": str,
-#     "cccd": str,
-#     "cccd_date": str,  # Dates are usually read as strings initially
-#     "cccd_place": str,
-#     "domicile": str,
-#     "permanent_addr": str,
-#     "temp_addr": str,
-#     "phone": str,
-#     "academic_level": str,
-#     "bank_account": str,
-#     "bank_holder_name": str,
-#     "bank_name": str,
-#     "mst": str,
-#     "kcb_number": str,
-#     "hospital_info": str,
-#     "start_work": str,  # Dates are usually read as strings initially
-#     "note": str,
-#     "department_code": str,
-#     "position_code": str,
-#     "email": str,
-#     "cv": str,
-# }
+DTYPES_MAP = {
+    "employee_code": str,
+    "employee_name": str,
+    "work_hours": str,
+    "overtime": str,
+    "holiday": str,
+    "afm": str,
+    "wait4work": str,
+    "day_attendance": str,  # Dates are usually read as strings initially
+}
+
+# raise AppException(ErrorMessages.ResourceNotFound())
