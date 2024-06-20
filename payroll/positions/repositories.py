@@ -82,7 +82,7 @@ def delete(*, db_session, id: int) -> PayrollPosition:
 
     if check_depend_employee(db_session=db_session, position_id=position.id):
         raise AppException(ErrorMessages.ExistDependEmployee())
-    
+
     db_session.query(PayrollPosition).filter(PayrollPosition.id == id).delete()
 
     db_session.commit()

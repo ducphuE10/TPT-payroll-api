@@ -1,15 +1,15 @@
 from datetime import date
 from typing import List, Optional
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, String, LargeBinary
+from sqlalchemy import ForeignKey, String, LargeBinary, Float
 from sqlalchemy.orm import relationship
 
 from payroll.database.core import Base
 from payroll.utils.models import (
     Gender,
-    InsurancePolicy,
+    InsuranceType,
     Nationality,
-    TaxPolicy,
+    TaxType,
     TimeStampMixin,
 )
 
@@ -23,8 +23,8 @@ class PayrollContractType(Base, TimeStampMixin):
     number_of_months: Mapped[int] = mapped_column()  # required
     note: Mapped[Optional[str]] = mapped_column(String(255))
     is_probation: Mapped[bool] = mapped_column()  # required
-    tax_policy: Mapped[TaxPolicy]  # required
-    insurance_policy: Mapped[InsurancePolicy]  # required
+    tax_policy: Mapped[TaxType]  # required
+    insurance_policy: Mapped[InsuranceType]  # required
     template: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
@@ -100,3 +100,32 @@ class PayrollEmployee(Base, TimeStampMixin):
 
     def __repr__(self) -> str:
         return f"Employee (name={self.name!r})"
+
+
+class TaxPolicy(Base, TimeStampMixin):
+    __tablename__ = "tax_policies"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
+    tax_type: Mapped[TaxType]
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    percentage: Mapped[Optional[float]] = mapped_column(Float)
+    is_enable: Mapped[bool]
+
+    def __repr__(self) -> str:
+        return f"TaxPolicy(name={self.name!r})"
+
+
+class InsurancePolicy(Base, TimeStampMixin):
+    __tablename__ = "insurance_policies"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
+    based_on: Mapped[InsuranceType]
+    company_percentage: Mapped[float] = mapped_column(Float)  # required
+    employee_percentage: Mapped[float] = mapped_column(Float)  # required
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    is_enable: Mapped[bool]
+
+    def __repr__(self) -> str:
+        return f"InsurancePolicy(name={self.name!r})"

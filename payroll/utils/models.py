@@ -65,14 +65,15 @@ class Pagination(PayrollBase):
     total: int
 
 
-class TaxPolicy(str, Enum):
-    TPolicy1 = "tax_policy_1"
-    TPolicy2 = "tax_policy_2"
+class TaxType(str, Enum):
+    Progressive = "progressive"
+    Fixed = "fixed"
 
 
-class InsurancePolicy(str, Enum):
-    IPolicy1 = "insurance_policy_1"
-    IPolicy2 = "insurance_policy_2"
+class InsuranceType(str, Enum):
+    NetSalary = "net_salary"
+    GrossSalary = "gross_salary"
+    CustomByEmployee = "custom_by_employee"
 
 
 class Gender(str, Enum):
