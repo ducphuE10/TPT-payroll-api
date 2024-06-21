@@ -1,10 +1,12 @@
-import logging
+from typing import List
 from fastapi import File, UploadFile
 import pandas as pd
 from io import BytesIO
 
+from sqlalchemy import extract
+
 # from payroll.attendances.repositories import get_attendance_by_code
-from payroll.attendances.repositories import check_exist_attendance
+from payroll.attendances.schemas import AttendancesRead
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollAttendance
@@ -13,89 +15,89 @@ from payroll.models import PayrollAttendance
 
 # from pydantic import ValidationError
 
-from payroll.attendances.schemas import (
-    AttendanceImport,
-)
-from payroll.departments.repositories import (
-    get_department_by_code,
-)
+# from payroll.attendances.schemas import (
+#     AttendanceImport,
+# )
+# from payroll.departments.repositories import (
+#     get_department_by_code,
+# )
 
-from payroll.positions.repositories import (
-    get_position_by_code,
-)
+# from payroll.positions.repositories import (
+#     get_position_by_code,
+# )
 
-log = logging.getLogger(__name__)
-
-
-def create_attendance_by_xlsx(
-    *, db_session, attendance_in: AttendanceImport
-) -> PayrollAttendance:
-    """Creates a new attendance."""
-    attendance = PayrollAttendance(**attendance_in.model_dump())
-
-    attendance_db = check_exist_attendance(
-        db_session=db_session, attendance_in=attendance_in
-    )
-
-    if attendance_db:
-        # raise AppException(ErrorMessages.ResourceNotFound())
-        raise AppException(ErrorMessages.ResourceAlreadyExists())
-
-    db_session.add(attendance)
-    db_session.commit()
-    return attendance
+# log = logging.getLogger(__name__)
 
 
-def update_attendance_by_xlsx(
-    *, db_session, attendance_db: PayrollAttendance, attendance_in: AttendanceImport
-) -> PayrollAttendance:
-    """Updates a attendance with the given data."""
+# def create_attendance_by_xlsx(
+#     *, db_session, attendance_in: AttendanceImport
+# ) -> PayrollAttendance:
+#     """Creates a new attendance."""
+#     attendance = PayrollAttendance(**attendance_in.model_dump())
 
-    attendance_data = attendance_db.dict()
-    update_data = attendance_in.model_dump(exclude_unset=True)
+#     attendance_db = check_exist_attendance(
+#         db_session=db_session, attendance_in=attendance_in
+#     )
 
-    for field in attendance_data:
-        if field in update_data:
-            setattr(attendance_db, field, update_data[field])
-    if attendance_in.department_code:
-        department = get_department_by_code(
-            db_session=db_session, code=attendance_in.department_code
-        )
-        attendance_db.department = department
-    if attendance_in.position_code:
-        position = get_position_by_code(
-            db_session=db_session, code=attendance_in.position_code
-        )
-        attendance_db.position = position
+#     if attendance_db:
+#         # raise AppException(ErrorMessages.ResourceNotFound())
+#         raise AppException(ErrorMessages.ResourceAlreadyExists())
 
-    db_session.commit()
-    return attendance_db
+#     db_session.add(attendance)
+#     db_session.commit()
+#     return attendance
 
 
-def upsert_attendance(
-    db_session, attendance_in: AttendanceImport, update_on_exists: bool
-) -> PayrollAttendance:
-    """Creates or updates an attendance based on the code."""
-    attendance_db = get_attendance_by_code(
-        db_session=db_session, code=attendance_in.code
-    )
-    if attendance_db:
-        if not update_on_exists:
-            return attendance_db
-        # Convert AttendanceCreate to AttendanceUpdate
-        attendance_update = AttendanceImport(
-            **attendance_in.model_dump(exclude_unset=True)
-        )
-        # Update existing attendance
-        update_attendance_by_xlsx(
-            db_session=db_session,
-            attendance_db=attendance_db,
-            attendance_in=attendance_update,
-        )
-    else:
-        # Create new attendance
-        create_attendance_by_xlsx(db_session=db_session, attendance_in=attendance_in)
-    return attendance_db
+# def update_attendance_by_xlsx(
+#     *, db_session, attendance_db: PayrollAttendance, attendance_in: AttendanceImport
+# ) -> PayrollAttendance:
+#     """Updates a attendance with the given data."""
+
+#     attendance_data = attendance_db.dict()
+#     update_data = attendance_in.model_dump(exclude_unset=True)
+
+#     for field in attendance_data:
+#         if field in update_data:
+#             setattr(attendance_db, field, update_data[field])
+#     if attendance_in.department_code:
+#         department = get_department_by_code(
+#             db_session=db_session, code=attendance_in.department_code
+#         )
+#         attendance_db.department = department
+#     if attendance_in.position_code:
+#         position = get_position_by_code(
+#             db_session=db_session, code=attendance_in.position_code
+#         )
+#         attendance_db.position = position
+
+#     db_session.commit()
+#     return attendance_db
+
+
+# def upsert_attendance(
+#     db_session, attendance_in: AttendanceImport, update_on_exists: bool
+# ) -> PayrollAttendance:
+#     """Creates or updates an attendance based on the code."""
+#     attendance_db = get_attendance_by_code(
+#         db_session=db_session, code=attendance_in.code
+#     )
+#     if attendance_db:
+#         if not update_on_exists:
+#             return attendance_db
+#         # Convert AttendanceCreate to AttendanceUpdate
+#         attendance_update = AttendanceImport(
+#             **attendance_in.model_dump(exclude_unset=True)
+#         )
+#         # Update existing attendance
+#         update_attendance_by_xlsx(
+#             db_session=db_session,
+#             attendance_db=attendance_db,
+#             attendance_in=attendance_update,
+#         )
+#     else:
+#         # Create new attendance
+#         create_attendance_by_xlsx(db_session=db_session, attendance_in=attendance_in)
+#     return attendance_db
 
 
 def uploadXLSX(
@@ -119,7 +121,7 @@ def uploadXLSX(
 
     # a = import_attendances_data()
     lst = []
-    for i in range(3, len(list_df)):
+    for i in range(3, len(list_df)):  # skip 3x3 cells at top left
         for j in range(3, len(list_df[i]), 2):
             item = (
                 f"{list_df[i][1]} - {list_df[i][2]} - "
@@ -227,3 +229,20 @@ def uploadXLSX(
 
     # return {"message": "Nhân viên đã được thêm thành công từ tệp Excel"}
     return {"message": lst}
+
+
+def get_employee_attendances_by_month(
+    *, db_session, month: int, year: int
+) -> List[PayrollAttendance]:
+    attendances = (
+        db_session.query(PayrollAttendance)
+        .filter(
+            extract("month", PayrollAttendance.day_attendance) == month,
+            extract("year", PayrollAttendance.day_attendance) == year,
+        )
+        .all()
+    )
+    if not attendances:
+        raise AppException(ErrorMessages.ResourceNotFound())
+
+    return AttendancesRead(data=attendances)

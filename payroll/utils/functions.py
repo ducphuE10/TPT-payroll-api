@@ -49,11 +49,34 @@ def get_error_message_dict():
         },
     }
 
-def check_depend_employee(db_session: Session, *, department_id: int = None, position_id: int = None) -> bool:
+
+def check_depend_employee(
+    db_session: Session, *, department_id: int = None, position_id: int = None
+) -> bool:
     if department_id is not None:
-        print("ddddddddddddddd", db_session.query(PayrollEmployee).filter(PayrollEmployee.department_id == department_id).count())
-        return db_session.query(PayrollEmployee).filter(PayrollEmployee.department_id == department_id).count() > 0
+        print(
+            "ddddddddddddddd",
+            db_session.query(PayrollEmployee)
+            .filter(PayrollEmployee.department_id == department_id)
+            .count(),
+        )
+        return (
+            db_session.query(PayrollEmployee)
+            .filter(PayrollEmployee.department_id == department_id)
+            .count()
+            > 0
+        )
     if position_id is not None:
-        print("ccccccccccccccc", db_session.query(PayrollEmployee).filter(PayrollEmployee.position_id == position_id).count())
-        return db_session.query(PayrollEmployee).filter(PayrollEmployee.position_id == position_id).count() > 0
+        print(
+            "ccccccccccccccc",
+            db_session.query(PayrollEmployee)
+            .filter(PayrollEmployee.position_id == position_id)
+            .count(),
+        )
+        return (
+            db_session.query(PayrollEmployee)
+            .filter(PayrollEmployee.position_id == position_id)
+            .count()
+            > 0
+        )
     return False

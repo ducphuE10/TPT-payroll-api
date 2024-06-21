@@ -2,11 +2,11 @@ from datetime import date
 from typing import List, Optional
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import (
-    CheckConstraint,
+    Boolean,
+    Column,
     ForeignKey,
     String,
     LargeBinary,
-    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
@@ -114,22 +114,13 @@ class PayrollEmployee(Base, TimeStampMixin):
 
 class PayrollAttendance(Base, TimeStampMixin):
     __tablename__ = "attendances"
-    __table_args__ = (
-        CheckConstraint("work_hours >= 0", name="check_work_hours_non_negative"),
-        CheckConstraint("overtime >= 0", name="check_overtime_non_negative"),
-        CheckConstraint("holiday >= 0", name="check_holiday_non_negative"),
-        CheckConstraint("afm >= 0", name="check_afm_non_negative"),
-        CheckConstraint("wait4work >= 0", name="check_wait4work_non_negative"),
-        UniqueConstraint("employee_name", "day_attendance", name="uix_employee_day"),
-    )
 
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    employee_name: Mapped[str] = mapped_column(String(30))  # required
-    work_hours: Mapped[Optional[float]]
-    overtime: Mapped[Optional[float]]
-    holiday: Mapped[Optional[float]]
-    afm: Mapped[Optional[float]]
-    wait4work: Mapped[Optional[float]]
+    work_hours: Mapped[Optional[float]] = None
+    overtime: Mapped[Optional[float]] = None
+    holiday: Optional[bool] = Column(Boolean, nullable=True)
+    afm: Optional[bool] = Column(Boolean, nullable=True)
+    wait4work: Optional[bool] = Column(Boolean, nullable=True)
     day_attendance: Mapped[date]
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
 

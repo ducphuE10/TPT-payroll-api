@@ -16,7 +16,7 @@ from payroll.attendances.repositories import (
     update,
     delete,
 )
-from payroll.attendances.services import uploadXLSX
+from payroll.attendances.services import get_employee_attendances_by_month, uploadXLSX
 
 # from payroll.attendances.services import uploadXLSX
 
@@ -31,14 +31,16 @@ def retrieve_attendances(
     return get_all(db_session=db_session)
 
 
+@attendance_router.get("/test", response_model=AttendancesRead)
+def retrieve_attendances_by_month(*, db_session: DbSession, month: int, year: int):
+    return get_employee_attendances_by_month(
+        db_session=db_session, month=month, year=year
+    )
+
+
 @attendance_router.get("/{id}", response_model=AttendanceRead)
 def retrieve_attendance(*, db_session: DbSession, id: int):
     return get_one_by_id(db_session=db_session, id=id)
-
-
-# @attendance_router.get("/{id}/attendances", response_model=AttendanceRead)
-# def retrieve_employee_attendances(*, db_session: DbSession, id: int):
-#     return get_employee_attendances(db_session=db_session, id=id)
 
 
 @attendance_router.post("", response_model=AttendanceRead)

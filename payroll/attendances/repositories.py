@@ -36,14 +36,6 @@ def check_exist_attendance(*, db_session, attendance_in: AttendanceCreate) -> bo
     return attendance_db is not None
 
 
-# def get_attendance_by_code(*, db_session, code: str) -> PayrollAttendance:
-#     """Returns a attendance based on the given code."""
-#     attendance = (
-#         db_session.query(PayrollAttendance).filter(PayrollAttendance.code == code).first()
-#     )
-#     return attendances
-
-
 def get_all(*, db_session) -> PayrollAttendance:
     """Returns all attendances."""
     data = db_session.query(PayrollAttendance).all()
