@@ -1,8 +1,8 @@
 """first version
 
-Revision ID: 7e1c7f772d36
+Revision ID: 23f83c7b4b3e
 Revises:
-Create Date: 2024-06-20 17:49:20.032421
+Create Date: 2024-06-22 15:36:58.858378
 
 """
 
@@ -13,7 +13,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "7e1c7f772d36"
+revision: str = "23f83c7b4b3e"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -38,13 +38,14 @@ def upgrade() -> None:
         sa.Column(
             "insurance_policy",
             sa.Enum(
-                "NetSalary", "GrossSalary", "CustomByEmployee", name="insurancetype"
+                "BasicSalary", "TotalSalary", "CustomByEmployee", name="insurancetype"
             ),
             nullable=False,
         ),
         sa.Column("template", sa.LargeBinary(), nullable=True),
         sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("code"),
     )
@@ -56,6 +57,7 @@ def upgrade() -> None:
         sa.Column("description", sa.String(length=255), nullable=True),
         sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("code"),
     )
@@ -67,7 +69,7 @@ def upgrade() -> None:
         sa.Column(
             "based_on",
             sa.Enum(
-                "NetSalary", "GrossSalary", "CustomByEmployee", name="insurancetype"
+                "BasicSalary", "TotalSalary", "CustomByEmployee", name="insurancetype"
             ),
             nullable=False,
         ),
@@ -76,6 +78,7 @@ def upgrade() -> None:
         sa.Column("description", sa.String(length=255), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("code"),
     )
@@ -86,6 +89,7 @@ def upgrade() -> None:
         sa.Column("name", sa.String(length=30), nullable=False),
         sa.Column("description", sa.String(length=255), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("code"),
     )
@@ -101,6 +105,7 @@ def upgrade() -> None:
         sa.Column("percentage", sa.Float(), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("code"),
     )
@@ -137,6 +142,7 @@ def upgrade() -> None:
         sa.Column("email", sa.String(length=255), nullable=True),
         sa.Column("cv", sa.LargeBinary(), nullable=True),
         sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["department_id"],
             ["departments.id"],

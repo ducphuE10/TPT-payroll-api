@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Optional, Annotated
 from pydantic.types import confloat
 from pydantic import AfterValidator
@@ -31,6 +32,8 @@ class TaxPolicyRead(PayrollBase):
     percentage: Annotated[
         Optional[confloat(ge=0.0, le=100.0)], AfterValidator(change_percentage)
     ] = None
+    created_at: datetime
+    updated_at: datetime
 
 
 class TaxPoliciesRead(PayrollBase):

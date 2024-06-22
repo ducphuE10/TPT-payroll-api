@@ -19,6 +19,7 @@ class TimeStampMixin(object):
     """Timestamping mixin"""
 
     created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
 
 class RandomCodeMixin:
@@ -71,9 +72,9 @@ class TaxType(str, Enum):
 
 
 class InsuranceType(str, Enum):
-    NetSalary = "net_salary"
-    GrossSalary = "gross_salary"
-    CustomByEmployee = "custom_by_employee"
+    BasicSalary = "BASIC_SALARY"
+    TotalSalary = "TOTAL_SALARY"
+    CustomByEmployee = "CUSTOM_BY_EMPLOYEE"
 
 
 class Gender(str, Enum):

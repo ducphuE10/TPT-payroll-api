@@ -1,6 +1,9 @@
+from datetime import datetime
 from typing import Optional
+
 from pydantic.types import confloat
-from payroll.utils.models import PayrollBase, InsuranceType
+
+from payroll.utils.models import InsuranceType, PayrollBase
 
 PercentageType = confloat(ge=0.0, le=100.0)
 
@@ -14,6 +17,8 @@ class InsurancePolicyRead(PayrollBase):
     is_active: bool
     company_percentage: PercentageType
     employee_percentage: PercentageType
+    created_at: datetime
+    updated_at: datetime
 
 
 class InsurancePoliciesRead(PayrollBase):
