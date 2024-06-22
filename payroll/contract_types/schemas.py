@@ -1,7 +1,8 @@
 from datetime import datetime
 from typing import List, Optional
 
-from payroll.utils.models import InsuranceType, TaxType
+from payroll.insurances.schemas import InsurancePolicyRead
+from payroll.taxes.schemas import TaxPolicyRead
 from payroll.utils.models import Pagination, PayrollBase
 
 
@@ -12,8 +13,6 @@ class ContractTypeBase(PayrollBase):
     number_of_months: int  # required
     note: Optional[str] = None
     is_probation: bool  # required
-    tax_policy: TaxType  # required
-    insurance_policy: InsuranceType  # required
     template: bytes
     created_by: str  # required
 
@@ -21,6 +20,8 @@ class ContractTypeBase(PayrollBase):
 class ContractTypeRead(ContractTypeBase):
     id: int
     created_at: datetime
+    tax_policy: TaxPolicyRead
+    insurance_policy: InsurancePolicyRead
 
 
 class ContractTypesRead(PayrollBase):
@@ -29,6 +30,8 @@ class ContractTypesRead(PayrollBase):
 
 class ContractTypeCreate(ContractTypeBase):
     created_by: Optional[str] = None
+    tax_policy_id: int  # required
+    insurance_policy_id: int  # required
 
 
 class ContractTypePagination(Pagination):

@@ -23,8 +23,16 @@ class PayrollContractType(Base, TimeStampMixin):
     number_of_months: Mapped[int] = mapped_column()  # required
     note: Mapped[Optional[str]] = mapped_column(String(255))
     is_probation: Mapped[bool] = mapped_column()  # required
-    tax_policy: Mapped[TaxType]  # required
-    insurance_policy: Mapped[InsuranceType]  # required
+    tax_policy_id: Mapped[int] = mapped_column(
+        ForeignKey("tax_policies.id")
+    )  # required
+    tax_policy: Mapped["TaxPolicy"] = relationship("TaxPolicy", backref="contracttypes")
+    insurance_policy_id: Mapped[int] = mapped_column(
+        ForeignKey("insurance_policies.id")
+    )  # required
+    insurance_policy: Mapped["InsurancePolicy"] = relationship(
+        "InsurancePolicy", backref="contracttypes"
+    )
     template: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
