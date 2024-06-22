@@ -3,7 +3,6 @@ from typing import List, Optional
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import (
     Boolean,
-    Column,
     ForeignKey,
     String,
     LargeBinary,
@@ -118,10 +117,10 @@ class PayrollAttendance(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     work_hours: Mapped[Optional[float]]
     overtime: Mapped[Optional[float]]
-    holiday: Optional[bool] = Column(Boolean)
-    afm: Optional[bool] = Column(Boolean)
-    wait4work: Optional[bool] = Column(Boolean)
-    day_attendance: Mapped[date]
+    holiday: Mapped[Optional[bool]] = mapped_column(Boolean)
+    afm: Mapped[Optional[bool]] = mapped_column(Boolean)
+    wait4work: Mapped[Optional[bool]] = mapped_column(Boolean)
+    day_attendance: Mapped[date]  # required
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
 
     employee: Mapped["PayrollEmployee"] = relationship(
@@ -129,4 +128,4 @@ class PayrollAttendance(Base, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
-        return f"Attendance (employee_name={self.employee_name!r}, work_days={self.work_hours!r}, date={self.day_attendance!r})"
+        return f"Attendance (employee_name={self.employee_id!r}, work_days={self.work_hours!r}, date={self.day_attendance!r})"

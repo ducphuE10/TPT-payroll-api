@@ -46,6 +46,7 @@ def get_error_message_dict():
             "ERR_INVALID_USERNAME_OR_PASSWORD": "Tên đăng nhập hoặc mật khẩu không hợp lệ.",
             "ERR_CANNOT_CREATE_ADMIN_USER": "Không thể tạo người dùng quản trị.",
             "ERR_EXIST_DEPEND_EMPLOYEE": "Không thể xóa do tồn tại các nhân viên liên quan",
+            "ERR_WORK_LEAVE_STATE": "Trạng thái làm việc hoặc nghỉ phép không hợp lệ",
         },
     }
 
@@ -54,12 +55,6 @@ def check_depend_employee(
     db_session: Session, *, department_id: int = None, position_id: int = None
 ) -> bool:
     if department_id is not None:
-        print(
-            "ddddddddddddddd",
-            db_session.query(PayrollEmployee)
-            .filter(PayrollEmployee.department_id == department_id)
-            .count(),
-        )
         return (
             db_session.query(PayrollEmployee)
             .filter(PayrollEmployee.department_id == department_id)
@@ -67,12 +62,6 @@ def check_depend_employee(
             > 0
         )
     if position_id is not None:
-        print(
-            "ccccccccccccccc",
-            db_session.query(PayrollEmployee)
-            .filter(PayrollEmployee.position_id == position_id)
-            .count(),
-        )
         return (
             db_session.query(PayrollEmployee)
             .filter(PayrollEmployee.position_id == position_id)

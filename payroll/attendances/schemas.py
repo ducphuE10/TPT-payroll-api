@@ -2,9 +2,12 @@ from datetime import datetime, date
 from typing import List, Optional, Union
 
 from pydantic import model_validator
+from payroll.exception.app_exception import AppException
+from payroll.exception.error_message import ErrorMessages
 from payroll.utils.models import Pagination, PayrollBase
 
 
+# validate that only one of 'work' or 'leave' attributes can be set, not both
 def check_work_or_leave_set(
     obj: Union["AttendanceUpdate", "AttendanceCreate"],
 ) -> Union["AttendanceUpdate", "AttendanceCreate"]:
@@ -16,14 +19,14 @@ def check_work_or_leave_set(
     ]
 
     if work_set and any(leave_set):
-        raise ValueError(
-            "Only one of 'work' or 'leave' attributes can be set, not both."
-        )
+        """Only one of 'work' or 'leave' attributes can be set, not both."""
+        raise AppException(ErrorMessages.WorkLeaveState())
     if not work_set and not any(leave_set):
-        raise ValueError("At least one of 'work' or 'leave' attributes must be set.")
-
+        """At least one of 'work' or 'leave' attributes must be set."""
+        raise AppException(ErrorMessages.WorkLeaveState())
     if sum(leave_set) > 1:
-        raise ValueError("Only one attribute within 'leave' set can be set at a time.")
+        """Only one attribute within 'leave' set can be set at a time."""
+        raise AppException(ErrorMessages.WorkLeaveState())
 
     return obj
 

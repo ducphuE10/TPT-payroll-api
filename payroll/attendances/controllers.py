@@ -23,6 +23,7 @@ from payroll.attendances.services import get_employee_attendances_by_month, uplo
 attendance_router = APIRouter()
 
 
+# GET /attendances
 @attendance_router.get("", response_model=AttendancesRead)
 def retrieve_attendances(
     *,
@@ -31,16 +32,19 @@ def retrieve_attendances(
     return get_all(db_session=db_session)
 
 
+# GET /attendances/test?m=1&y=2021
 @attendance_router.get("/test", response_model=AttendancesRead)
 def retrieve_attendances_by_month(*, db_session: DbSession, m: int, y: int):
     return get_employee_attendances_by_month(db_session=db_session, month=m, year=y)
 
 
+# GET /attendances/{id}
 @attendance_router.get("/{id}", response_model=AttendanceRead)
 def retrieve_attendance(*, db_session: DbSession, id: int):
     return get_one_by_id(db_session=db_session, id=id)
 
 
+# POST /attendances
 @attendance_router.post("", response_model=AttendanceRead)
 def create_attendance(*, attendance_in: AttendanceCreate, db_session: DbSession):
     """Creates a new attendance."""
@@ -48,6 +52,7 @@ def create_attendance(*, attendance_in: AttendanceCreate, db_session: DbSession)
     return attendance
 
 
+# PUT /attendances/{id}
 @attendance_router.put("/{id}", response_model=AttendanceRead)
 def update_attendance(
     *, db_session: DbSession, id: int, attendance_in: AttendanceUpdate
@@ -55,11 +60,13 @@ def update_attendance(
     return update(db_session=db_session, id=id, attendance_in=attendance_in)
 
 
+# DELETE /attendances/{id}
 @attendance_router.delete("/{id}", response_model=AttendanceRead)
 def delete_attendance(*, db_session: DbSession, id: int):
     return delete(db_session=db_session, id=id)
 
 
+# POST /attendances/import-excel
 @attendance_router.post("/import-excel")
 def import_excel(
     *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
