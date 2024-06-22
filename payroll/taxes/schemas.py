@@ -32,10 +32,8 @@ class TaxPolicyRead(PayrollBase):
         Optional[confloat(ge=0.0, le=100.0)], AfterValidator(change_percentage)
     ] = None
 
-    # validate if tax_type is progressive then percentage set to None
 
-
-class TaxpoliciesRead(PayrollBase):
+class TaxPoliciesRead(PayrollBase):
     data: list[TaxPolicyRead] = []
 
 

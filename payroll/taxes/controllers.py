@@ -6,14 +6,14 @@ from payroll.taxes.schemas import (
     TaxPolicyUpdate,
     TaxPolicyCreate,
     TaxPolicyRead,
-    TaxpoliciesRead,
+    TaxPoliciesRead,
 )
 
 
 router = APIRouter()
 
 
-@router.get("", response_model=TaxpoliciesRead)
+@router.get("", response_model=TaxPoliciesRead)
 def all(
     *,
     db_session: DbSession,

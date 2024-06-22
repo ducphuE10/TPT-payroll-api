@@ -6,7 +6,7 @@ from payroll.taxes.schemas import (
     TaxPolicyRead,
     TaxPolicyCreate,
     TaxPolicyUpdate,
-    TaxpoliciesRead,
+    TaxPoliciesRead,
 )
 
 
@@ -29,7 +29,6 @@ def create(*, db_session, tax_policy_in: TaxPolicyCreate) -> TaxPolicy:
     tax_repo.create(db_session=db_session, create_data=tax_policy_in.model_dump())
     db_session.commit()
     return tax_policy
-    # return TaxPolicyRead.from_orm(tax_policy)
 
 
 def update(*, db_session, id: int, tax_policy_in: TaxPolicyUpdate) -> TaxPolicyRead:
@@ -55,7 +54,7 @@ def delete(*, db_session, id: int) -> None:
     db_session.commit()
 
 
-def get_all(*, db_session) -> TaxPolicyRead:
+def get_all(*, db_session) -> TaxPoliciesRead:
     """Returns all tax policies."""
     data = tax_repo.get_all(db_session=db_session)
-    return TaxpoliciesRead(data=data)
+    return TaxPoliciesRead(data=data)
