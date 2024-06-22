@@ -10,9 +10,6 @@ from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollAttendance
 
-# from payroll.departments.repositories import get_department_by_id
-# from payroll.positions.repositories import get_position_by_id
-
 log = logging.getLogger(__name__)
 
 
@@ -24,11 +21,13 @@ def get_attendance_by_id(*, db_session, id: int) -> PayrollAttendance:
     return attendance
 
 
-def check_exist_attendance(*, db_session, attendance_in: AttendanceCreate) -> bool:
+def check_exist_attendance(
+    *, db_session, attendance_in: AttendanceCreate, employee_id: int
+) -> bool:
     attendance_db = (
         db_session.query(PayrollAttendance)
         .filter(
-            PayrollAttendance.employee_id == attendance_in.employee_id,
+            PayrollAttendance.employee_id == employee_id,
             PayrollAttendance.day_attendance == attendance_in.day_attendance,
         )
         .first()
@@ -64,7 +63,11 @@ def get_employee_attendances(*, db_session, id: int) -> PayrollAttendance:
 
 def create(*, db_session, attendance_in: AttendanceCreate) -> PayrollAttendance:
     """Creates a new attendance."""
-    if check_exist_attendance(db_session=db_session, attendance_in=attendance_in):
+    if check_exist_attendance(
+        db_session=db_session,
+        attendance_in=attendance_in,
+        employee_id=attendance_in.employee_id,
+    ):
         raise AppException(ErrorMessages.ResourceAlreadyExists())
 
     if get_employee_by_id(db_session=db_session, id=attendance_in.employee_id) is None:

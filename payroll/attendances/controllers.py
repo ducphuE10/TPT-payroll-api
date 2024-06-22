@@ -32,10 +32,8 @@ def retrieve_attendances(
 
 
 @attendance_router.get("/test", response_model=AttendancesRead)
-def retrieve_attendances_by_month(*, db_session: DbSession, month: int, year: int):
-    return get_employee_attendances_by_month(
-        db_session=db_session, month=month, year=year
-    )
+def retrieve_attendances_by_month(*, db_session: DbSession, m: int, y: int):
+    return get_employee_attendances_by_month(db_session=db_session, month=m, year=y)
 
 
 @attendance_router.get("/{id}", response_model=AttendanceRead)

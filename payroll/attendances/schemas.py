@@ -1,8 +1,31 @@
 from datetime import datetime, date
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import model_validator
 from payroll.utils.models import Pagination, PayrollBase
+
+
+def check_work_or_leave_set(
+    obj: Union["AttendanceUpdate", "AttendanceCreate"],
+) -> Union["AttendanceUpdate", "AttendanceCreate"]:
+    work_set = any([obj.work_hours is not None, obj.overtime is not None])
+    leave_set = [
+        obj.holiday is not None,
+        obj.afm is not None,
+        obj.wait4work is not None,
+    ]
+
+    if work_set and any(leave_set):
+        raise ValueError(
+            "Only one of 'work' or 'leave' attributes can be set, not both."
+        )
+    if not work_set and not any(leave_set):
+        raise ValueError("At least one of 'work' or 'leave' attributes must be set.")
+
+    if sum(leave_set) > 1:
+        raise ValueError("Only one attribute within 'leave' set can be set at a time.")
+
+    return obj
 
 
 class AttendanceBase(PayrollBase):
@@ -30,7 +53,20 @@ class AttendanceUpdate(PayrollBase):
     holiday: Optional[bool]
     afm: Optional[bool]
     wait4work: Optional[bool]
-    day_attendance: Optional[date]  # required
+
+    check_work_or_leave_set = model_validator(mode="after")(check_work_or_leave_set)
+
+
+class AttendanceCreate(PayrollBase):
+    employee_id: int  # required
+    work_hours: Optional[float] = None
+    overtime: Optional[float] = None
+    holiday: Optional[bool] = None
+    afm: Optional[bool] = None
+    wait4work: Optional[bool] = None
+    day_attendance: date  # required
+
+    check_work_or_leave_set = model_validator(mode="after")(check_work_or_leave_set)
 
 
 class AttendanceImport(PayrollBase):
@@ -41,29 +77,6 @@ class AttendanceImport(PayrollBase):
     afm: Optional[bool]
     wait4work: Optional[bool]
     day_attendance: date  # required
-
-
-class AttendanceCreate(PayrollBase):
-    employee_id: int  # required
-    work_hours: Optional[float] = None
-    overtime: Optional[float] = None
-    holiday: Optional[bool] = None
-    afm: Optional[bool] = None
-    wait4work: Optional[bool] = None
-
-    @model_validator(mode="after")
-    def check_one_optional_field(cls, values):
-        optional_fields = ["work_hours", "overtime", "holiday", "afm", "wait4work"]
-        set_fields = [
-            field for field in optional_fields if getattr(values, field) is not None
-        ]
-
-        if len(set_fields) != 1:
-            raise ValueError(
-                "Exactly one of work_hours, overtime, holiday, afm, or wait4work must be set."
-            )
-
-        return values
 
 
 class PositionPagination(Pagination):

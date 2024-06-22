@@ -116,11 +116,11 @@ class PayrollAttendance(Base, TimeStampMixin):
     __tablename__ = "attendances"
 
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    work_hours: Mapped[Optional[float]] = None
-    overtime: Mapped[Optional[float]] = None
-    holiday: Optional[bool] = Column(Boolean, nullable=True)
-    afm: Optional[bool] = Column(Boolean, nullable=True)
-    wait4work: Optional[bool] = Column(Boolean, nullable=True)
+    work_hours: Mapped[Optional[float]]
+    overtime: Mapped[Optional[float]]
+    holiday: Optional[bool] = Column(Boolean)
+    afm: Optional[bool] = Column(Boolean)
+    wait4work: Optional[bool] = Column(Boolean)
     day_attendance: Mapped[date]
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
 
