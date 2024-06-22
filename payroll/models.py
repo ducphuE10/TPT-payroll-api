@@ -110,7 +110,7 @@ class TaxPolicy(Base, TimeStampMixin):
     tax_type: Mapped[TaxType]
     description: Mapped[Optional[str]] = mapped_column(String(255))
     percentage: Mapped[Optional[float]] = mapped_column(Float)
-    is_enable: Mapped[bool]
+    is_active: Mapped[bool]
 
     def __repr__(self) -> str:
         return f"TaxPolicy(name={self.name!r})"
@@ -125,7 +125,7 @@ class InsurancePolicy(Base, TimeStampMixin):
     company_percentage: Mapped[float] = mapped_column(Float)  # required
     employee_percentage: Mapped[float] = mapped_column(Float)  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    is_enable: Mapped[bool]
+    is_active: Mapped[bool]
 
     def __repr__(self) -> str:
         return f"InsurancePolicy(name={self.name!r})"

@@ -3,16 +3,6 @@ from pydantic.types import confloat
 from pydantic import AfterValidator
 from payroll.utils.models import PayrollBase, TaxType
 
-# Table taxes_policy{
-#   id int [pk]
-#   name varchar
-#   code varchar
-#   type enum
-#   description varchar
-#   created_at timestamp [not null, default: `now()`]
-#   is_enable boolean [not null, default: True]
-# }
-
 
 def check_percentage_common(v, info):
     if "tax_type" in info.data:
@@ -24,14 +14,23 @@ def check_percentage_common(v, info):
     return v
 
 
+def change_percentage(v, info):
+    if "tax_type" in info.data:
+        if info.data["tax_type"] == TaxType.Progressive:
+            return None
+    return v
+
+
 class TaxPolicyRead(PayrollBase):
     id: int
     code: str
     name: str
     tax_type: TaxType
     description: Optional[str] = None
-    is_enable: bool
-    percentage: Optional[confloat(ge=0.0, le=100.0)] = None
+    is_active: bool
+    percentage: Annotated[
+        Optional[confloat(ge=0.0, le=100.0)], AfterValidator(change_percentage)
+    ] = None
 
     # validate if tax_type is progressive then percentage set to None
 
@@ -45,7 +44,7 @@ class TaxPolicyCreate(PayrollBase):
     name: str  # required
     tax_type: TaxType  # required
     description: Optional[str] = None
-    is_enable: Optional[bool] = True
+    is_active: Optional[bool] = True
     percentage: Annotated[
         Optional[confloat(ge=0.0, le=100.0)], AfterValidator(check_percentage_common)
     ] = None
@@ -54,7 +53,7 @@ class TaxPolicyCreate(PayrollBase):
 class TaxPolicyUpdate(PayrollBase):
     name: Optional[str] = None
     description: Optional[str] = None
-    is_enable: Optional[bool] = None
+    is_active: Optional[bool] = None
     percentage: Annotated[
         Optional[confloat(ge=0.0, le=100.0)], AfterValidator(check_percentage_common)
     ] = None
