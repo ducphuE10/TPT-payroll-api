@@ -37,6 +37,7 @@ class InsurancePolicyCreate(PayrollBase):
 
 class InsurancePolicyUpdate(PayrollBase):
     name: Optional[str] = None
+    based_on: Optional[InsuranceType] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
     company_percentage: Optional[PercentageType] = None

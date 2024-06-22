@@ -67,8 +67,8 @@ class Pagination(PayrollBase):
 
 
 class TaxType(str, Enum):
-    Progressive = "progressive"
-    Fixed = "fixed"
+    Progressive = "PROGRESSIVE"
+    Fixed = "FIXED"
 
 
 class InsuranceType(str, Enum):

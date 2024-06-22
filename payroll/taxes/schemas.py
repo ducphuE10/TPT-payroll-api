@@ -53,6 +53,7 @@ class TaxPolicyCreate(PayrollBase):
 
 class TaxPolicyUpdate(PayrollBase):
     name: Optional[str] = None
+    tax_type: Optional[TaxType] = None
     description: Optional[str] = None
     is_active: Optional[bool] = None
     percentage: Annotated[
