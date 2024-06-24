@@ -2,32 +2,34 @@ import logging
 
 from payroll.employees.schemas import (
     EmployeeCreate,
-    EmployeesRead,
     EmployeeUpdate,
 )
-from payroll.exception.app_exception import AppException
-from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollEmployee
-from payroll.departments.repositories import get_department_by_id
-from payroll.positions.repositories import get_position_by_id
 
+# add, retrieve, modify, remove
 log = logging.getLogger(__name__)
 
 
-def get_employee_by_code(*, db_session, code: str) -> PayrollEmployee:
+# GET /employees
+def retrieve_all_employees(*, db_session) -> PayrollEmployee:
+    """Returns all employees."""
+    query = db_session.query(PayrollEmployee)
+    count = query.count()
+    employees = query.all()
+    return {"count": count, "data": employees}
+
+
+def retrieve_employee_by_code(*, db_session, employee_code: str) -> PayrollEmployee:
     """Returns a employee based on the given code."""
     employee = (
-        db_session.query(PayrollEmployee).filter(PayrollEmployee.code == code).first()
+        db_session.query(PayrollEmployee)
+        .filter(PayrollEmployee.code == employee_code)
+        .first()
     )
     return employee
 
 
-def get_all(*, db_session) -> PayrollEmployee:
-    """Returns all employees."""
-    data = db_session.query(PayrollEmployee).all()
-    return EmployeesRead(data=data)
-
-
+# GET /employees/{employee_id}
 def retrieve_employee_by_id(*, db_session, employee_id: int) -> PayrollEmployee:
     """Returns a employee based on the given id."""
     employee = (
@@ -38,47 +40,31 @@ def retrieve_employee_by_id(*, db_session, employee_id: int) -> PayrollEmployee:
     return employee
 
 
-def create(*, db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
+# POST /employees
+def add_employee(*, db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
     """Creates a new employee."""
     employee = PayrollEmployee(**employee_in.model_dump())
-    employee_db = get_employee_by_code(db_session=db_session, code=employee.code)
-    if employee_db:
-        raise AppException(ErrorMessages.ResourceAlreadyExists())
-    if get_department_by_id(db_session=db_session, id=employee.department_id) is None:
-        raise AppException(ErrorMessages.ResourceNotFound())
-    if get_position_by_id(db_session=db_session, id=employee.position_id) is None:
-        raise AppException(ErrorMessages.ResourceNotFound())
     db_session.add(employee)
     db_session.commit()
     return employee
 
 
-def update(*, db_session, id: int, employee_in: EmployeeUpdate) -> PayrollEmployee:
+# PUT /employees/{employee_id}
+def modify_employee(
+    *, db_session, employee_id: int, employee_in: EmployeeUpdate
+) -> PayrollEmployee:
     """Updates a employee with the given data."""
-    employee_db = get_employee_by_id(db_session=db_session, id=id)
-
-    if not employee_db:
-        raise AppException(ErrorMessages.ResourceNotFound())
-
     update_data = employee_in.model_dump(exclude_unset=True)
-
-    db_session.query(PayrollEmployee).filter(PayrollEmployee.id == id).update(
-        update_data, synchronize_session=False
-    )
-
+    query = db_session.query(PayrollEmployee).filter(PayrollEmployee.id == employee_id)
+    query.update(update_data, synchronize_session=False)
     db_session.commit()
-    return employee_db
+
+    updated_employee = query.first()
+    return updated_employee
 
 
-def delete(*, db_session, id: int) -> PayrollEmployee:
+# DELETE /employees/{employee_id}
+def remove_employee(*, db_session, employee_id: int) -> PayrollEmployee:
     """Deletes a employee based on the given id."""
-    query = db_session.query(PayrollEmployee).filter(PayrollEmployee.id == id)
-    employee = query.first()
-
-    if not employee:
-        raise AppException(ErrorMessages.ResourceNotFound())
-
-    db_session.query(PayrollEmployee).filter(PayrollEmployee.id == id).delete()
-
+    db_session.query(PayrollEmployee).filter(PayrollEmployee.id == employee_id).delete()
     db_session.commit()
-    return employee

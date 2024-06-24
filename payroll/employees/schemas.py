@@ -39,6 +39,7 @@ class EmployeeRead(EmployeeBase):
 
 
 class EmployeesRead(PayrollBase):
+    count: int
     data: list[EmployeeRead] = []
 
 
