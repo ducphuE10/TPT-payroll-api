@@ -19,8 +19,6 @@ from payroll.attendances.services import (
     uploadXLSX,
 )
 
-# from payroll.attendances.services import uploadXLSX
-
 attendance_router = APIRouter()
 
 

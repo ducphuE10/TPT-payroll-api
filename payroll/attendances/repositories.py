@@ -1,5 +1,5 @@
+from datetime import date
 import logging
-from typing import List
 from sqlalchemy import extract
 
 from payroll.attendances.schemas import (
@@ -21,14 +21,27 @@ def retrieve_all_attendances(*, db_session) -> PayrollAttendance:
     return {"count": count, "data": attendances}
 
 
-# GET /attendances/{attendances_id}
+def retrievce_attendance_by_employee(
+    *, db_session, day_attendance: date, employee_id: int
+):
+    """Returns a attendance based on the given day and employee_id."""
+    attendance = (
+        db_session.query(PayrollAttendance)
+        .filter(
+            PayrollAttendance.day_attendance == day_attendance,
+            PayrollAttendance.employee_id == employee_id,
+        )
+        .first()
+    )
+    return attendance
+
+
+# GET /attendances/{attendance_id}
 def retrieve_attendance_by_id(*, db_session, attendance_id: int) -> PayrollAttendance:
     """Returns a attendance based on the given id."""
     attendance = (
         db_session.query(PayrollAttendance)
-        .filter(
-            PayrollAttendance.id == attendance_id,
-        )
+        .filter(PayrollAttendance.id == attendance_id)
         .first()
     )
     return attendance
@@ -48,7 +61,7 @@ def retrieve_employee_attendances(*, db_session, employee_id: int) -> PayrollAtt
 # GET /attendances/test?m=1&y=2021
 def retrieve_employee_attendances_by_month(
     *, db_session, month: int, year: int
-) -> List[PayrollAttendance]:
+) -> PayrollAttendance:
     """Retrieve all attendances of employees by month and year"""
     query = db_session.query(PayrollAttendance).filter(
         extract("month", PayrollAttendance.day_attendance) == month,
@@ -88,8 +101,7 @@ def modify_attendance(
 # DELETE /attendances/{attendance_id}
 def remove_attendance(*, db_session, attendance_id: int) -> PayrollAttendance:
     """Deletes a attendance based on the given id."""
-    query = db_session.query(PayrollAttendance).filter(
+    db_session.query(PayrollAttendance).filter(
         PayrollAttendance.id == attendance_id
-    )
-    query.delete()
+    ).delete()
     db_session.commit()

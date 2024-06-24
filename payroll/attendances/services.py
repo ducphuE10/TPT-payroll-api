@@ -1,4 +1,5 @@
-from typing import List
+import logging
+from datetime import date
 from fastapi import File, UploadFile
 import pandas as pd
 from io import BytesIO
@@ -7,6 +8,7 @@ from payroll.attendances.repositories import (
     add_attendance,
     modify_attendance,
     remove_attendance,
+    retrievce_attendance_by_employee,
     retrieve_all_attendances,
     retrieve_attendance_by_id,
     retrieve_employee_attendances_by_month,
@@ -16,17 +18,29 @@ from payroll.attendances.schemas import (
     AttendanceCreate,
     AttendanceUpdate,
 )
-from payroll.employees.services import check_exist_employee
+from payroll.employees.services import check_exist_employee_by_id
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
-from payroll.models import PayrollAttendance
 
+log = logging.getLogger(__name__)
 
 # create, get, update, delete
-def check_exist_attendance(*, db_session, attendance_id: int) -> bool:
+
+
+def check_exist_attendance_by_id(*, db_session, attendance_id: int) -> bool:
     """Check if attendance exists by id"""
     attendance = retrieve_attendance_by_id(
         db_session=db_session, attendance_id=attendance_id
+    )
+    return attendance is not None
+
+
+def check_exist_attendance_by_employee(
+    *, db_session, day_attendance: date, employee_id: int
+) -> bool:
+    """Check if attendance exists by employee_id and day_attendance."""
+    attendance = retrievce_attendance_by_employee(
+        db_session=db_session, day_attendance=day_attendance, employee_id=employee_id
     )
     return attendance is not None
 
@@ -43,18 +57,21 @@ def get_all_attendances(*, db_session):
 # GET /attendances/{attendance_id}
 def get_attendance_by_id(*, db_session, attendance_id: int):
     """Returns a attendance based on the given id."""
+    if not check_exist_attendance_by_id(
+        db_session=db_session, attendance_id=attendance_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound())
+
     attendance = retrieve_attendance_by_id(
         db_session=db_session, attendance_id=attendance_id
     )
-    if not attendance:
-        raise AppException(ErrorMessages.ResourceNotFound())
     return attendance
 
 
 # GET /employees/{employee_id}/attendances
 def get_employee_attendances(*, db_session, employee_id: int):
     """Returns all attendances of an employee."""
-    if not check_exist_employee(db_session=db_session, employee_id=employee_id):
+    if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
         raise AppException(ErrorMessages.ResourceNotFound())
     list_attendances = retrieve_employee_attendances(
         db_session=db_session, employee_id=employee_id
@@ -66,9 +83,7 @@ def get_employee_attendances(*, db_session, employee_id: int):
 
 
 # GET /attendances/test?m=1&y=2021
-def get_attendances_by_month(
-    *, db_session, month: int, year: int
-) -> List[PayrollAttendance]:
+def get_attendances_by_month(*, db_session, month: int, year: int):
     """Returns all attendances for a given month and year."""
     list_attendances = retrieve_employee_attendances_by_month(
         db_session=db_session, month=month, year=year
@@ -82,14 +97,14 @@ def get_attendances_by_month(
 # POST /attendances
 def create_attendance(*, db_session, attendance_in: AttendanceCreate):
     """Creates a new attendance."""
-    if not check_exist_employee(
+    if not check_exist_employee_by_id(
         db_session=db_session, employee_id=attendance_in.employee_id
     ):
         raise AppException(ErrorMessages.ResourceNotFound())
 
-    if check_exist_attendance(
+    if check_exist_attendance_by_employee(
         db_session=db_session,
-        attendance_in=attendance_in,
+        day_attendance=attendance_in.day_attendance,
         employee_id=attendance_in.employee_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists())
@@ -104,7 +119,9 @@ def update_attendance(
     *, db_session, attendance_id: int, attendance_in: AttendanceUpdate
 ):
     """Updates a attendance with the given data."""
-    if not check_exist_attendance(db_session=db_session, attendance_id=attendance_id):
+    if not check_exist_attendance_by_id(
+        db_session=db_session, attendance_id=attendance_id
+    ):
         raise AppException(ErrorMessages.ResourceNotFound())
     updated_attendance = modify_attendance(
         db_session=db_session, attendance_id=attendance_id, attendance_in=attendance_in
@@ -115,7 +132,9 @@ def update_attendance(
 # DELETE /attendances/{attendance_id}
 def delete_attendance(*, db_session, attendance_id: int):
     """Deletes a attendance based on the given id."""
-    if not check_exist_attendance(db_session=db_session, attendance_id=attendance_id):
+    if not check_exist_attendance_by_id(
+        db_session=db_session, attendance_id=attendance_id
+    ):
         raise AppException(ErrorMessages.ResourceNotFound())
     remove_attendance(db_session=db_session, attendance_id=attendance_id)
     return {"message": "Attendance deleted successfully"}
@@ -251,7 +270,6 @@ def uploadXLSX(
     #     )
 
     # return {"message": "Nhân viên đã được thêm thành công từ tệp Excel"}
-    return {"message": lst}
 
 
 # from .constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
