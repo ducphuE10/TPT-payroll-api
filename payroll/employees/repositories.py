@@ -1,5 +1,7 @@
 import logging
 
+from sqlalchemy import func
+
 from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeesRead,
@@ -28,6 +30,25 @@ def get_employee_by_code(*, db_session, code: str) -> PayrollEmployee:
         db_session.query(PayrollEmployee).filter(PayrollEmployee.code == code).first()
     )
     return employee
+
+
+def search_employees_by_partial_name(*, db_session, name: str):
+    """Searches for employees based on a partial name match (case-insensitive).
+
+    Args:
+        db_session (Session): The database session.
+        name (str): The name to search for.
+
+    Returns:
+        PayrollEmployee: A list of employees matching the search criteria.
+    """
+    employees = (
+        db_session.query(PayrollEmployee)
+        .filter(func.lower(PayrollEmployee.name).like(f"%{name.lower()}%"))
+        .all()
+    )
+
+    return employees
 
 
 def get_all(*, db_session) -> PayrollEmployee:

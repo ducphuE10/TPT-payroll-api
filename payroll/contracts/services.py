@@ -41,7 +41,6 @@ def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
     update_data = contract_in.model_dump(exclude_unset=True)
 
     contract_repo.update(db_session=db_session, id=id, update_data=update_data)
-    db_session.commit()
     return ContractRead.from_orm(contract_db)
 
 
@@ -51,7 +50,6 @@ def delete(*, db_session, id: int) -> None:
     if not contract:
         raise AppException(ErrorMessages.ResourceNotFound())
     contract_repo.delete(db_session=db_session, id=id)
-    db_session.commit()
 
 
 def get_all(*, db_session) -> ContractsRead:

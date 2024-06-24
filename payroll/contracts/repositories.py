@@ -6,18 +6,16 @@ log = logging.getLogger(__name__)
 
 def get_contract_by_id(*, db_session, id: int) -> PayrollContract:
     """Returns a contract based on the given id."""
-    contract = (
-        db_session.query(PayrollContract).filter(PayrollContract.id == id).first()
-    )
-    return contract
+
+    return db_session.query(PayrollContract).filter(PayrollContract.id == id).first()
 
 
 def get_contract_by_code(*, db_session, code: str) -> PayrollContract:
     """Returns a contract based on the given code."""
-    contract = (
+
+    return (
         db_session.query(PayrollContract).filter(PayrollContract.code == code).first()
     )
-    return contract
 
 
 def get_all(*, db_session):
@@ -37,8 +35,10 @@ def update(*, db_session, id: int, update_data: dict):
     db_session.query(PayrollContract).filter(PayrollContract.id == id).update(
         update_data, synchronize_session=False
     )
+    db_session.commit()
 
 
 def delete(*, db_session, id: int) -> None:
     """Deletes a contract based on the given id."""
     db_session.query(PayrollContract).filter(PayrollContract.id == id).delete()
+    db_session.commit()

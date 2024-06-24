@@ -3,7 +3,10 @@ from fastapi import File, HTTPException, UploadFile, status
 import pandas as pd
 from io import BytesIO
 
-from payroll.employees.repositories import get_employee_by_code
+from payroll.employees.repositories import (
+    get_employee_by_code,
+    search_employees_by_partial_name,
+)
 from payroll.models import PayrollEmployee
 from .constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
 
@@ -11,6 +14,7 @@ from pydantic import ValidationError
 
 from payroll.employees.schemas import (
     EmployeeImport,
+    EmployeesRead,
 )
 from payroll.departments.repositories import (
     get_department_by_code,
@@ -190,3 +194,8 @@ def uploadXLSX(
         )
 
     return {"message": "Nhân viên đã được thêm thành công từ tệp Excel"}
+
+
+def search_employee_by_name(*, db_session, name: str) -> EmployeesRead:
+    data = search_employees_by_partial_name(db_session=db_session, name=name)
+    return EmployeesRead(data=data)

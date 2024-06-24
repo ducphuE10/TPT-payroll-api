@@ -49,7 +49,7 @@ class PayrollContract(Base, TimeStampMixin):
         "PayrollEmployee",
         backref="contracts",
     )
-    sign_date: Mapped[date]  # required
+    signed_date: Mapped[date]  # required
     start_date: Mapped[date]  # required
     end_date: Mapped[date]  # required
     is_current: Mapped[bool]  # required
