@@ -3,58 +3,127 @@ from fastapi import File, UploadFile
 import pandas as pd
 from io import BytesIO
 
-from sqlalchemy import extract
-
-from payroll.attendances.schemas import AttendanceCreate, AttendancesRead
+from payroll.attendances.repositories import (
+    add_attendance,
+    modify_attendance,
+    remove_attendance,
+    retrieve_all_attendances,
+    retrieve_attendance_by_id,
+    retrieve_employee_attendances_by_month,
+    retrieve_employee_attendances,
+)
+from payroll.attendances.schemas import (
+    AttendanceCreate,
+    AttendanceUpdate,
+)
+from payroll.employees.services import check_exist_employee
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollAttendance
 
 
-def check_exist_attendance(
-    *, db_session, attendance_in: AttendanceCreate, employee_id: int
-) -> bool:
-    """Check if attendance already exists in the database."""
-    attendance_db = (
-        db_session.query(PayrollAttendance)
-        .filter(
-            PayrollAttendance.employee_id == employee_id,
-            PayrollAttendance.day_attendance == attendance_in.day_attendance,
-        )
-        .first()
+# create, get, update, delete
+def check_exist_attendance(*, db_session, attendance_id: int) -> bool:
+    """Check if attendance exists by id"""
+    attendance = retrieve_attendance_by_id(
+        db_session=db_session, attendance_id=attendance_id
     )
-    return attendance_db is not None
+    return attendance is not None
 
 
-def get_attendance_by_id(*, db_session, id: int) -> PayrollAttendance:
+# GET /attendances
+def get_all_attendances(*, db_session):
+    """Returns all attendances."""
+    list_attendances = retrieve_all_attendances(db_session=db_session)
+    if not list_attendances["count"]:
+        raise AppException(ErrorMessages.ResourceNotFound())
+    return list_attendances
+
+
+# GET /attendances/{attendance_id}
+def get_attendance_by_id(*, db_session, attendance_id: int):
     """Returns a attendance based on the given id."""
-    attendance = (
-        db_session.query(PayrollAttendance).filter(PayrollAttendance.id == id).first()
+    attendance = retrieve_attendance_by_id(
+        db_session=db_session, attendance_id=attendance_id
     )
+    if not attendance:
+        raise AppException(ErrorMessages.ResourceNotFound())
     return attendance
 
 
-def get_employee_attendances_by_month(
+# GET /employees/{employee_id}/attendances
+def get_employee_attendances(*, db_session, employee_id: int):
+    """Returns all attendances of an employee."""
+    if not check_exist_employee(db_session=db_session, employee_id=employee_id):
+        raise AppException(ErrorMessages.ResourceNotFound())
+    list_attendances = retrieve_employee_attendances(
+        db_session=db_session, employee_id=employee_id
+    )
+
+    if not list_attendances["count"]:
+        raise AppException(ErrorMessages.ResourceNotFound())
+    return list_attendances
+
+
+# GET /attendances/test?m=1&y=2021
+def get_attendances_by_month(
     *, db_session, month: int, year: int
 ) -> List[PayrollAttendance]:
-    """Returns all attendances of employees in a month."""
-    attendances = (
-        db_session.query(PayrollAttendance)
-        .filter(
-            extract("month", PayrollAttendance.day_attendance) == month,
-            extract("year", PayrollAttendance.day_attendance) == year,
-        )
-        .all()
+    """Returns all attendances for a given month and year."""
+    list_attendances = retrieve_employee_attendances_by_month(
+        db_session=db_session, month=month, year=year
     )
-    if not attendances:
+
+    if not list_attendances["count"]:
+        raise AppException(ErrorMessages.ResourceNotFound())
+    return list_attendances
+
+
+# POST /attendances
+def create_attendance(*, db_session, attendance_in: AttendanceCreate):
+    """Creates a new attendance."""
+    if not check_exist_employee(
+        db_session=db_session, employee_id=attendance_in.employee_id
+    ):
         raise AppException(ErrorMessages.ResourceNotFound())
 
-    return AttendancesRead(data=attendances)
+    if check_exist_attendance(
+        db_session=db_session,
+        attendance_in=attendance_in,
+        employee_id=attendance_in.employee_id,
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists())
+
+    attendance = add_attendance(db_session=db_session, attendance_in=attendance_in)
+
+    return attendance
+
+
+# PUT /attendances/{attendance_id}
+def update_attendance(
+    *, db_session, attendance_id: int, attendance_in: AttendanceUpdate
+):
+    """Updates a attendance with the given data."""
+    if not check_exist_attendance(db_session=db_session, attendance_id=attendance_id):
+        raise AppException(ErrorMessages.ResourceNotFound())
+    updated_attendance = modify_attendance(
+        db_session=db_session, attendance_id=attendance_id, attendance_in=attendance_in
+    )
+    return updated_attendance
+
+
+# DELETE /attendances/{attendance_id}
+def delete_attendance(*, db_session, attendance_id: int):
+    """Deletes a attendance based on the given id."""
+    if not check_exist_attendance(db_session=db_session, attendance_id=attendance_id):
+        raise AppException(ErrorMessages.ResourceNotFound())
+    remove_attendance(db_session=db_session, attendance_id=attendance_id)
+    return {"message": "Attendance deleted successfully"}
 
 
 def uploadXLSX(
     *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
-):
+):  # Testing
     """Uploads an Excel file containing attendance data."""
     _data = BytesIO(file.file.read())
     # _data = pd.read_excel(data)
@@ -82,23 +151,24 @@ def uploadXLSX(
                 f"{list_df[i][j]} - {list_df[1][j + 1]} : {list_df[i][j + 1]}"
             )
             lst.append(item)
-            # print(
-            #     list_df[i][1],
-            #     "-",
-            #     list_df[i][2],
-            #     "-",
-            #     list_df[0][j],
-            #     "-",
-            #     list_df[1][j],
-            #     "-",
-            #     list_df[2][j],
-            #     ":",
-            #     list_df[i][j],
-            #     "-",
-            #     list_df[1][j + 1],
-            #     ":",
-            #     list_df[i][j + 1],
-            # )
+    return {"message": lst}
+    # print(
+    #     list_df[i][1],
+    #     "-",
+    #     list_df[i][2],
+    #     "-",
+    #     list_df[0][j],
+    #     "-",
+    #     list_df[1][j],
+    #     "-",
+    #     list_df[2][j],
+    #     ":",
+    #     list_df[i][j],
+    #     "-",
+    #     list_df[1][j + 1],
+    #     ":",
+    #     list_df[i][j + 1],
+    # )
     # df = pd.DataFrame(
     #     _data,
     #     columns=[

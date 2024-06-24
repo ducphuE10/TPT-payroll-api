@@ -1,99 +1,95 @@
 import logging
+from typing import List
+from sqlalchemy import extract
 
 from payroll.attendances.schemas import (
     AttendanceCreate,
-    AttendancesRead,
     AttendanceUpdate,
 )
-from payroll.attendances.services import check_exist_attendance, get_attendance_by_id
-from payroll.employees.repositories import get_employee_by_id
-from payroll.exception.app_exception import AppException
-from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollAttendance
 
+# add, retrieve, modify, remove
 log = logging.getLogger(__name__)
 
 
 # GET /attendances
-def get_all(*, db_session) -> PayrollAttendance:
+def retrieve_all_attendances(*, db_session) -> PayrollAttendance:
     """Returns all attendances."""
-    data = db_session.query(PayrollAttendance).all()
-    return AttendancesRead(data=data)
+    query = db_session.query(PayrollAttendance)
+    count = query.count()
+    attendances = query.all()
+    return {"count": count, "data": attendances}
 
 
-# GET /attendances/{id}
-def get_one_by_id(*, db_session, id: int) -> PayrollAttendance:
+# GET /attendances/{attendances_id}
+def retrieve_attendance_by_id(*, db_session, attendance_id: int) -> PayrollAttendance:
     """Returns a attendance based on the given id."""
-    attendance = get_attendance_by_id(db_session=db_session, id=id)
-    if not attendance:
-        raise AppException(ErrorMessages.ResourceNotFound())
+    attendance = (
+        db_session.query(PayrollAttendance)
+        .filter(
+            PayrollAttendance.id == attendance_id,
+        )
+        .first()
+    )
     return attendance
 
 
-# GET /employees/{id}/attendances
-def get_employee_attendances(*, db_session, id: int) -> PayrollAttendance:
-    employee = get_employee_by_id(db_session=db_session, id=id)
-    attendances = (
-        db_session.query(PayrollAttendance)
-        .filter(
-            PayrollAttendance.employee_id == employee.id,
-        )
-        .all()
+# GET /employees/{employee_id}/attendances
+def retrieve_employee_attendances(*, db_session, employee_id: int) -> PayrollAttendance:
+    """Returns all attendances of an employee."""
+    query = db_session.query(PayrollAttendance).filter(
+        PayrollAttendance.employee_id == employee_id,
     )
-    return AttendancesRead(data=attendances)
+    count = query.count()
+    attendances = query.all()
+    return {"count": count, "data": attendances}
+
+
+# GET /attendances/test?m=1&y=2021
+def retrieve_employee_attendances_by_month(
+    *, db_session, month: int, year: int
+) -> List[PayrollAttendance]:
+    """Retrieve all attendances of employees by month and year"""
+    query = db_session.query(PayrollAttendance).filter(
+        extract("month", PayrollAttendance.day_attendance) == month,
+        extract("year", PayrollAttendance.day_attendance) == year,
+    )
+    count = query.count()
+    attendances = query.all()
+
+    return {"count": count, "data": attendances}
 
 
 # POST /attendances
-def create(*, db_session, attendance_in: AttendanceCreate) -> PayrollAttendance:
+def add_attendance(*, db_session, attendance_in: AttendanceCreate) -> PayrollAttendance:
     """Creates a new attendance."""
-    if check_exist_attendance(
-        db_session=db_session,
-        attendance_in=attendance_in,
-        employee_id=attendance_in.employee_id,
-    ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists())
-
-    if get_employee_by_id(db_session=db_session, id=attendance_in.employee_id) is None:
-        raise AppException(ErrorMessages.ResourceNotFound())
-
     attendance = PayrollAttendance(**attendance_in.model_dump())
-    employee = get_employee_by_id(db_session=db_session, id=attendance.employee_id)
-    attendance.employee_name = employee.name
     db_session.add(attendance)
     db_session.commit()
     return attendance
 
 
-# PUT /attendances/{id}
-def update(
-    *, db_session, id: int, attendance_in: AttendanceUpdate
+# PUT /attendances/{attendance_id}
+def modify_attendance(
+    *, db_session, attendance_id: int, attendance_in: AttendanceUpdate
 ) -> PayrollAttendance:
     """Updates a attendance with the given data."""
-    attendance_db = get_attendance_by_id(db_session=db_session, id=id)
-
-    if not attendance_db:
-        raise AppException(ErrorMessages.ResourceNotFound())
-
     update_data = attendance_in.model_dump(exclude_unset=True)
-
-    db_session.query(PayrollAttendance).filter(PayrollAttendance.id == id).update(
-        update_data, synchronize_session=False
+    query = db_session.query(PayrollAttendance).filter(
+        PayrollAttendance.id == attendance_id
     )
-
+    query.update(update_data, synchronize_session=False)
     db_session.commit()
-    return attendance_db
+
+    updated_attendance = query.first()
+    return updated_attendance
 
 
-# DELETE /attendances/{id}
-def delete(*, db_session, id: int) -> PayrollAttendance:
+# DELETE /attendances/{attendance_id}
+def remove_attendance(*, db_session, attendance_id: int) -> PayrollAttendance:
     """Deletes a attendance based on the given id."""
-    query = db_session.query(PayrollAttendance).filter(PayrollAttendance.id == id)
-    attendance = query.first()
-
-    if not attendance:
-        raise AppException(ErrorMessages.ResourceNotFound())
-
-    db_session.query(PayrollAttendance).filter(PayrollAttendance.id == id).delete()
-
+    query = db_session.query(PayrollAttendance).filter(
+        PayrollAttendance.id == attendance_id
+    )
+    query.delete()
     db_session.commit()
-    return attendance

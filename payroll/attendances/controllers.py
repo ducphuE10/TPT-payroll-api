@@ -9,14 +9,15 @@ from payroll.attendances.schemas import (
     AttendanceUpdate,
 )
 from payroll.database.core import DbSession
-from payroll.attendances.repositories import (
-    get_all,
-    get_one_by_id,
-    create,
-    update,
-    delete,
+from payroll.attendances.services import (
+    create_attendance,
+    delete_attendance,
+    get_all_attendances,
+    get_attendance_by_id,
+    get_attendances_by_month,
+    update_attendance,
+    uploadXLSX,
 )
-from payroll.attendances.services import get_employee_attendances_by_month, uploadXLSX
 
 # from payroll.attendances.services import uploadXLSX
 
@@ -29,41 +30,48 @@ def retrieve_attendances(
     *,
     db_session: DbSession,
 ):
-    return get_all(db_session=db_session)
+    """Returns all attendances."""
+    return get_all_attendances(db_session=db_session)
 
 
 # GET /attendances/test?m=1&y=2021
 @attendance_router.get("/test", response_model=AttendancesRead)
 def retrieve_attendances_by_month(*, db_session: DbSession, m: int, y: int):
-    return get_employee_attendances_by_month(db_session=db_session, month=m, year=y)
+    """Retrieve all attendances of employees by month and year"""
+    return get_attendances_by_month(db_session=db_session, month=m, year=y)
 
 
-# GET /attendances/{id}
-@attendance_router.get("/{id}", response_model=AttendanceRead)
-def retrieve_attendance(*, db_session: DbSession, id: int):
-    return get_one_by_id(db_session=db_session, id=id)
+# GET /attendances/{attendance_id}
+@attendance_router.get("/{attendance_id}", response_model=AttendanceRead)
+def get_attendance(*, db_session: DbSession, attendance_id: int):
+    """Returns a attendance based on the given id."""
+    return get_attendance_by_id(db_session=db_session, attendance_id=attendance_id)
 
 
 # POST /attendances
 @attendance_router.post("", response_model=AttendanceRead)
-def create_attendance(*, attendance_in: AttendanceCreate, db_session: DbSession):
+def create(*, attendance_in: AttendanceCreate, db_session: DbSession):
     """Creates a new attendance."""
-    attendance = create(db_session=db_session, attendance_in=attendance_in)
+    attendance = create_attendance(db_session=db_session, attendance_in=attendance_in)
     return attendance
 
 
-# PUT /attendances/{id}
-@attendance_router.put("/{id}", response_model=AttendanceRead)
-def update_attendance(
-    *, db_session: DbSession, id: int, attendance_in: AttendanceUpdate
+# PUT /attendances/{attendance_id}
+@attendance_router.put("/{attendance_id}", response_model=AttendanceRead)
+def update(
+    *, db_session: DbSession, attendance_id: int, attendance_in: AttendanceUpdate
 ):
-    return update(db_session=db_session, id=id, attendance_in=attendance_in)
+    """Updates a attendance with the given data."""
+    return update_attendance(
+        db_session=db_session, attendance_id=attendance_id, attendance_in=attendance_in
+    )
 
 
-# DELETE /attendances/{id}
-@attendance_router.delete("/{id}", response_model=AttendanceRead)
-def delete_attendance(*, db_session: DbSession, id: int):
-    return delete(db_session=db_session, id=id)
+# DELETE /attendances/{attendance_id}
+@attendance_router.delete("/{attendance_id}")
+def delete(*, db_session: DbSession, attendance_id: int):
+    """Deletes a attendance based on the given id."""
+    return delete_attendance(db_session=db_session, attendance_id=attendance_id)
 
 
 # POST /attendances/import-excel
