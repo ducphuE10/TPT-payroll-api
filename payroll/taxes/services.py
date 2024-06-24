@@ -27,7 +27,7 @@ def create(*, db_session, tax_policy_in: TaxPolicyCreate) -> TaxPolicy:
     if tax_policy_db:
         raise AppException(ErrorMessages.ResourceAlreadyExists())
     tax_repo.create(db_session=db_session, create_data=tax_policy_in.model_dump())
-    db_session.commit()
+
     return tax_policy
 
 
@@ -41,7 +41,7 @@ def update(*, db_session, id: int, tax_policy_in: TaxPolicyUpdate) -> TaxPolicyR
     update_data = tax_policy_in.model_dump(exclude_unset=True)
 
     tax_repo.update(db_session=db_session, id=id, update_data=update_data)
-    db_session.commit()
+
     return TaxPolicyRead.from_orm(tax_policy_db)
 
 
@@ -51,7 +51,6 @@ def delete(*, db_session, id: int) -> None:
     if not tax_policy:
         raise AppException(ErrorMessages.ResourceNotFound())
     tax_repo.delete(db_session=db_session, id=id)
-    db_session.commit()
 
 
 def get_all(*, db_session) -> TaxPoliciesRead:

@@ -6,14 +6,12 @@ log = logging.getLogger(__name__)
 
 def get_tax_policy_by_id(*, db_session, id: int) -> TaxPolicy:
     """Returns a tax policy based on the given id."""
-    tax_policy = db_session.query(TaxPolicy).filter(TaxPolicy.id == id).first()
-    return tax_policy
+    return db_session.query(TaxPolicy).filter(TaxPolicy.id == id).first()
 
 
 def get_tax_policy_by_code(*, db_session, code: str) -> TaxPolicy:
     """Returns a tax policy based on the given code."""
-    tax_policy = db_session.query(TaxPolicy).filter(TaxPolicy.code == code).first()
-    return tax_policy
+    return db_session.query(TaxPolicy).filter(TaxPolicy.code == code).first()
 
 
 def get_all(*, db_session):
@@ -25,6 +23,7 @@ def create(*, db_session, create_data: dict) -> TaxPolicy:
     """Creates a new tax policy."""
     tax_policy = TaxPolicy(**create_data)
     db_session.add(tax_policy)
+    db_session.commit()
     return tax_policy
 
 
@@ -33,8 +32,10 @@ def update(*, db_session, id: int, update_data: dict):
     db_session.query(TaxPolicy).filter(TaxPolicy.id == id).update(
         update_data, synchronize_session=False
     )
+    db_session.commit()
 
 
 def delete(*, db_session, id: int) -> None:
     """Deletes a tax policy based on the given id."""
     db_session.query(TaxPolicy).filter(TaxPolicy.id == id).delete()
+    db_session.commit()

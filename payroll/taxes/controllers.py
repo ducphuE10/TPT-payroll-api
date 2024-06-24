@@ -10,10 +10,10 @@ from payroll.taxes.schemas import (
 )
 
 
-router = APIRouter()
+tax_router = APIRouter()
 
 
-@router.get("", response_model=TaxPoliciesRead)
+@tax_router.get("", response_model=TaxPoliciesRead)
 def all(
     *,
     db_session: DbSession,
@@ -21,23 +21,23 @@ def all(
     return tax_services.get_all(db_session=db_session)
 
 
-@router.get("/{id}", response_model=TaxPolicyRead)
+@tax_router.get("/{id}", response_model=TaxPolicyRead)
 def retrieve(*, db_session: DbSession, id: int):
     return tax_services.get_one_by_id(db_session=db_session, id=id)
 
 
-@router.post("")
+@tax_router.post("")
 def create(*, db_session: DbSession, tax_policy_in: TaxPolicyCreate):
     return tax_services.create(db_session=db_session, tax_policy_in=tax_policy_in)
 
 
-@router.put("/{id}")
+@tax_router.put("/{id}")
 def update(*, db_session: DbSession, id: int, tax_policy_in: TaxPolicyUpdate):
     return tax_services.update(
         db_session=db_session, id=id, tax_policy_in=tax_policy_in
     )
 
 
-@router.delete("/{id}")
+@tax_router.delete("/{id}")
 def delete(*, db_session: DbSession, id: int):
     return tax_services.delete(db_session=db_session, id=id)

@@ -9,8 +9,8 @@ from payroll.departments.controllers import department_router
 from payroll.positions.controllers import position_router
 from payroll.contract_types.controllers import contracttype_router
 from payroll.employees.controllers import employee_router
-from payroll.taxes.controllers import router as tax_router
-from payroll.insurances.controllers import router as insurance_router
+from payroll.taxes.controllers import tax_router
+from payroll.insurances.controllers import insurance_router
 from payroll.config import settings
 
 # WARNING: Don't use this unless you want unauthenticated routes

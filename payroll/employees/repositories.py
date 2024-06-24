@@ -38,7 +38,6 @@ def get_all(*, db_session) -> PayrollEmployee:
 
 def get_one_by_id(*, db_session, id: int) -> PayrollEmployee:
     """Returns a employee based on the given id."""
-    print("AAAAAAAAAAAAAAAAAAAAA")
     employee = get_employee_by_id(db_session=db_session, id=id)
     if not employee:
         raise AppException(ErrorMessages.ResourceNotFound())

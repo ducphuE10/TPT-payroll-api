@@ -10,10 +10,10 @@ from payroll.insurances.schemas import (
 )
 
 
-router = APIRouter()
+insurance_router = APIRouter()
 
 
-@router.get("", response_model=InsurancePoliciesRead)
+@insurance_router.get("", response_model=InsurancePoliciesRead)
 def all(
     *,
     db_session: DbSession,
@@ -21,19 +21,19 @@ def all(
     return insurance_services.get_all(db_session=db_session)
 
 
-@router.get("/{id}", response_model=InsurancePolicyRead)
+@insurance_router.get("/{id}", response_model=InsurancePolicyRead)
 def retrieve(*, db_session: DbSession, id: int):
     return insurance_services.get_one_by_id(db_session=db_session, id=id)
 
 
-@router.post("")
+@insurance_router.post("")
 def create(*, db_session: DbSession, insurance_policy_in: InsurancePolicyCreate):
     return insurance_services.create(
         db_session=db_session, insurance_policy_in=insurance_policy_in
     )
 
 
-@router.put("/{id}")
+@insurance_router.put("/{id}")
 def update(
     *, db_session: DbSession, id: int, insurance_policy_in: InsurancePolicyUpdate
 ):
@@ -42,6 +42,6 @@ def update(
     )
 
 
-@router.delete("/{id}")
+@insurance_router.delete("/{id}")
 def delete(*, db_session: DbSession, id: int):
     return insurance_services.delete(db_session=db_session, id=id)
