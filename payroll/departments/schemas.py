@@ -17,6 +17,7 @@ class DepartmentRead(DepartmentBase):
 
 
 class DepartmentsRead(PayrollBase):
+    count: int
     data: list[DepartmentRead] = []
 
 

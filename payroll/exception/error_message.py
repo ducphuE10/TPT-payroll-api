@@ -64,3 +64,8 @@ class ErrorMessages:
         code = "ERR_EXIST_DEPEND_EMPLOYEE"
         text = json_data["APP_EXCEPTION"][code]
         http_status = status.HTTP_400_BAD_REQUEST
+
+    class WorkLeaveState(BaseMessage):
+        code = "ERR_WORK_LEAVE_STATE"
+        text = json_data["APP_EXCEPTION"][code]
+        http_status = status.HTTP_422_UNPROCESSABLE_ENTITY

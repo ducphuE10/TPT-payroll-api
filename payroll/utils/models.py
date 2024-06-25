@@ -77,6 +77,16 @@ class InsuranceType(str, Enum):
     CustomByEmployee = "CUSTOM_BY_EMPLOYEE"
 
 
+class Day(str, Enum):
+    Mon = "Monday"
+    Tue = "Tuesday"
+    Wed = "Wednesday"
+    Thu = "Thursday"
+    Fri = "Friday"
+    Sat = "Saturday"
+    Sun = "Sunday"
+
+
 class Gender(str, Enum):
     Male = "male"
     Female = "female"
