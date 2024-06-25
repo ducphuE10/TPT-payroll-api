@@ -1,7 +1,12 @@
 from datetime import date
 from typing import List, Optional
 from sqlalchemy.orm import Mapped, mapped_column
-from sqlalchemy import ForeignKey, String, LargeBinary
+from sqlalchemy import (
+    Boolean,
+    ForeignKey,
+    String,
+    LargeBinary,
+)
 from sqlalchemy.orm import relationship
 
 from payroll.database.core import Base
@@ -123,6 +128,10 @@ class PayrollEmployee(Base, TimeStampMixin):
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
+
+    attendances: Mapped[List["PayrollAttendance"]] = relationship(
+        "PayrollAttendance", back_populates="employee"
+    )
     department: Mapped["PayrollDepartment"] = relationship(
         "PayrollDepartment", back_populates="employees"
     )
@@ -132,3 +141,23 @@ class PayrollEmployee(Base, TimeStampMixin):
 
     def __repr__(self) -> str:
         return f"Employee (name={self.name!r})"
+
+
+class PayrollAttendance(Base, TimeStampMixin):
+    __tablename__ = "attendances"
+
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    work_hours: Mapped[Optional[float]]
+    overtime: Mapped[Optional[float]]
+    holiday: Mapped[Optional[bool]] = mapped_column(Boolean)
+    afm: Mapped[Optional[bool]] = mapped_column(Boolean)
+    wait4work: Mapped[Optional[bool]] = mapped_column(Boolean)
+    day_attendance: Mapped[date]  # required
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+
+    employee: Mapped["PayrollEmployee"] = relationship(
+        "PayrollEmployee", back_populates="attendances"
+    )
+
+    def __repr__(self) -> str:
+        return f"Attendance (employee_name={self.employee_id!r}, work_days={self.work_hours!r}, date={self.day_attendance!r})"

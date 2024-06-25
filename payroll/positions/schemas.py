@@ -8,6 +8,7 @@ class PositionBase(PayrollBase):
     code: str  # required
     name: str  # required
     description: Optional[str] = None
+    created_by: str  # required
 
 
 class PositionRead(PositionBase):
@@ -16,16 +17,17 @@ class PositionRead(PositionBase):
 
 
 class PositionsRead(PayrollBase):
+    count: int
     data: list[PositionRead] = []
 
 
-class PositionUpdate(PositionBase):
+class PositionUpdate(PayrollBase):
     name: Optional[str] = None
     description: Optional[str] = None
 
 
 class PositionCreate(PositionBase):
-    pass
+    created_by: Optional[str] = None
 
 
 class PositionPagination(Pagination):

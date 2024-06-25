@@ -2,34 +2,111 @@ import logging
 from fastapi import File, HTTPException, UploadFile, status
 import pandas as pd
 from io import BytesIO
-
-from payroll.employees.repositories import (
-    get_employee_by_code,
-    search_employees_by_partial_name,
-)
-from payroll.models import PayrollEmployee
-from .constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
-
 from pydantic import ValidationError
 
-from payroll.employees.schemas import (
-    EmployeeImport,
-    EmployeesRead,
-)
-from payroll.departments.repositories import (
+from payroll.departments.services import (
+    check_exist_department_by_id,
     get_department_by_code,
 )
-
-from payroll.positions.repositories import (
-    get_position_by_code,
+from payroll.positions.services import check_exist_position_by_id, get_position_by_code
+from payroll.employees.repositories import (
+    add_employee,
+    modify_employee,
+    remove_employee,
+    retrieve_all_employees,
+    retrieve_employee_by_code,
+    retrieve_employee_by_id,
+    search_employees_by_partial_name,
+)
+from payroll.exception.app_exception import AppException
+from payroll.exception.error_message import ErrorMessages
+from payroll.models import PayrollEmployee
+from payroll.employees.constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
+from payroll.employees.schemas import (
+    EmployeeCreate,
+    EmployeeImport,
+    EmployeeUpdate,
+    EmployeesRead,
 )
 
 log = logging.getLogger(__name__)
 
-InvalidCredentialException = HTTPException(
-    status_code=status.HTTP_401_UNAUTHORIZED,
-    detail=[{"msg": "Could not validate credentials"}],
-)
+# create, get, update, delete
+
+
+def check_exist_employee_by_id(*, db_session, employee_id: int) -> bool:
+    """Check if employee exists in the database."""
+    employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
+    return employee is not None
+
+
+def check_exist_employee_by_code(*, db_session, employee_code: str) -> bool:
+    """Check if employee exists in the database."""
+    employee = retrieve_employee_by_code(
+        db_session=db_session, employee_code=employee_code
+    )
+    return employee is not None
+
+
+# GET /employees
+def get_all_employees(*, db_session):
+    """Returns all employees."""
+    list_employees = retrieve_all_employees(db_session=db_session)
+    if not list_employees["count"]:
+        raise AppException(ErrorMessages.ResourceNotFound())
+    return list_employees
+
+
+# GET /employees/{employee_id}
+def get_employee_by_id(*, db_session, employee_id: int):
+    """Returns a employee based on the given id."""
+    if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
+        raise AppException(ErrorMessages.ResourceNotFound())
+    employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
+    return employee
+
+
+# POST /employees
+def create_employee(*, db_session, employee_in: EmployeeCreate):
+    """Creates a new employee."""
+    if not check_exist_department_by_id(
+        db_session=db_session, department_id=employee_in.department_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound())
+
+    if not check_exist_position_by_id(
+        db_session=db_session, position_id=employee_in.position_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound())
+
+    if check_exist_employee_by_code(
+        db_session=db_session, employee_code=employee_in.code
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists())
+
+    employee = add_employee(db_session=db_session, employee_in=employee_in)
+
+    return employee
+
+
+# PUT /employees/{employee_id}
+def update_employee(*, db_session, employee_id: int, employee_in: EmployeeUpdate):
+    """Updates a employee with the given data."""
+    if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
+        raise AppException(ErrorMessages.ResourceNotFound())
+    updated_employee = modify_employee(
+        db_session=db_session, employee_id=employee_id, employee_in=employee_in
+    )
+    return updated_employee
+
+
+# DELETE /employees/{employee_id}
+def delete_employee(*, db_session, employee_id: int):
+    """Deletes a attendance based on the given id."""
+    if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
+        raise AppException(ErrorMessages.ResourceNotFound())
+    remove_employee(db_session=db_session, employee_id=employee_id)
+    return {"message": "Employee deleted successfully"}
 
 
 def create_employee_by_xlsx(
@@ -39,7 +116,7 @@ def create_employee_by_xlsx(
     employee = PayrollEmployee(
         **employee_in.model_dump(exclude={"department_code", "position_code"})
     )
-    employee_db = get_employee_by_code(db_session=db_session, code=employee.code)
+    employee_db = retrieve_employee_by_code(db_session=db_session, code=employee.code)
     if employee_db:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -90,7 +167,9 @@ def upsert_employee(
     db_session, employee_in: EmployeeImport, update_on_exists: bool
 ) -> PayrollEmployee:
     """Creates or updates an employee based on the code."""
-    employee_db = get_employee_by_code(db_session=db_session, code=employee_in.code)
+    employee_db = retrieve_employee_by_code(
+        db_session=db_session, code=employee_in.code
+    )
     if employee_db:
         if not update_on_exists:
             return employee_db

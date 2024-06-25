@@ -7,45 +7,56 @@ from payroll.departments.schemas import (
     DepartmentUpdate,
 )
 from payroll.database.core import DbSession
-from payroll.departments.repositories import (
-    get_all,
-    get_one_by_id,
-    create,
-    update,
-    delete,
+from payroll.departments.services import (
+    create_department,
+    delete_department,
+    get_all_department,
+    get_department_by_id,
+    update_department,
 )
 
 department_router = APIRouter()
 
 
+# GET /departments
 @department_router.get("", response_model=DepartmentsRead)
 def retrieve_departments(
     *,
     db_session: DbSession,
 ):
-    return get_all(db_session=db_session)
+    """Retrieve all departments."""
+    return get_all_department(db_session=db_session)
 
 
-@department_router.get("/{id}", response_model=DepartmentRead)
-def retrieve_department(*, db_session: DbSession, id: int):
-    return get_one_by_id(db_session=db_session, id=id)
+# GET /departments/{department_id}
+@department_router.get("/{department_id}", response_model=DepartmentRead)
+def retrieve_department(*, db_session: DbSession, department_id: int):
+    """Retrieve a department by id."""
+    return get_department_by_id(db_session=db_session, department_id=department_id)
 
 
+# POST /departments
 @department_router.post("", response_model=DepartmentRead)
-def create_department(*, department_in: DepartmentCreate, db_session: DbSession):
+def create(*, department_in: DepartmentCreate, db_session: DbSession):
     """Creates a new department."""
     department_in.created_by = "admin"
-    department = create(db_session=db_session, department_in=department_in)
+    department = create_department(db_session=db_session, department_in=department_in)
     return department
 
 
-@department_router.put("/{id}", response_model=DepartmentRead)
-def update_department(
-    *, db_session: DbSession, id: int, department_in: DepartmentUpdate
+# PUT /departments/{department_id}
+@department_router.put("/{department_id}", response_model=DepartmentRead)
+def update(
+    *, db_session: DbSession, department_id: int, department_in: DepartmentUpdate
 ):
-    return update(db_session=db_session, id=id, department_in=department_in)
+    """Update a department by id."""
+    return update_department(
+        db_session=db_session, department_id=department_id, department_in=department_in
+    )
 
 
-@department_router.delete("/{id}", response_model=DepartmentRead)
-def delete_department(*, db_session: DbSession, id: int):
-    return delete(db_session=db_session, id=id)
+# DELETE /departments/{department_id}
+@department_router.delete("/{department_id}")
+def delete(*, db_session: DbSession, department_id: int):
+    """Delete a department by id."""
+    return delete_department(db_session=db_session, department_id=department_id)
