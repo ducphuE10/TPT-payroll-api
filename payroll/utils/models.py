@@ -95,3 +95,15 @@ class Gender(str, Enum):
 class Nationality(str, Enum):
     VN = "Vietnam"
     JP = "Japan"
+
+
+class PaymentMethod(str, Enum):
+    CASH = "cash"
+    BANK = "bank"
+
+
+class Status(str, Enum):
+    ACTIVE = "active"
+    INACTIVE = "inactive"
+    PENDING = "pending"
+    DELETED = "deleted"

@@ -15,7 +15,7 @@ from payroll.employees.services import (
     get_all_employees,
     get_employee_by_id,
     update_employee,
-    uploadXLSX,
+    search_employee_by_name,
 )
 
 employee_router = APIRouter()
@@ -74,3 +74,8 @@ def import_excel(
     *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
 ):
     return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)
+
+
+@employee_router.post("/search", response_model=EmployeesRead)
+def search_employee(*, db_session: DbSession, name: str):
+    return search_employee_by_name(db_session=db_session, name=name)

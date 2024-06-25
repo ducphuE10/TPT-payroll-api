@@ -16,12 +16,18 @@ from payroll.employees.repositories import (
     retrieve_all_employees,
     retrieve_employee_by_code,
     retrieve_employee_by_id,
+    search_employees_by_partial_name,
 )
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollEmployee
 from payroll.employees.constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
-from payroll.employees.schemas import EmployeeCreate, EmployeeImport, EmployeeUpdate
+from payroll.employees.schemas import (
+    EmployeeCreate,
+    EmployeeImport,
+    EmployeeUpdate,
+    EmployeesRead,
+)
 
 log = logging.getLogger(__name__)
 
@@ -267,3 +273,8 @@ def uploadXLSX(
         )
 
     return {"message": "Nhân viên đã được thêm thành công từ tệp Excel"}
+
+
+def search_employee_by_name(*, db_session, name: str) -> EmployeesRead:
+    data = search_employees_by_partial_name(db_session=db_session, name=name)
+    return EmployeesRead(data=data)
