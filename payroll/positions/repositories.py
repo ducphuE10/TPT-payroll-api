@@ -21,6 +21,11 @@ def get_position_by_id(*, db_session, id: int) -> PayrollPosition:
     return position
 
 
+def check_exist_position_by_id(*, db_session, position_id: int) -> bool:
+    position = get_position_by_id(db_session=db_session, id=position_id)
+    return position is not None
+
+
 def get_position_by_code(*, db_session, code: str) -> PayrollPosition:
     """Returns a position based on the given code."""
     position = (
@@ -82,7 +87,7 @@ def delete(*, db_session, id: int) -> PayrollPosition:
 
     if check_depend_employee(db_session=db_session, position_id=position.id):
         raise AppException(ErrorMessages.ExistDependEmployee())
-    
+
     db_session.query(PayrollPosition).filter(PayrollPosition.id == id).delete()
 
     db_session.commit()
