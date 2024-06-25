@@ -14,6 +14,8 @@ from payroll.utils.models import (
     Gender,
     InsurancePolicy,
     Nationality,
+    PaymentMethod,
+    Status,
     TaxPolicy,
     TimeStampMixin,
 )
@@ -35,6 +37,36 @@ class PayrollContractType(Base, TimeStampMixin):
 
     def __repr__(self) -> str:
         return f"ContractType (name={self.name!r})"
+
+
+class PayrollContract(Base, TimeStampMixin):
+    __tablename__ = "contracts"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
+    status: Mapped[Status]  # required
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    type_code: Mapped[str] = mapped_column(ForeignKey("contracttypes.code"))  # required
+    ct_date: Mapped[date]  # required
+    ct_code: Mapped[str] = mapped_column(String(30))  # required
+    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"))  # required
+    employee: Mapped["PayrollEmployee"] = relationship(
+        "PayrollEmployee",
+        backref="contracts",
+    )
+    signed_date: Mapped[date]  # required
+    start_date: Mapped[date]  # required
+    end_date: Mapped[date]  # required
+    is_current: Mapped[bool]  # required
+    active_from: Mapped[date]  # required
+    payment_method: Mapped[PaymentMethod]  # required
+    attachments: Mapped[Optional[str]] = mapped_column(String(255))
+    salary: Mapped[float]  # required
+    basic_salary: Mapped[float]  # required
+    created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    def __repr__(self) -> str:
+        return f"Contract (name={self.name!r})"
 
 
 class PayrollDepartment(Base, TimeStampMixin):
