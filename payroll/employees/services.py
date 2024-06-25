@@ -23,7 +23,6 @@ from payroll.models import PayrollEmployee
 from payroll.employees.constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
 from payroll.employees.schemas import EmployeeCreate, EmployeeImport, EmployeeUpdate
 
-
 log = logging.getLogger(__name__)
 
 # create, get, update, delete
