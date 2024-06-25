@@ -22,6 +22,11 @@ def get_department_by_id(*, db_session, id: int) -> PayrollDepartment:
     return department
 
 
+def check_exist_department_by_id(*, db_session, department_id: int) -> bool:
+    department = get_department_by_id(db_session=db_session, id=department_id)
+    return department is not None
+
+
 def get_department_by_code(*, db_session, code: str) -> PayrollDepartment:
     """Returns a department based on the given code."""
     department = (
@@ -84,10 +89,10 @@ def delete(*, db_session, id: int) -> PayrollDepartment:
 
     if not department:
         raise AppException(ErrorMessages.ResourceNotFound())
-    
+
     if check_depend_employee(db_session=db_session, department_id=department.id):
         raise AppException(ErrorMessages.ExistDependEmployee())
-        
+
     db_session.query(PayrollDepartment).filter(PayrollDepartment.id == id).delete()
 
     db_session.commit()
