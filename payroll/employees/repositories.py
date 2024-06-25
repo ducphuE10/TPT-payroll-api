@@ -64,7 +64,7 @@ def modify_employee(
 
 
 # DELETE /employees/{employee_id}
-def remove_employee(*, db_session, employee_id: int) -> PayrollEmployee:
+def remove_employee(*, db_session, employee_id: int):
     """Deletes a employee based on the given id."""
     db_session.query(PayrollEmployee).filter(PayrollEmployee.id == employee_id).delete()
     db_session.commit()

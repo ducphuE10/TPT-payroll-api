@@ -4,6 +4,11 @@ import pandas as pd
 from io import BytesIO
 from pydantic import ValidationError
 
+from payroll.departments.services import (
+    check_exist_department_by_id,
+    get_department_by_code,
+)
+from payroll.positions.services import check_exist_position_by_id, get_position_by_code
 from payroll.employees.repositories import (
     add_employee,
     modify_employee,
@@ -17,14 +22,6 @@ from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollEmployee
 from payroll.employees.constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
 from payroll.employees.schemas import EmployeeCreate, EmployeeImport, EmployeeUpdate
-from payroll.departments.repositories import (
-    check_exist_department_by_id,
-    get_department_by_code,
-)
-from payroll.positions.repositories import (
-    check_exist_position_by_id,
-    get_position_by_code,
-)
 
 log = logging.getLogger(__name__)
 
