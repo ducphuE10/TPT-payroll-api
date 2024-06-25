@@ -9,6 +9,7 @@ from payroll.departments.controllers import department_router
 from payroll.positions.controllers import position_router
 from payroll.contract_types.controllers import contracttype_router
 from payroll.employees.controllers import employee_router
+from payroll.attendances.controllers import attendance_router
 from payroll.config import settings
 
 # WARNING: Don't use this unless you want unauthenticated routes
@@ -43,6 +44,7 @@ router.include_router(
     contracttype_router, prefix="/contract-types", tags=["contract-types"]
 )
 router.include_router(employee_router, prefix="/employees", tags=["employees"])
+router.include_router(attendance_router, prefix="/attendances", tags=["attendances"])
 
 api_router.include_router(
     authenticated_api_router,

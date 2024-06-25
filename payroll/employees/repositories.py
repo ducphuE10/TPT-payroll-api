@@ -14,14 +14,6 @@ from payroll.positions.repositories import get_position_by_id
 log = logging.getLogger(__name__)
 
 
-def get_employee_by_id(*, db_session, id: int) -> PayrollEmployee:
-    """Returns a employee based on the given id."""
-    employee = (
-        db_session.query(PayrollEmployee).filter(PayrollEmployee.id == id).first()
-    )
-    return employee
-
-
 def get_employee_by_code(*, db_session, code: str) -> PayrollEmployee:
     """Returns a employee based on the given code."""
     employee = (
@@ -36,12 +28,13 @@ def get_all(*, db_session) -> PayrollEmployee:
     return EmployeesRead(data=data)
 
 
-def get_one_by_id(*, db_session, id: int) -> PayrollEmployee:
+def retrieve_employee_by_id(*, db_session, employee_id: int) -> PayrollEmployee:
     """Returns a employee based on the given id."""
-    print("AAAAAAAAAAAAAAAAAAAAA")
-    employee = get_employee_by_id(db_session=db_session, id=id)
-    if not employee:
-        raise AppException(ErrorMessages.ResourceNotFound())
+    employee = (
+        db_session.query(PayrollEmployee)
+        .filter(PayrollEmployee.id == employee_id)
+        .first()
+    )
     return employee
 
 

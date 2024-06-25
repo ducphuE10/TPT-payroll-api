@@ -75,6 +75,16 @@ class InsurancePolicy(str, Enum):
     IPolicy2 = "insurance_policy_2"
 
 
+class Day(str, Enum):
+    Mon = "Monday"
+    Tue = "Tuesday"
+    Wed = "Wednesday"
+    Thu = "Thursday"
+    Fri = "Friday"
+    Sat = "Saturday"
+    Sun = "Sunday"
+
+
 class Gender(str, Enum):
     Male = "male"
     Female = "female"

@@ -3,7 +3,9 @@ from fastapi import File, HTTPException, UploadFile, status
 import pandas as pd
 from io import BytesIO
 
-from payroll.employees.repositories import get_employee_by_code
+from payroll.employees.repositories import get_employee_by_code, retrieve_employee_by_id
+from payroll.exception.app_exception import AppException
+from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollEmployee
 from .constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
 
@@ -100,6 +102,20 @@ def upsert_employee(
         # Create new employee
         create_employee_by_xlsx(db_session=db_session, employee_in=employee_in)
     return employee_db
+
+
+def check_exist_employee(db_session, employee_id: int):
+    """Check if employee exists in the database."""
+    employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
+    return employee is not None
+
+
+def get_employee_by_id(db_session, employee_id: int):
+    employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
+    print(employee)
+    if not employee:
+        raise AppException(ErrorMessages.ResourceNotFound())
+    return employee
 
 
 def uploadXLSX(
