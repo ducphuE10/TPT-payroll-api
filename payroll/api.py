@@ -9,6 +9,8 @@ from payroll.departments.controllers import department_router
 from payroll.positions.controllers import position_router
 from payroll.contract_types.controllers import contracttype_router
 from payroll.employees.controllers import employee_router
+from payroll.taxes.controllers import tax_router
+from payroll.insurances.controllers import insurance_router
 from payroll.contracts.controllers import contract_router
 from payroll.attendances.controllers import attendance_router
 from payroll.config import settings
@@ -45,6 +47,8 @@ router.include_router(
     contracttype_router, prefix="/contract-types", tags=["contract-types"]
 )
 router.include_router(employee_router, prefix="/employees", tags=["employees"])
+router.include_router(tax_router, prefix="/taxes", tags=["taxes"])
+router.include_router(insurance_router, prefix="/insurances", tags=["insurances"])
 router.include_router(contract_router, prefix="/contracts", tags=["contracts"])
 router.include_router(attendance_router, prefix="/attendances", tags=["attendances"])
 

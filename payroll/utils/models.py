@@ -19,6 +19,7 @@ class TimeStampMixin(object):
     """Timestamping mixin"""
 
     created_at = Column(DateTime, default=func.now())
+    updated_at = Column(DateTime, default=func.now(), onupdate=func.now())
 
 
 class RandomCodeMixin:
@@ -65,14 +66,15 @@ class Pagination(PayrollBase):
     total: int
 
 
-class TaxPolicy(str, Enum):
-    TPolicy1 = "tax_policy_1"
-    TPolicy2 = "tax_policy_2"
+class TaxType(str, Enum):
+    Progressive = "PROGRESSIVE"
+    Fixed = "FIXED"
 
 
-class InsurancePolicy(str, Enum):
-    IPolicy1 = "insurance_policy_1"
-    IPolicy2 = "insurance_policy_2"
+class InsuranceType(str, Enum):
+    BasicSalary = "BASIC_SALARY"
+    TotalSalary = "TOTAL_SALARY"
+    CustomByEmployee = "CUSTOM_BY_EMPLOYEE"
 
 
 class Day(str, Enum):
