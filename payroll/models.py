@@ -12,7 +12,6 @@ from payroll.utils.models import (
     TaxType,
     PaymentMethod,
     Status,
-    TaxPolicy,
     TimeStampMixin,
 )
 
