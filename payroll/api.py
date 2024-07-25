@@ -14,6 +14,7 @@ from payroll.insurances.controllers import insurance_router
 from payroll.contracts.controllers import contract_router
 from payroll.attendances.controllers import attendance_router
 from payroll.shifts.controllers import shift_router
+from payroll.schedules.controllers import schedule_router
 from payroll.config import settings
 
 # WARNING: Don't use this unless you want unauthenticated routes
@@ -53,6 +54,7 @@ router.include_router(insurance_router, prefix="/insurances", tags=["insurances"
 router.include_router(contract_router, prefix="/contracts", tags=["contracts"])
 router.include_router(attendance_router, prefix="/attendances", tags=["attendances"])
 router.include_router(shift_router, prefix="/shifts", tags=["shifts"])
+router.include_router(schedule_router, prefix="/schedules", tags=["schedules"])
 
 api_router.include_router(
     authenticated_api_router,
