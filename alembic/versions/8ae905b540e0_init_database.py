@@ -1,11 +1,10 @@
-"""first version
+"""init database
 
-Revision ID: 9e869c860396
+Revision ID: 8ae905b540e0
 Revises:
-Create Date: 2024-06-22 19:21:54.408952
+Create Date: 2024-07-24 18:38:52.072866
 
 """
-
 from typing import Sequence, Union
 
 from alembic import op
@@ -13,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "9e869c860396"
+revision: str = "8ae905b540e0"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -60,6 +59,31 @@ def upgrade() -> None:
         sa.Column("code", sa.String(length=10), nullable=False),
         sa.Column("name", sa.String(length=30), nullable=False),
         sa.Column("description", sa.String(length=255), nullable=True),
+        sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("code"),
+    )
+    op.create_table(
+        "schedules",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("code", sa.String(length=10), nullable=False),
+        sa.Column("name", sa.String(length=30), nullable=False),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("code"),
+    )
+    op.create_table(
+        "shifts",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("code", sa.String(length=10), nullable=False),
+        sa.Column("name", sa.String(length=30), nullable=False),
+        sa.Column("standard_work_hours", sa.Float(), nullable=False),
+        sa.Column("checkin", sa.Time(), nullable=False),
+        sa.Column("earliest_checkin", sa.Time(), nullable=False),
+        sa.Column("latest_checkin", sa.Time(), nullable=False),
+        sa.Column("checkout", sa.Time(), nullable=False),
+        sa.Column("earliest_checkout", sa.Time(), nullable=False),
+        sa.Column("latest_checkout", sa.Time(), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
@@ -154,19 +178,95 @@ def upgrade() -> None:
         sa.UniqueConstraint("code"),
         sa.UniqueConstraint("mst"),
     )
+    op.create_table(
+        "schedule_shift_association",
+        sa.Column("schedule_id", sa.Integer(), nullable=False),
+        sa.Column("shift_id", sa.Integer(), nullable=False),
+        sa.Column("day", sa.String(length=3), nullable=False),
+        sa.ForeignKeyConstraint(
+            ["schedule_id"],
+            ["schedules.id"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["shift_id"],
+            ["shifts.id"],
+        ),
+        sa.PrimaryKeyConstraint("schedule_id", "shift_id", "day"),
+    )
+    op.create_table(
+        "attendances",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("work_hours", sa.Float(), nullable=True),
+        sa.Column("overtime", sa.Float(), nullable=True),
+        sa.Column("holiday", sa.Boolean(), nullable=True),
+        sa.Column("afm", sa.Boolean(), nullable=True),
+        sa.Column("wait4work", sa.Boolean(), nullable=True),
+        sa.Column("day_attendance", sa.Date(), nullable=False),
+        sa.Column("employee_id", sa.Integer(), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["employee_id"],
+            ["employees.id"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_table(
+        "contracts",
+        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("code", sa.String(length=10), nullable=False),
+        sa.Column("name", sa.String(length=30), nullable=False),
+        sa.Column(
+            "status",
+            sa.Enum("ACTIVE", "INACTIVE", "PENDING", "DELETED", name="status"),
+            nullable=False,
+        ),
+        sa.Column("description", sa.String(length=255), nullable=True),
+        sa.Column("type_code", sa.String(length=10), nullable=False),
+        sa.Column("ct_date", sa.Date(), nullable=False),
+        sa.Column("ct_code", sa.String(length=30), nullable=False),
+        sa.Column("employee_code", sa.String(length=10), nullable=False),
+        sa.Column("signed_date", sa.Date(), nullable=False),
+        sa.Column("start_date", sa.Date(), nullable=False),
+        sa.Column("end_date", sa.Date(), nullable=False),
+        sa.Column("is_current", sa.Boolean(), nullable=False),
+        sa.Column("active_from", sa.Date(), nullable=False),
+        sa.Column(
+            "payment_method",
+            sa.Enum("CASH", "BANK", name="paymentmethod"),
+            nullable=False,
+        ),
+        sa.Column("attachments", sa.String(length=255), nullable=True),
+        sa.Column("salary", sa.Float(), nullable=False),
+        sa.Column("basic_salary", sa.Float(), nullable=False),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
+        sa.ForeignKeyConstraint(
+            ["employee_code"],
+            ["employees.code"],
+        ),
+        sa.ForeignKeyConstraint(
+            ["type_code"],
+            ["contracttypes.code"],
+        ),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint("code"),
+    )
     # ### end Alembic commands ###
 
 
 def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
+    op.drop_table("contracts")
+    op.drop_table("attendances")
+    op.drop_table("schedule_shift_association")
     op.drop_table("employees")
     op.drop_table("contracttypes")
     op.drop_table("tax_policies")
+    op.drop_table("shifts")
+    op.drop_table("schedules")
     op.drop_table("positions")
     op.drop_table("insurance_policies")
     op.drop_table("departments")
-    op.execute("DROP TYPE taxtype")
-    op.execute("DROP TYPE insurancetype")
-    op.execute("DROP TYPE gender")
-    op.execute("DROP TYPE nationality")
     # ### end Alembic commands ###

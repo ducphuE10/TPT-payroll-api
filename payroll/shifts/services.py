@@ -10,7 +10,6 @@ from payroll.shifts.schemas import ShiftCreate, ShiftUpdate
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollShift
-from payroll.utils.functions import check_depend_employee
 
 
 def check_exist_shift_by_id(*, db_session, shift_id: int) -> bool:
@@ -78,9 +77,6 @@ def delete_shift(*, db_session, shift_id: int) -> PayrollShift:
     """Deletes a shift based on the given id."""
     if not check_exist_shift_by_id(db_session=db_session, shift_id=shift_id):
         raise AppException(ErrorMessages.ResourceNotFound())
-
-    if check_depend_employee(db_session=db_session, shift_id=shift_id):
-        raise AppException(ErrorMessages.ExistDependEmployee())
 
     remove_shift(db_session=db_session, shift_id=shift_id)
     return {"message": "Shift deleted successfully."}

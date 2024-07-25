@@ -3,12 +3,10 @@ from typing import List, Optional
 from sqlalchemy.orm import Mapped, mapped_column
 from sqlalchemy import (
     Boolean,
-    Column,
     ForeignKey,
     String,
     LargeBinary,
     Float,
-    Table,
     Time,
 )
 from sqlalchemy.orm import relationship
@@ -204,15 +202,6 @@ class PayrollAttendance(Base, TimeStampMixin):
         return f"Attendance (employee_name={self.employee_id!r}, work_days={self.work_hours!r}, date={self.day_attendance!r})"
 
 
-schedule_shift_association = Table(
-    "schedule_shift_association",
-    Base.metadata,
-    Column("schedule_id", ForeignKey("schedules.id"), primary_key=True),
-    Column("shift_id", ForeignKey("shifts.id"), primary_key=True),
-    Column("day", String(3), primary_key=True),  # 'mon', 'tue', etc.
-)
-
-
 class PayrollShift(Base, TimeStampMixin):
     __tablename__ = "shifts"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
@@ -227,26 +216,32 @@ class PayrollShift(Base, TimeStampMixin):
     latest_checkout: Mapped[time] = mapped_column(Time)  # required
 
     schedules = relationship(
-        "PayrollSchedule", secondary=schedule_shift_association, back_populates="shifts"
+        "PayrollSchedule", secondary="schedule_details", back_populates="shifts"
     )
 
     def __repr__(self) -> str:
         return f"Shift (name={self.name!r})"
 
 
-class PayrollSchedule(Base):
+class PayrollSchedule(Base, TimeStampMixin):
     __tablename__ = "schedules"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
 
     shifts: Mapped[List[PayrollShift]] = relationship(
-        "PayrollShift", secondary=schedule_shift_association, back_populates="schedules"
+        "PayrollShift", secondary="schedule_details", back_populates="schedules"
     )
 
-    def get_shifts_for_day(self, day: str) -> List[PayrollShift]:
-        return [
-            shift
-            for shift in self.shifts
-            if shift.schedule_shift_association.day == day
-        ]
+
+class PayrollScheduleDetail(Base, TimeStampMixin):
+    __tablename__ = "schedule_details"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    schedule_id: Mapped[int] = mapped_column(
+        ForeignKey("schedules.id"), primary_key=True
+    )
+    shift_id: Mapped[int] = mapped_column(ForeignKey("shifts.id"), primary_key=True)
+    day: Mapped[str] = mapped_column(String(3), primary_key=True)  # 'mon', 'tue', etc.
+
+    schedule = relationship("PayrollSchedule", back_populates="schedule_details")
+    shift = relationship("PayrollShift", back_populates="schedule_details")
