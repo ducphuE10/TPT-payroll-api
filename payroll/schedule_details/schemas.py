@@ -20,7 +20,6 @@ class ScheduleDetailsRead(PayrollBase):
 
 
 class ScheduleDetailUpdate(PayrollBase):
-    schedule_id: Optional[int]
     shift_id: Optional[int]
     day: Optional[Day]
 

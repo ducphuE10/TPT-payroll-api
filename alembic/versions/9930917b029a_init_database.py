@@ -1,8 +1,8 @@
 """init database
 
-Revision ID: 8ae905b540e0
+Revision ID: 9930917b029a
 Revises:
-Create Date: 2024-07-24 18:38:52.072866
+Create Date: 2024-07-25 10:13:23.079133
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "8ae905b540e0"
+revision: str = "9930917b029a"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -48,6 +48,7 @@ def upgrade() -> None:
         sa.Column("employee_percentage", sa.Float(), nullable=False),
         sa.Column("description", sa.String(length=255), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
@@ -59,6 +60,7 @@ def upgrade() -> None:
         sa.Column("code", sa.String(length=10), nullable=False),
         sa.Column("name", sa.String(length=30), nullable=False),
         sa.Column("description", sa.String(length=255), nullable=True),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
@@ -69,6 +71,9 @@ def upgrade() -> None:
         sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("code", sa.String(length=10), nullable=False),
         sa.Column("name", sa.String(length=30), nullable=False),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("code"),
     )
@@ -84,6 +89,7 @@ def upgrade() -> None:
         sa.Column("checkout", sa.Time(), nullable=False),
         sa.Column("earliest_checkout", sa.Time(), nullable=False),
         sa.Column("latest_checkout", sa.Time(), nullable=False),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
@@ -100,6 +106,7 @@ def upgrade() -> None:
         sa.Column("description", sa.String(length=255), nullable=True),
         sa.Column("percentage", sa.Float(), nullable=True),
         sa.Column("is_active", sa.Boolean(), nullable=False),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
@@ -163,6 +170,7 @@ def upgrade() -> None:
         sa.Column("position_id", sa.Integer(), nullable=False),
         sa.Column("email", sa.String(length=255), nullable=True),
         sa.Column("cv", sa.LargeBinary(), nullable=True),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
@@ -179,10 +187,14 @@ def upgrade() -> None:
         sa.UniqueConstraint("mst"),
     )
     op.create_table(
-        "schedule_shift_association",
+        "schedule_details",
+        sa.Column("id", sa.Integer(), nullable=False),
         sa.Column("schedule_id", sa.Integer(), nullable=False),
         sa.Column("shift_id", sa.Integer(), nullable=False),
         sa.Column("day", sa.String(length=3), nullable=False),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
+        sa.Column("created_at", sa.DateTime(), nullable=True),
+        sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
             ["schedule_id"],
             ["schedules.id"],
@@ -191,7 +203,7 @@ def upgrade() -> None:
             ["shift_id"],
             ["shifts.id"],
         ),
-        sa.PrimaryKeyConstraint("schedule_id", "shift_id", "day"),
+        sa.PrimaryKeyConstraint("id", "schedule_id", "shift_id", "day"),
     )
     op.create_table(
         "attendances",
@@ -203,6 +215,7 @@ def upgrade() -> None:
         sa.Column("wait4work", sa.Boolean(), nullable=True),
         sa.Column("day_attendance", sa.Date(), nullable=False),
         sa.Column("employee_id", sa.Integer(), nullable=False),
+        sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
         sa.ForeignKeyConstraint(
@@ -260,7 +273,7 @@ def downgrade() -> None:
     # ### commands auto generated by Alembic - please adjust! ###
     op.drop_table("contracts")
     op.drop_table("attendances")
-    op.drop_table("schedule_shift_association")
+    op.drop_table("schedule_details")
     op.drop_table("employees")
     op.drop_table("contracttypes")
     op.drop_table("tax_policies")

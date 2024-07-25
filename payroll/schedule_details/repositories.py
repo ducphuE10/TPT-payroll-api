@@ -1,6 +1,7 @@
 import logging
 
 from payroll.schedule_details.schemas import (
+    ScheduleDetailBase,
     ScheduleDetailCreate,
     ScheduleDetailUpdate,
 )
@@ -32,12 +33,29 @@ def retrieve_schedule_detail_by_id(
     return schedule_detail
 
 
+def retrieve_schedule_detail_by_info(
+    *, db_session, schedule_detail_in: ScheduleDetailBase
+) -> PayrollScheduleDetail:
+    """Returns a schedule_detail based on the given information."""
+    schedule_detail = (
+        db_session.query(PayrollScheduleDetail)
+        .filter(
+            PayrollScheduleDetail.schedule_id == schedule_detail_in.schedule_id,
+            PayrollScheduleDetail.shift_id == schedule_detail_in.shift_id,
+            PayrollScheduleDetail.day == schedule_detail_in.day,
+        )
+        .first()
+    )
+    return schedule_detail
+
+
 # POST /schedule_details
 def add_schedule_detail(
     *, db_session, schedule_detail_in: ScheduleDetailCreate
 ) -> PayrollScheduleDetail:
     """Creates a new schedule_detail."""
     schedule_detail = PayrollScheduleDetail(**schedule_detail_in.model_dump())
+    schedule_detail.created_by = "admin"
     db_session.add(schedule_detail)
     db_session.commit()
     return schedule_detail

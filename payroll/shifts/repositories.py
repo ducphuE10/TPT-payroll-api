@@ -39,6 +39,7 @@ def retrieve_all_shifts(*, db_session) -> ShiftsRead:
 def add_shift(*, db_session, shift_in: ShiftCreate) -> PayrollShift:
     """Creates a new shift."""
     shift = PayrollShift(**shift_in.model_dump())
+    shift.created_by = "admin"
     db_session.add(shift)
     db_session.commit()
     return shift

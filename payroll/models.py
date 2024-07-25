@@ -8,11 +8,13 @@ from sqlalchemy import (
     LargeBinary,
     Float,
     Time,
+    UniqueConstraint,
 )
 from sqlalchemy.orm import relationship
 
 from payroll.database.core import Base
 from payroll.utils.models import (
+    Day,
     Gender,
     InsuranceType,
     Nationality,
@@ -100,6 +102,7 @@ class PayrollPosition(Base, TimeStampMixin):
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
+    created_by: Mapped[str] = mapped_column(String(30))  # required
     employees: Mapped[List["PayrollEmployee"]] = relationship(
         "PayrollEmployee", back_populates="position"
     )
@@ -138,6 +141,7 @@ class PayrollEmployee(Base, TimeStampMixin):
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
+    created_by: Mapped[str] = mapped_column(String(30))  # required
 
     attendances: Mapped[List["PayrollAttendance"]] = relationship(
         "PayrollAttendance", back_populates="employee"
@@ -162,6 +166,7 @@ class TaxPolicy(Base, TimeStampMixin):
     description: Mapped[Optional[str]] = mapped_column(String(255))
     percentage: Mapped[Optional[float]] = mapped_column(Float)
     is_active: Mapped[bool]
+    created_by: Mapped[str] = mapped_column(String(30))  # required
 
     def __repr__(self) -> str:
         return f"TaxPolicy(name={self.name!r})"
@@ -177,6 +182,7 @@ class InsurancePolicy(Base, TimeStampMixin):
     employee_percentage: Mapped[float] = mapped_column(Float)  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
     is_active: Mapped[bool]
+    created_by: Mapped[str] = mapped_column(String(30))  # required
 
     def __repr__(self) -> str:
         return f"InsurancePolicy(name={self.name!r})"
@@ -193,6 +199,7 @@ class PayrollAttendance(Base, TimeStampMixin):
     wait4work: Mapped[Optional[bool]] = mapped_column(Boolean)
     day_attendance: Mapped[date]  # required
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+    created_by: Mapped[str] = mapped_column(String(30))  # required
 
     employee: Mapped["PayrollEmployee"] = relationship(
         "PayrollEmployee", back_populates="attendances"
@@ -200,6 +207,23 @@ class PayrollAttendance(Base, TimeStampMixin):
 
     def __repr__(self) -> str:
         return f"Attendance (employee_name={self.employee_id!r}, work_days={self.work_hours!r}, date={self.day_attendance!r})"
+
+
+class PayrollScheduleDetail(Base, TimeStampMixin):
+    __tablename__ = "schedule_details"
+    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)  # required
+    schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.id"))
+    shift_id: Mapped[int] = mapped_column(ForeignKey("shifts.id"))
+    day: Mapped[Day]  # 'mon', 'tue', etc.
+    created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    shift: Mapped["PayrollShift"] = relationship()
+
+    __table_args__ = (
+        UniqueConstraint(
+            "schedule_id", "shift_id", "day", name="uq_schedule_shift_day"
+        ),
+    )
 
 
 class PayrollShift(Base, TimeStampMixin):
@@ -214,10 +238,7 @@ class PayrollShift(Base, TimeStampMixin):
     checkout: Mapped[time] = mapped_column(Time)  # required
     earliest_checkout: Mapped[time] = mapped_column(Time)  # required
     latest_checkout: Mapped[time] = mapped_column(Time)  # required
-
-    schedules = relationship(
-        "PayrollSchedule", secondary="schedule_details", back_populates="shifts"
-    )
+    created_by: Mapped[str] = mapped_column(String(30))  # required
 
     def __repr__(self) -> str:
         return f"Shift (name={self.name!r})"
@@ -228,20 +249,6 @@ class PayrollSchedule(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
+    created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    shifts: Mapped[List[PayrollShift]] = relationship(
-        "PayrollShift", secondary="schedule_details", back_populates="schedules"
-    )
-
-
-class PayrollScheduleDetail(Base, TimeStampMixin):
-    __tablename__ = "schedule_details"
-    id: Mapped[int] = mapped_column(primary_key=True)  # required
-    schedule_id: Mapped[int] = mapped_column(
-        ForeignKey("schedules.id"), primary_key=True
-    )
-    shift_id: Mapped[int] = mapped_column(ForeignKey("shifts.id"), primary_key=True)
-    day: Mapped[str] = mapped_column(String(3), primary_key=True)  # 'mon', 'tue', etc.
-
-    schedule = relationship("PayrollSchedule", back_populates="schedule_details")
-    shift = relationship("PayrollShift", back_populates="schedule_details")
+    shifts: Mapped[List["PayrollScheduleDetail"]] = relationship()
