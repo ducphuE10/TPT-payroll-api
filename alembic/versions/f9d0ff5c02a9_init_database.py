@@ -1,8 +1,8 @@
 """init database
 
-Revision ID: 9930917b029a
+Revision ID: f9d0ff5c02a9
 Revises:
-Create Date: 2024-07-25 10:13:23.079133
+Create Date: 2024-07-26 22:16:25.272007
 
 """
 from typing import Sequence, Union
@@ -12,7 +12,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision: str = "9930917b029a"
+revision: str = "f9d0ff5c02a9"
 down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
@@ -168,6 +168,7 @@ def upgrade() -> None:
         sa.Column("note", sa.String(length=255), nullable=True),
         sa.Column("department_id", sa.Integer(), nullable=False),
         sa.Column("position_id", sa.Integer(), nullable=False),
+        sa.Column("schedule_id", sa.Integer(), nullable=False),
         sa.Column("email", sa.String(length=255), nullable=True),
         sa.Column("cv", sa.LargeBinary(), nullable=True),
         sa.Column("created_by", sa.String(length=30), nullable=False),
@@ -181,6 +182,10 @@ def upgrade() -> None:
             ["position_id"],
             ["positions.id"],
         ),
+        sa.ForeignKeyConstraint(
+            ["schedule_id"],
+            ["schedules.id"],
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("cccd"),
         sa.UniqueConstraint("code"),
@@ -188,10 +193,14 @@ def upgrade() -> None:
     )
     op.create_table(
         "schedule_details",
-        sa.Column("id", sa.Integer(), nullable=False),
+        sa.Column("id", sa.Integer(), autoincrement=True, nullable=False),
         sa.Column("schedule_id", sa.Integer(), nullable=False),
         sa.Column("shift_id", sa.Integer(), nullable=False),
-        sa.Column("day", sa.String(length=3), nullable=False),
+        sa.Column(
+            "day",
+            sa.Enum("Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun", name="day"),
+            nullable=False,
+        ),
         sa.Column("created_by", sa.String(length=30), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=True),
         sa.Column("updated_at", sa.DateTime(), nullable=True),
@@ -203,16 +212,15 @@ def upgrade() -> None:
             ["shift_id"],
             ["shifts.id"],
         ),
-        sa.PrimaryKeyConstraint("id", "schedule_id", "shift_id", "day"),
+        sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint(
+            "schedule_id", "shift_id", "day", name="uq_schedule_shift_day"
+        ),
     )
     op.create_table(
         "attendances",
         sa.Column("id", sa.Integer(), nullable=False),
-        sa.Column("work_hours", sa.Float(), nullable=True),
-        sa.Column("overtime", sa.Float(), nullable=True),
-        sa.Column("holiday", sa.Boolean(), nullable=True),
-        sa.Column("afm", sa.Boolean(), nullable=True),
-        sa.Column("wait4work", sa.Boolean(), nullable=True),
+        sa.Column("check_time", sa.Time(), nullable=False),
         sa.Column("day_attendance", sa.Date(), nullable=False),
         sa.Column("employee_id", sa.Integer(), nullable=False),
         sa.Column("created_by", sa.String(length=30), nullable=False),
