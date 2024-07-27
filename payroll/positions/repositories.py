@@ -44,6 +44,7 @@ def retrieve_all_positions(*, db_session) -> PositionsRead:
 def add_position(*, db_session, position_in: PositionCreate) -> PayrollPosition:
     """Creates a new position."""
     position = PayrollPosition(**position_in.model_dump())
+    position.created_by = "admin"
     db_session.add(position)
     db_session.commit()
     return position

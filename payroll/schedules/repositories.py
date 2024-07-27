@@ -45,6 +45,7 @@ def retrieve_all_schedules(*, db_session) -> SchedulesRead:
 def add_schedule(*, db_session, schedule_in: ScheduleCreate) -> PayrollSchedule:
     """Creates a new schedule."""
     schedule = PayrollSchedule(**schedule_in.model_dump())
+    schedule.created_by = "admin"
     db_session.add(schedule)
     db_session.commit()
     return schedule

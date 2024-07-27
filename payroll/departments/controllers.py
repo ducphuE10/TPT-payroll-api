@@ -39,7 +39,6 @@ def retrieve_department(*, db_session: DbSession, department_id: int):
 @department_router.post("", response_model=DepartmentRead)
 def create(*, department_in: DepartmentCreate, db_session: DbSession):
     """Creates a new department."""
-    department_in.created_by = "admin"
     department = create_department(db_session=db_session, department_in=department_in)
     return department
 
