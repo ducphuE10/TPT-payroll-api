@@ -5,6 +5,7 @@ Revises:
 Create Date: 2024-07-26 22:16:25.272007
 
 """
+
 from typing import Sequence, Union
 
 from alembic import op
@@ -290,4 +291,11 @@ def downgrade() -> None:
     op.drop_table("positions")
     op.drop_table("insurance_policies")
     op.drop_table("departments")
+    op.execute("DROP TYPE insurancetype")
+    op.execute("DROP TYPE taxtype")
+    op.execute("DROP TYPE gender")
+    op.execute("DROP TYPE nationality")
+    op.execute("DROP TYPE day")
+    op.execute("DROP TYPE status")
+    op.execute("DROP TYPE paymentmethod")
     # ### end Alembic commands ###

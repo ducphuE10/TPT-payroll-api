@@ -8,7 +8,6 @@ from payroll.attendances.schemas import (
 )
 from payroll.models import PayrollAttendance
 
-from payroll.database.core import DbSession
 
 # add, retrieve, modify, remove
 log = logging.getLogger(__name__)
@@ -26,17 +25,6 @@ def retrieve_attendances_by_month(
     count = query.count()
     attendances = query.all()
     return {"count": count, "data": attendances}
-
-
-employee_id = 1
-month = 7
-year = 2024
-result = retrieve_attendances_by_month(
-    db_session=DbSession, employee_id=employee_id, month=month, year=year
-)
-
-# Print the result
-print("AAAAAAAAA", result)
 
 
 # GET /attendances

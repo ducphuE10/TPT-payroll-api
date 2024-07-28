@@ -138,7 +138,7 @@ class PayrollEmployee(Base, TimeStampMixin):
     note: Mapped[Optional[str]] = mapped_column(String(255))
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
-    schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.id"))  # required
+    schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
 
@@ -208,7 +208,7 @@ class PayrollAttendance(Base, TimeStampMixin):
 
 class PayrollScheduleDetail(Base, TimeStampMixin):
     __tablename__ = "schedule_details"
-    id: Mapped[int] = mapped_column(primary_key=True, autoincrement=True)  # required
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
     schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.id"))
     shift_id: Mapped[int] = mapped_column(ForeignKey("shifts.id"))
     day: Mapped[Day]  # 'mon', 'tue', etc.
