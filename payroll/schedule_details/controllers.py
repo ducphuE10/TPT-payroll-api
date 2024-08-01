@@ -2,12 +2,14 @@ from fastapi import APIRouter
 
 from payroll.schedule_details.schemas import (
     ScheduleDetailRead,
+    ScheduleDetailsCreate,
     ScheduleDetailsRead,
     ScheduleDetailCreate,
     ScheduleDetailUpdate,
 )
 from payroll.database.core import DbSession
 from payroll.schedule_details.services import (
+    create_multi_schedule_detail,
     create_schedule_detail,
     delete_schedule_detail,
     get_all_schedule_details,
@@ -39,12 +41,24 @@ def get_schedule_detail(*, db_session: DbSession, schedule_detail_id: int):
 
 # POST /schedule_details
 @schedule_detail_router.post("", response_model=ScheduleDetailRead)
-def create(*, schedule_detail_in: ScheduleDetailCreate, db_session: DbSession):
+def create_one(*, schedule_detail_in: ScheduleDetailCreate, db_session: DbSession):
     """Creates a new schedule_detail."""
     schedule_detail = create_schedule_detail(
         db_session=db_session, schedule_detail_in=schedule_detail_in
     )
     return schedule_detail
+
+
+# POST /schedule_details/list
+@schedule_detail_router.post("/list", response_model=ScheduleDetailsRead)
+def create_multi(
+    *, schedule_detail_list_in: ScheduleDetailsCreate, db_session: DbSession
+):
+    """Creates a list of new schedule_details."""
+    schedule_detail_list = create_multi_schedule_detail(
+        db_session=db_session, schedule_detail_list_in=schedule_detail_list_in
+    )
+    return schedule_detail_list
 
 
 # PUT /schedule_details/{schedule_detail_id}

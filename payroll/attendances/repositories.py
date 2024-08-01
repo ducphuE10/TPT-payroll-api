@@ -77,6 +77,7 @@ def retrieve_employee_attendances_by_month(
 def add_attendance(*, db_session, attendance_in: AttendanceCreate) -> PayrollAttendance:
     """Creates a new attendance."""
     attendance = PayrollAttendance(**attendance_in.model_dump())
+    attendance.created_by = "admin"
     db_session.add(attendance)
     db_session.commit()
     return attendance

@@ -14,6 +14,8 @@ from payroll.schedule_details.schemas import (
     ScheduleDetailBase,
     ScheduleDetailCreate,
     ScheduleDetailUpdate,
+    ScheduleDetailsCreate,
+    ScheduleDetailsRead,
 )
 from payroll.schedules.services import check_exist_schedule_by_id
 from payroll.shifts.services import check_exist_shift_by_id
@@ -88,6 +90,25 @@ def create_schedule_detail(*, db_session, schedule_detail_in: ScheduleDetailCrea
     )
 
     return schedule_detail
+
+
+# POST /schedule_details/list
+def create_multi_schedule_detail(
+    *, db_session, schedule_detail_list_in: ScheduleDetailsCreate
+):
+    """Creates multiple schedule_details"""
+    schedule_detail_list = schedule_detail_list_in.data
+    created_schedule_details = []
+
+    for schedule_detail in schedule_detail_list:
+        created_detail = create_schedule_detail(
+            db_session=db_session, schedule_detail_in=schedule_detail
+        )
+        created_schedule_details.append(created_detail)
+
+    return ScheduleDetailsRead(
+        count=len(created_schedule_details), data=created_schedule_details
+    )
 
 
 # PUT /schedule_details/{schedule_detail_id}

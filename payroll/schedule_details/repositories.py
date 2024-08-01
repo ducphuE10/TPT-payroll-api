@@ -33,6 +33,18 @@ def retrieve_schedule_detail_by_id(
     return schedule_detail
 
 
+def retrieve_shifts_by_schedule_id(
+    *, db_session, schedule_id: int
+) -> PayrollScheduleDetail:
+    """Returns all schedule_details of a schedule."""
+    query = db_session.query(PayrollScheduleDetail).filter(
+        PayrollScheduleDetail.schedule_id == schedule_id,
+    )
+    count = query.count()
+    schedule_details = query.all()
+    return {"count": count, "data": schedule_details}
+
+
 def retrieve_schedule_detail_by_info(
     *, db_session, schedule_detail_in: ScheduleDetailBase
 ) -> PayrollScheduleDetail:

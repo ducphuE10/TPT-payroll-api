@@ -28,5 +28,9 @@ class ScheduleDetailCreate(ScheduleDetailBase):
     pass
 
 
+class ScheduleDetailsCreate(PayrollBase):
+    data: list[ScheduleDetailCreate] = []
+
+
 class PositionPagination(Pagination):
     items: List[ScheduleDetailRead] = []
