@@ -7,6 +7,7 @@ from payroll.utils.models import Pagination, PayrollBase
 class ScheduleBase(PayrollBase):
     code: str  # required
     name: str  # required
+    shift_per_day: int  # required
 
 
 class ScheduleRead(ScheduleBase):
@@ -21,6 +22,7 @@ class SchedulesRead(PayrollBase):
 
 class ScheduleUpdate(PayrollBase):
     name: Optional[str] = None
+    shift_per_day: Optional[int] = None
 
 
 class ScheduleCreate(ScheduleBase):

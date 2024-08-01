@@ -1,8 +1,10 @@
+import pprint
 from sqlalchemy import extract
 from sqlalchemy.orm import Session
 from datetime import datetime, timedelta
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import create_engine
+from payroll.attendances.schemas import AttendanceBase
 from payroll.config import settings
 from payroll.models import (
     PayrollAttendance,
@@ -10,6 +12,7 @@ from payroll.models import (
     PayrollSchedule,
     PayrollScheduleDetail,
 )
+from payroll.shifts.schemas import ShiftBase
 
 # Assuming you have your database URL
 
@@ -18,6 +21,7 @@ engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 session = SessionLocal()
 
+def
 
 def get_attendance_records(session: Session, employee_id: int, month: int, year: int):
     return (
@@ -49,16 +53,18 @@ def match_attendance_with_shifts(attendance_records, schedule_details):
         if detail.day not in schedule_map:
             schedule_map[detail.day] = []
         schedule_map[detail.day].append(detail)
-    print(schedule_map)
+    pprint.pprint(schedule_map)
 
     # Match attendance records with shifts
     attendance_summary = {}
     for record in attendance_records:
-        day = record.day_attendance
-        if day not in attendance_summary:
-            attendance_summary[day] = {}
-
+        date = record.day_attendance
+        if date not in attendance_summary:
+            attendance_summary[date] = {}
+        day = date.strftime("%a")
+        pprint.pprint(schedule_map.get(day, []))
         for detail in schedule_map.get(day, []):
+            # print(detail)
             shift = detail.shift
             if detail.shift_id not in attendance_summary[day]:
                 attendance_summary[day][detail.shift_id] = {
@@ -73,6 +79,7 @@ def match_attendance_with_shifts(attendance_records, schedule_details):
                 )
 
     return attendance_summary
+
 
 
 def summarize_attendance(attendance_summary):
@@ -109,7 +116,7 @@ def calculate_monthly_summary(attendance_summary):
     }
 
 
-employee_id = 1  # Example employee ID
+employee_id = 2  # Example employee ID
 month = 7  # July
 year = 2024
 

@@ -222,6 +222,9 @@ class PayrollScheduleDetail(Base, TimeStampMixin):
         ),
     )
 
+    def __repr__(self) -> str:
+        return f"Schedule detail (schedule_id={self.schedule_id!r}, shift_id={self.shift_id!r}, day={self.day!r})"
+
 
 class PayrollShift(Base, TimeStampMixin):
     __tablename__ = "shifts"
@@ -238,7 +241,7 @@ class PayrollShift(Base, TimeStampMixin):
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     def __repr__(self) -> str:
-        return f"Shift (name={self.name!r})"
+        return f"Shift (name={self.name!r}, code={self.code!r}, checkin={self.checkin!r}, checkout={self.checkout!r})"
 
 
 class PayrollSchedule(Base, TimeStampMixin):
@@ -246,6 +249,10 @@ class PayrollSchedule(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
+    shift_per_day: Mapped[int]
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     shifts: Mapped[List["PayrollScheduleDetail"]] = relationship()
+
+    def __repr__(self) -> str:
+        return f"Schedule (name={self.name!r}, code={self.code!r})"
