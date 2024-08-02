@@ -1,6 +1,6 @@
 from fastapi import APIRouter, File, Form, UploadFile
 
-from payroll.attendances.services import get_employee_attendances, uploadXLSX
+from payroll.attendances.services import get_employee_attendances
 from payroll.attendances.schemas import AttendancesRead
 from payroll.employees.schemas import (
     EmployeeRead,
@@ -16,6 +16,7 @@ from payroll.employees.services import (
     get_employee_by_id,
     update_employee,
     search_employee_by_name,
+    uploadXLSX,
 )
 
 employee_router = APIRouter()
