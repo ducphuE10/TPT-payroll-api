@@ -14,6 +14,7 @@ from payroll.schedule_details.services import (
     delete_schedule_detail,
     get_all_schedule_details,
     get_schedule_detail_by_id,
+    get_shifts_by_schedule_id,
     update_schedule_detail,
 )
 
@@ -37,6 +38,12 @@ def get_schedule_detail(*, db_session: DbSession, schedule_detail_id: int):
     return get_schedule_detail_by_id(
         db_session=db_session, schedule_detail_id=schedule_detail_id
     )
+
+
+# GET /schedule_details/?schedule_id={schedule_id}
+@schedule_detail_router.get("/", response_model=ScheduleDetailsRead)
+def get_shifts(*, db_session: DbSession, schedule_id: int):
+    return get_shifts_by_schedule_id(db_session=db_session, schedule_id=schedule_id)
 
 
 # POST /schedule_details

@@ -7,6 +7,7 @@ from payroll.schedule_details.repositories import (
     retrieve_all_schedule_details,
     retrieve_schedule_detail_by_id,
     retrieve_schedule_detail_by_info,
+    retrieve_shifts_by_schedule_id,
 )
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
@@ -61,6 +62,17 @@ def get_schedule_detail_by_id(*, db_session, schedule_detail_id: int):
         raise AppException(ErrorMessages.ResourceNotFound())
     schedule_detail = retrieve_schedule_detail_by_id(
         db_session=db_session, schedule_detail_id=schedule_detail_id
+    )
+    return schedule_detail
+
+
+# GET /schedule_details/?schedule_id={schedule_id}
+def get_shifts_by_schedule_id(*, db_session, schedule_id: int):
+    if not check_exist_schedule_by_id(db_session=db_session, schedule_id=schedule_id):
+        raise AppException(ErrorMessages.ResourceNotFound())
+
+    schedule_detail = retrieve_shifts_by_schedule_id(
+        db_session=db_session, schedule_id=schedule_id
     )
     return schedule_detail
 
