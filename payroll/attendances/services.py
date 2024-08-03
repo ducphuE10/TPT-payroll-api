@@ -20,7 +20,10 @@ from payroll.attendances.schemas import (
     TimeAttendanceHandlerBase,
     WorkhoursAttendanceHandlerBase,
 )
-from payroll.employees.repositories import retrieve_employee_by_id
+from payroll.employees.repositories import (
+    retrieve_employee_by_code,
+    retrieve_employee_by_id,
+)
 from payroll.employees.services import check_exist_employee_by_id
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
@@ -107,13 +110,6 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
     ):
         raise AppException(ErrorMessages.ResourceNotFound())
 
-    if check_exist_attendance_by_employee(
-        db_session=db_session,
-        day_attendance=attendance_in.day_attendance,
-        employee_id=attendance_in.employee_id,
-    ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists())
-
     attendance = add_attendance(db_session=db_session, attendance_in=attendance_in)
 
     return attendance
@@ -149,8 +145,9 @@ def attendance_handler(
     *,
     db_session,
     attendance_in: WorkhoursAttendanceHandlerBase | TimeAttendanceHandlerBase,
+    update_on_exists: bool = False,
 ):
-    """Use when input has standard work field"""
+    """Handles attendance based on standard work field or specific times."""
     employee = retrieve_employee_by_id(
         db_session=db_session, employee_id=attendance_in.employee_id
     )
@@ -160,13 +157,20 @@ def attendance_handler(
     shift_data = retrieve_shifts_by_schedule_id(
         db_session=db_session, schedule_id=schedule.id
     )
+    day_name = attendance_in.day_attendance.strftime("%A")
+
     shifts_list = [
-        detail.shift
-        for detail in shift_data["data"]
-        if detail.day == attendance_in.day_attendance.strftime("%A")
+        detail.shift for detail in shift_data["data"] if detail.day == day_name
     ]
+
     if not shifts_list:
         return
+
+    attendance_list = retrievce_attendance_by_employee(
+        db_session=db_session,
+        day_attendance=attendance_in.day_attendance,
+        employee_id=employee.id,
+    )
 
     if isinstance(attendance_in, WorkhoursAttendanceHandlerBase):
         standard_checkin = min(shift.checkin for shift in shifts_list)
@@ -189,6 +193,17 @@ def attendance_handler(
             ),
         )
     else:
+        attendance_time_list = [attendance.check_time for attendance in attendance_list]
+
+        if (
+            attendance_in.checkin in attendance_time_list
+            and attendance_in.checkout in attendance_time_list
+        ):
+            return
+
+        for attendance in attendance_list:
+            remove_attendance(db_session=db_session, attendance_id=attendance.id)
+
         add_attendance(
             db_session=db_session,
             attendance_in=AttendanceCreate(
@@ -207,15 +222,17 @@ def attendance_handler(
         )
 
 
-def upload_excel(*, db_session, file: UploadFile = File(...)):
+def upload_excel(
+    *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
+):
     file_path = BytesIO(file.file.read())
     df = pd.read_excel(file_path, skiprows=2)
 
     data = []
     for _, row in df.iterrows():
-        employee_id = row["Employee ID"]
+        employee_code = row["Mã nhân viên"]
         for day_attendance, value in row.items():
-            if day_attendance not in ["Employee ID"]:
+            if day_attendance not in ["Mã nhân viên"]:
                 try:
                     parsed_date = pd.to_datetime(
                         day_attendance, format="%d/%m/%Y"
@@ -226,6 +243,10 @@ def upload_excel(*, db_session, file: UploadFile = File(...)):
                 # Check if the value is NaN
                 if pd.isna(value):
                     continue
+
+                employee_id = retrieve_employee_by_code(
+                    db_session=db_session, employee_code=employee_code
+                ).id
 
                 # Check if value is a float (work hours) or a time range (check-in/check-out)
                 if isinstance(value, float | int):
@@ -260,4 +281,8 @@ def upload_excel(*, db_session, file: UploadFile = File(...)):
             attendance = WorkhoursAttendanceHandlerBase(**item)
         else:
             attendance = TimeAttendanceHandlerBase(**item)
-        attendance_handler(db_session=db_session, attendance_in=attendance)
+        attendance_handler(
+            db_session=db_session,
+            attendance_in=attendance,
+            update_on_exists=update_on_exists,
+        )
