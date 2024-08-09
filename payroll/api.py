@@ -10,6 +10,7 @@ from payroll.positions.controllers import position_router
 from payroll.contract_types.controllers import contracttype_router
 from payroll.employees.controllers import employee_router
 from payroll.taxes.controllers import tax_router
+from payroll.storage.controllers import storage_router
 from payroll.insurances.controllers import insurance_router
 from payroll.contracts.controllers import contract_router
 from payroll.attendances.controllers import attendance_router
@@ -61,6 +62,7 @@ router.include_router(schedule_router, prefix="/schedules", tags=["schedules"])
 router.include_router(
     schedule_detail_router, prefix="/schedule_details", tags=["schedule_details"]
 )
+router.include_router(storage_router, prefix="/storage", tags=["storage"])
 # router.include_router(import_router, prefix="/import_router", tags=["import_router"])
 
 api_router.include_router(

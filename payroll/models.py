@@ -43,7 +43,7 @@ class PayrollContractType(Base, TimeStampMixin):
     insurance_policy: Mapped["InsurancePolicy"] = relationship(
         "InsurancePolicy", backref="contracttypes"
     )
-    template: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
+    template: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     def __repr__(self) -> str:
@@ -138,7 +138,7 @@ class PayrollEmployee(Base, TimeStampMixin):
     note: Mapped[Optional[str]] = mapped_column(String(255))
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
-    schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
+    # schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
 

@@ -29,7 +29,7 @@ class EmployeeBase(PayrollBase):
     note: Optional[str] = None
     department_id: int  # required
     position_id: int  # required
-    schedule_id: int  # required
+    # schedule_id: int  # required
     email: Optional[str] = None
     cv: Optional[bytes] = None
 
