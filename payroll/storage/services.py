@@ -1,4 +1,6 @@
 import base64
+import io
+from typing import Optional
 import boto3
 from io import BytesIO
 import uuid
@@ -53,3 +55,16 @@ def upload_file_to_minio(
             "error": str(e),
             "message": "File upload failed due to an internal error.",
         }
+
+
+def read_file_from_minio(file_key: str) -> Optional[io.BytesIO]:
+    try:
+        # Download the file from MinIO
+        file_in_memory = BytesIO()
+        s3_client.download_fileobj(MINIO_BUCKET_NAME, file_key, file_in_memory)
+        file_in_memory.seek(0)
+
+        return file_in_memory
+    except Exception as e:
+        print(f"Error downloading file: {str(e)}")
+        return None

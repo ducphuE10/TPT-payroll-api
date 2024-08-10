@@ -17,7 +17,7 @@ class ContractBase(PayrollBase):
     ct_code: str  # required
     signed_date: date  # required
     start_date: date  # required
-    end_date: date  # required
+    end_date: Optional[date]  # required
     is_current: bool  # required
     active_from: date  # required
     payment_method: PaymentMethod  # required

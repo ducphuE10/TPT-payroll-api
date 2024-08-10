@@ -67,7 +67,7 @@ class PayrollContract(Base, TimeStampMixin):
     )
     signed_date: Mapped[date]  # required
     start_date: Mapped[date]  # required
-    end_date: Mapped[date]  # required
+    end_date: Mapped[Optional[date]]  # required
     is_current: Mapped[bool]  # required
     active_from: Mapped[date]  # required
     payment_method: Mapped[PaymentMethod]  # required
@@ -118,7 +118,7 @@ class PayrollEmployee(Base, TimeStampMixin):
     date_of_birth: Mapped[date]  # required
     gender: Mapped[Gender]  # required
     nationality: Mapped[Optional[Nationality]]
-    ethnic: Mapped[Optional[str]] = mapped_column(String(10))
+    ethnic: Mapped[Optional[str]]
     religion: Mapped[Optional[str]] = mapped_column(String(30))
     cccd: Mapped[str] = mapped_column(String(30), unique=True)  # required
     cccd_date: Mapped[Optional[date]]
