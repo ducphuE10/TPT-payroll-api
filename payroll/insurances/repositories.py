@@ -28,6 +28,7 @@ def get_all(*, db_session):
 def create(*, db_session, create_data: dict) -> InsurancePolicy:
     """Creates a new insurance policy."""
     insurance_policy = InsurancePolicy(**create_data)
+    insurance_policy.created_by = "admin"
     db_session.add(insurance_policy)
     return insurance_policy
 

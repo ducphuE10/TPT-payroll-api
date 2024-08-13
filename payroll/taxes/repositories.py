@@ -22,6 +22,7 @@ def get_all(*, db_session):
 def create(*, db_session, create_data: dict) -> TaxPolicy:
     """Creates a new tax policy."""
     tax_policy = TaxPolicy(**create_data)
+    tax_policy.created_by = "admin"
     db_session.add(tax_policy)
     db_session.commit()
     return tax_policy

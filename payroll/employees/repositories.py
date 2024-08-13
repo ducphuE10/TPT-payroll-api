@@ -72,6 +72,7 @@ def retrieve_employee_by_id(*, db_session, employee_id: int) -> PayrollEmployee:
 def add_employee(*, db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
     """Creates a new employee."""
     employee = PayrollEmployee(**employee_in.model_dump())
+    employee.created_by = "admin"
     db_session.add(employee)
     db_session.commit()
     return employee

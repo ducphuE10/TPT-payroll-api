@@ -26,6 +26,7 @@ def get_all(*, db_session):
 def create(*, db_session, create_data: dict) -> PayrollContract:
     """Creates a new contract."""
     contract = PayrollContract(**create_data)
+    contract.created_by = "admin"
     db_session.add(contract)
     return contract
 

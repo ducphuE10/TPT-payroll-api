@@ -1,52 +1,18 @@
-from datetime import datetime, date
-from typing import List, Optional, Union
-from pydantic import model_validator
+from datetime import datetime, date, time
+from typing import List, Optional
 
-from payroll.employees.schemas import EmployeeBase
-from payroll.exception.app_exception import AppException
-from payroll.exception.error_message import ErrorMessages
 from payroll.utils.models import Pagination, PayrollBase
-
-# from .validators import check_work_or_leave_set
-
-
-def check_work_or_leave_set(
-    obj: Union["AttendanceUpdate", "AttendanceCreate"],
-) -> Union["AttendanceUpdate", "AttendanceCreate"]:
-    work_set = any([obj.work_hours is not None, obj.overtime is not None])
-    leave_set = [
-        obj.holiday is not None,
-        obj.afm is not None,
-        obj.wait4work is not None,
-    ]
-
-    if work_set and any(leave_set):
-        """Only one of 'work' or 'leave' attributes can be set, not both."""
-        raise AppException(ErrorMessages.WorkLeaveState())
-    if not work_set and not any(leave_set):
-        """At least one of 'work' or 'leave' attributes must be set."""
-        raise AppException(ErrorMessages.WorkLeaveState())
-    if sum(leave_set) > 1:
-        """Only one attribute within 'leave' set can be set at a time."""
-        raise AppException(ErrorMessages.WorkLeaveState())
-
-    return obj
 
 
 class AttendanceBase(PayrollBase):
     employee_id: int  # required
     day_attendance: date  # required
-    work_hours: Optional[float]
-    overtime: Optional[float]
-    holiday: Optional[bool]
-    afm: Optional[bool]
-    wait4work: Optional[bool]
+    check_time: time  # required
 
 
 class AttendanceRead(AttendanceBase):
     id: int
     created_at: datetime
-    employee: EmployeeBase
 
 
 class AttendancesRead(PayrollBase):
@@ -55,36 +21,28 @@ class AttendancesRead(PayrollBase):
 
 
 class AttendanceUpdate(PayrollBase):
-    work_hours: Optional[float] = None
-    overtime: Optional[float] = None
-    holiday: Optional[bool] = None
-    afm: Optional[bool] = None
-    wait4work: Optional[bool] = None
-
-    check_work_or_leave_set = model_validator(mode="after")(check_work_or_leave_set)
+    check_time: Optional[bool] = None
 
 
 class AttendanceCreate(PayrollBase):
     employee_id: int  # required
     day_attendance: date  # required
-    work_hours: Optional[float] = None
-    overtime: Optional[float] = None
-    holiday: Optional[bool] = None
-    afm: Optional[bool] = None
-    wait4work: Optional[bool] = None
-
-    check_work_or_leave_set = model_validator(mode="after")(check_work_or_leave_set)
-
-
-class AttendanceImport(PayrollBase):
-    employee_id: int  # required
-    day_attendance: date  # required
-    work_hours: Optional[float]  # half required
-    overtime: Optional[float]  # half required
-    holiday: Optional[bool]  # half required
-    afm: Optional[bool]  # half required
-    wait4work: Optional[bool]  # half required
+    check_time: time  # required
 
 
 class PositionPagination(Pagination):
     items: List[AttendanceRead] = []
+
+
+# For import function
+class WorkhoursAttendanceHandlerBase(PayrollBase):
+    employee_id: int  # required
+    day_attendance: date  # required
+    work_hours: float  # required
+
+
+class TimeAttendanceHandlerBase(PayrollBase):
+    employee_id: int  # required
+    day_attendance: date  # required
+    checkin: time  # required
+    checkout: time  # required

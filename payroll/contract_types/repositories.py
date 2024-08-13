@@ -50,6 +50,7 @@ def get_one_by_id(*, db_session, id: int) -> ContractTypeRead:
 def create(*, db_session, contracttype_in: ContractTypeCreate) -> ContractTypeRead:
     """Creates a new contract type."""
     contracttype = PayrollContractType(**contracttype_in.model_dump())
+    contracttype.created_by = "admin"
     contracttype_db = get_contract_type_code(
         db_session=db_session, code=contracttype.code
     )

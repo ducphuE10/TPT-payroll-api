@@ -30,15 +30,17 @@ repos:
       - id: ruff-format
 
   # Typos
-  - repo: https://github.com/crate-ci/typos
-    rev: v1.16.23
-    hooks:
-      - id: typos
+  # - repo: https://github.com/crate-ci/typos
+  #   rev: v1.16.23
+  #   hooks:
+  #     - id: typos
+  #     [files]
+  #     extend-exclude = ["alembic/versions/*.py"]
 
-  - repo: https://github.com/psf/black
-    rev: 22.10.0
-    hooks:
-      - id: black
+  # - repo: https://github.com/psf/black
+  #   rev: 22.10.0
+  #   hooks:
+  #     - id: black
 
   # Pytest
   # - repo: local

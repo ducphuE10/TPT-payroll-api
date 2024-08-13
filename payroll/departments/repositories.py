@@ -46,6 +46,7 @@ def retrieve_all_departments(*, db_session) -> DepartmentsRead:
 def add_department(*, db_session, department_in: DepartmentCreate) -> PayrollDepartment:
     """Creates a new department."""
     department = PayrollDepartment(**department_in.model_dump())
+    department.created_by = "admin"
     db_session.add(department)
     db_session.commit()
     return department
