@@ -39,8 +39,7 @@ def retrieve_department(*, db_session: DbSession, department_id: int):
 @department_router.post("", response_model=DepartmentRead)
 def create(*, department_in: DepartmentCreate, db_session: DbSession):
     """Creates a new department."""
-    department = create_department(db_session=db_session, department_in=department_in)
-    return department
+    return create_department(db_session=db_session, department_in=department_in)
 
 
 # PUT /departments/{department_id}
@@ -55,7 +54,7 @@ def update(
 
 
 # DELETE /departments/{department_id}
-@department_router.delete("/{department_id}")
+@department_router.delete("/{department_id}", response_model=DepartmentRead)
 def delete(*, db_session: DbSession, department_id: int):
     """Delete a department by id."""
     return delete_department(db_session=db_session, department_id=department_id)

@@ -39,8 +39,7 @@ def retrieve_position(*, db_session: DbSession, position_id: int):
 @position_router.post("", response_model=PositionRead)
 def create(*, position_in: PositionCreate, db_session: DbSession):
     """Creates a new position."""
-    position = create_position(db_session=db_session, position_in=position_in)
-    return position
+    return create_position(db_session=db_session, position_in=position_in)
 
 
 # PUT /positions/{position_id}
@@ -53,7 +52,7 @@ def update(*, db_session: DbSession, position_id: int, position_in: PositionUpda
 
 
 # DELETE /positions/{position_id}
-@position_router.delete("/{position_id}")
+@position_router.delete("/{position_id}", response_model=PositionRead)
 def delete(*, db_session: DbSession, position_id: int):
     """Delete a position by id."""
     return delete_position(db_session=db_session, position_id=position_id)
