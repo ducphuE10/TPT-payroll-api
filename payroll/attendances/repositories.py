@@ -18,14 +18,15 @@ def retrieve_all_attendances(*, db_session) -> PayrollAttendance:
     query = db_session.query(PayrollAttendance)
     count = query.count()
     attendances = query.all()
+
     return {"count": count, "data": attendances}
 
 
-def retrievce_attendance_by_employee(
+def retrieve_attendance_by_employee(
     *, db_session, day_attendance: date, employee_id: int
 ):
     """Returns a attendance based on the given day and employee_id."""
-    attendance = (
+    return (
         db_session.query(PayrollAttendance)
         .filter(
             PayrollAttendance.day_attendance == day_attendance,
@@ -33,18 +34,16 @@ def retrievce_attendance_by_employee(
         )
         .all()
     )
-    return attendance
 
 
 # GET /attendances/{attendance_id}
 def retrieve_attendance_by_id(*, db_session, attendance_id: int) -> PayrollAttendance:
     """Returns a attendance based on the given id."""
-    attendance = (
+    return (
         db_session.query(PayrollAttendance)
         .filter(PayrollAttendance.id == attendance_id)
         .first()
     )
-    return attendance
 
 
 # GET /employees/{employee_id}/attendances
@@ -55,10 +54,11 @@ def retrieve_employee_attendances(*, db_session, employee_id: int) -> PayrollAtt
     )
     count = query.count()
     attendances = query.all()
+
     return {"count": count, "data": attendances}
 
 
-# GET /attendances/test?m=1&y=2021
+# GET /attendances/period?m=month&y=year
 def retrieve_employee_attendances_by_month(
     *, db_session, month: int, year: int
 ) -> PayrollAttendance:
@@ -79,7 +79,7 @@ def add_attendance(*, db_session, attendance_in: AttendanceCreate) -> PayrollAtt
     attendance = PayrollAttendance(**attendance_in.model_dump())
     attendance.created_by = "admin"
     db_session.add(attendance)
-    db_session.commit()
+
     return attendance
 
 
@@ -93,16 +93,18 @@ def modify_attendance(
         PayrollAttendance.id == attendance_id
     )
     query.update(update_data, synchronize_session=False)
-    db_session.commit()
-
     updated_attendance = query.first()
+
     return updated_attendance
 
 
 # DELETE /attendances/{attendance_id}
 def remove_attendance(*, db_session, attendance_id: int) -> PayrollAttendance:
     """Deletes a attendance based on the given id."""
-    db_session.query(PayrollAttendance).filter(
+    query = db_session.query(PayrollAttendance).filter(
         PayrollAttendance.id == attendance_id
-    ).delete()
-    db_session.commit()
+    )
+    delete_attendance = query.first()
+    query.delete()
+
+    return delete_attendance
