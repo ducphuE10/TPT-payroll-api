@@ -20,6 +20,10 @@ class SchedulesRead(PayrollBase):
     data: list[ScheduleRead] = []
 
 
+# class ScheduleWithDetailsRead(ScheduleRead):
+#     schedule_details: List[SimpleScheduleDetailsRead]
+
+
 class ScheduleUpdate(PayrollBase):
     name: Optional[str] = None
     shift_per_day: Optional[int] = None
