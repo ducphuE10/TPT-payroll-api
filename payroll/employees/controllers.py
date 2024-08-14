@@ -49,8 +49,7 @@ def retrieve_employee_attendances(*, db_session: DbSession, employee_id: int):
 @employee_router.post("", response_model=EmployeeRead)
 def create(*, employee_in: EmployeeCreate, db_session: DbSession):
     """Creates a new employee."""
-    employee = create_employee(db_session=db_session, employee_in=employee_in)
-    return employee
+    return create_employee(db_session=db_session, employee_in=employee_in)
 
 
 # PUT /employees/{employee_id}
@@ -63,7 +62,7 @@ def update(*, db_session: DbSession, employee_id: int, employee_in: EmployeeUpda
 
 
 # DELETE /employees/{employee_id}
-@employee_router.delete("/{employee_id}")
+@employee_router.delete("/{employee_id}", response_model=EmployeeRead)
 def delete(*, db_session: DbSession, employee_id: int):
     """Deletes a employee based on the given id."""
     return delete_employee(db_session=db_session, employee_id=employee_id)
