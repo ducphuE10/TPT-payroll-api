@@ -1,3 +1,4 @@
+from payroll.employees.repositories import retrieve_employee_by_position
 from payroll.positions.repositories import (
     add_position,
     modify_position,
@@ -9,31 +10,27 @@ from payroll.positions.repositories import (
 from payroll.positions.schemas import PositionCreate, PositionUpdate
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
-from payroll.models import PayrollPosition
-from payroll.utils.functions import check_depend_employee
 
 
-def check_exist_position_by_id(*, db_session, position_id: int) -> bool:
+def check_exist_position_by_id(*, db_session, position_id: int):
     """Check if position exists in the database."""
-    position = retrieve_position_by_id(db_session=db_session, position_id=position_id)
-    return position is not None
+    return bool(retrieve_position_by_id(db_session=db_session, position_id=position_id))
 
 
-def check_exist_position_by_code(*, db_session, position_code: str) -> bool:
+def check_exist_position_by_code(*, db_session, position_code: str):
     """Check if position exists in the database."""
-    position = retrieve_position_by_code(
-        db_session=db_session, position_code=position_code
+    return bool(
+        retrieve_position_by_code(db_session=db_session, position_code=position_code)
     )
-    return position is not None
 
 
 # GET /positions/{position_id}
 def get_position_by_id(*, db_session, position_id: int):
     """Returns a position based on the given id."""
     if not check_exist_position_by_id(db_session=db_session, position_id=position_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    position = retrieve_position_by_id(db_session=db_session, position_id=position_id)
-    return position
+        raise AppException(ErrorMessages.ResourceNotFound(), "position")
+
+    return retrieve_position_by_id(db_session=db_session, position_id=position_id)
 
 
 def get_position_by_code(*, db_session, position_code: int):
@@ -41,11 +38,9 @@ def get_position_by_code(*, db_session, position_code: int):
     if not check_exist_position_by_code(
         db_session=db_session, position_code=position_code
     ):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    position = retrieve_position_by_code(
-        db_session=db_session, position_code=position_code
-    )
-    return position
+        raise AppException(ErrorMessages.ResourceNotFound(), "position")
+
+    return retrieve_position_by_code(db_session=db_session, position_code=position_code)
 
 
 # GET /positions
@@ -53,7 +48,8 @@ def get_all_position(*, db_session):
     """Returns all positions."""
     positions = retrieve_all_positions(db_session=db_session)
     if not positions["count"]:
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "position")
+
     return positions
 
 
@@ -63,8 +59,15 @@ def create_position(*, db_session, position_in: PositionCreate):
     if check_exist_position_by_code(
         db_session=db_session, position_code=position_in.code
     ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists())
-    position = add_position(db_session=db_session, position_in=position_in)
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "position")
+
+    try:
+        position = add_position(db_session=db_session, position_in=position_in)
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
     return position
 
 
@@ -72,23 +75,34 @@ def create_position(*, db_session, position_in: PositionCreate):
 def update_position(*, db_session, position_id: int, position_in: PositionUpdate):
     """Updates a position with the given data."""
     if not check_exist_position_by_id(db_session=db_session, position_id=position_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "position")
 
-    updated_position = modify_position(
-        db_session=db_session, position_id=position_id, position_in=position_in
-    )
+    try:
+        position = modify_position(
+            db_session=db_session, position_id=position_id, position_in=position_in
+        )
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
-    return updated_position
+    return position
 
 
 # DELETE /positions/{position_id}
-def delete_position(*, db_session, position_id: int) -> PayrollPosition:
+def delete_position(*, db_session, position_id: int):
     """Deletes a position based on the given id."""
     if not check_exist_position_by_id(db_session=db_session, position_id=position_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "position")
 
-    if check_depend_employee(db_session=db_session, position_id=position_id):
-        raise AppException(ErrorMessages.ExistDependEmployee())
+    if retrieve_employee_by_position(db_session=db_session, position_id=position_id):
+        raise AppException(ErrorMessages.ExistDependObject(), ["position", "employee"])
 
-    remove_position(db_session=db_session, position_id=position_id)
-    return {"message": "Position deleted successfully."}
+    try:
+        position = remove_position(db_session=db_session, position_id=position_id)
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return position
