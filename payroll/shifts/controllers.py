@@ -39,8 +39,7 @@ def retrieve_shift(*, db_session: DbSession, shift_id: int):
 @shift_router.post("", response_model=ShiftRead)
 def create(*, shift_in: ShiftCreate, db_session: DbSession):
     """Creates a new shift."""
-    shift = create_shift(db_session=db_session, shift_in=shift_in)
-    return shift
+    return create_shift(db_session=db_session, shift_in=shift_in)
 
 
 # PUT /shifts/{shift_id}
@@ -51,7 +50,7 @@ def update(*, db_session: DbSession, shift_id: int, shift_in: ShiftUpdate):
 
 
 # DELETE /shifts/{shift_id}
-@shift_router.delete("/{shift_id}")
+@shift_router.delete("/{shift_id}", response_model=ShiftRead)
 def delete(*, db_session: DbSession, shift_id: int):
     """Delete a shift by id."""
     return delete_shift(db_session=db_session, shift_id=shift_id)

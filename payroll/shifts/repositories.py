@@ -14,16 +14,14 @@ log = logging.getLogger(__name__)
 # GET /shifts/{shift_id}
 def retrieve_shift_by_id(*, db_session, shift_id: int) -> PayrollShift:
     """Returns a shift based on the given id."""
-    shift = db_session.query(PayrollShift).filter(PayrollShift.id == shift_id).first()
-    return shift
+    return db_session.query(PayrollShift).filter(PayrollShift.id == shift_id).first()
 
 
 def retrieve_shift_by_code(*, db_session, shift_code: str) -> PayrollShift:
     """Returns a shift based on the given code."""
-    shift = (
+    return (
         db_session.query(PayrollShift).filter(PayrollShift.code == shift_code).first()
     )
-    return shift
 
 
 # GET /shifts
@@ -32,6 +30,7 @@ def retrieve_all_shifts(*, db_session) -> ShiftsRead:
     query = db_session.query(PayrollShift)
     count = query.count()
     shifts = query.order_by(PayrollShift.id.asc()).all()
+
     return {"count": count, "data": shifts}
 
 
@@ -41,7 +40,7 @@ def add_shift(*, db_session, shift_in: ShiftCreate) -> PayrollShift:
     shift = PayrollShift(**shift_in.model_dump())
     shift.created_by = "admin"
     db_session.add(shift)
-    db_session.commit()
+
     return shift
 
 
@@ -51,14 +50,16 @@ def modify_shift(*, db_session, shift_id: int, shift_in: ShiftUpdate) -> Payroll
     query = db_session.query(PayrollShift).filter(PayrollShift.id == shift_id)
     update_data = shift_in.model_dump(exclude_unset=True)
     query.update(update_data, synchronize_session=False)
-    db_session.commit()
     updated_shift = query.first()
+
     return updated_shift
 
 
 # DELETE /shifts/{shift_id}
 def remove_shift(*, db_session, shift_id: int):
     """Deletes a shift based on the given id."""
-    db_session.query(PayrollShift).filter(PayrollShift.id == shift_id).delete()
+    query = db_session.query(PayrollShift).filter(PayrollShift.id == shift_id)
+    delete_shift = query.first()
+    query.delete()
 
-    db_session.commit()
+    return delete_shift
