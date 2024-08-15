@@ -14,8 +14,10 @@ from payroll.employees.repositories import (
     modify_employee,
     remove_employee,
     retrieve_all_employees,
+    retrieve_employee_by_cccd,
     retrieve_employee_by_code,
     retrieve_employee_by_id,
+    retrieve_employee_by_mst,
     search_employees_by_partial_name,
 )
 from payroll.exception.app_exception import AppException
@@ -28,24 +30,112 @@ from payroll.employees.schemas import (
     EmployeeUpdate,
     EmployeesRead,
 )
+from payroll.schedules.services import check_exist_schedule_by_id
 
 log = logging.getLogger(__name__)
 
 # create, get, update, delete
 
 
-def check_exist_employee_by_id(*, db_session, employee_id: int) -> bool:
+def check_exist_employee_by_id(*, db_session, employee_id: int):
     """Check if employee exists in the database."""
-    employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
-    return employee is not None
+    return bool(retrieve_employee_by_id(db_session=db_session, employee_id=employee_id))
 
 
-def check_exist_employee_by_code(*, db_session, employee_code: str) -> bool:
+def check_exist_employee_by_code(*, db_session, employee_code: str):
     """Check if employee exists in the database."""
-    employee = retrieve_employee_by_code(
-        db_session=db_session, employee_code=employee_code
+    return bool(
+        retrieve_employee_by_code(db_session=db_session, employee_code=employee_code)
     )
-    return employee is not None
+
+
+def check_exist_employee_by_cccd(*, db_session, employee_cccd: str):
+    """Check if employee exists in the database."""
+    return bool(
+        retrieve_employee_by_cccd(db_session=db_session, employee_cccd=employee_cccd)
+    )
+
+
+def check_exist_employee_by_mst(*, db_session, employee_mst: str):
+    """Check if employee exists in the database."""
+    return bool(
+        retrieve_employee_by_mst(db_session=db_session, employee_mst=employee_mst)
+    )
+
+
+def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
+    if not check_exist_department_by_id(
+        db_session=db_session, department_id=employee_in.department_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound(), "department")
+
+    if not check_exist_position_by_id(
+        db_session=db_session, position_id=employee_in.position_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound(), "position")
+
+    if employee_in.schedule_id is not None and not check_exist_schedule_by_id(
+        db_session=db_session, schedule_id=employee_in.schedule_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
+
+    if check_exist_employee_by_code(
+        db_session=db_session, employee_code=employee_in.code
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "employee")
+
+    if check_exist_employee_by_cccd(
+        db_session=db_session, employee_cccd=employee_in.cccd
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
+
+    if check_exist_employee_by_mst(db_session=db_session, employee_mst=employee_in.mst):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
+
+    return True
+
+
+def validate_update_employee(*, db_session, employee_in: EmployeeUpdate):
+    if employee_in.department_id is not None and not check_exist_department_by_id(
+        db_session=db_session, department_id=employee_in.department_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound(), "department")
+
+    if employee_in.position_id is not None and not check_exist_position_by_id(
+        db_session=db_session, position_id=employee_in.position_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound(), "position")
+
+    if employee_in.schedule_id is not None and not check_exist_schedule_by_id(
+        db_session=db_session, schedule_id=employee_in.schedule_id
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
+
+    if employee_in.code and check_exist_employee_by_code(
+        db_session=db_session, employee_code=employee_in.code
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "employee")
+
+    if employee_in.cccd and check_exist_employee_by_cccd(
+        db_session=db_session, employee_cccd=employee_in.cccd
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
+
+    if employee_in.mst and check_exist_employee_by_mst(
+        db_session=db_session, employee_mst=employee_in.mst
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
+
+    return True
+
+
+# GET /employees/{employee_id}
+def get_employee_by_id(*, db_session, employee_id: int):
+    """Returns a employee based on the given id."""
+    if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
+        raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+    return retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
 
 
 # GET /employees
@@ -53,38 +143,21 @@ def get_all_employees(*, db_session):
     """Returns all employees."""
     list_employees = retrieve_all_employees(db_session=db_session)
     if not list_employees["count"]:
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
     return list_employees
-
-
-# GET /employees/{employee_id}
-def get_employee_by_id(*, db_session, employee_id: int):
-    """Returns a employee based on the given id."""
-    if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
-    return employee
 
 
 # POST /employees
 def create_employee(*, db_session, employee_in: EmployeeCreate):
     """Creates a new employee."""
-    if not check_exist_department_by_id(
-        db_session=db_session, department_id=employee_in.department_id
-    ):
-        raise AppException(ErrorMessages.ResourceNotFound())
-
-    if not check_exist_position_by_id(
-        db_session=db_session, position_id=employee_in.position_id
-    ):
-        raise AppException(ErrorMessages.ResourceNotFound())
-
-    if check_exist_employee_by_code(
-        db_session=db_session, employee_code=employee_in.code
-    ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists())
-
-    employee = add_employee(db_session=db_session, employee_in=employee_in)
+    if validate_create_employee(db_session=db_session, employee_in=employee_in):
+        try:
+            employee = add_employee(db_session=db_session, employee_in=employee_in)
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return employee
 
@@ -93,20 +166,37 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
 def update_employee(*, db_session, employee_id: int, employee_in: EmployeeUpdate):
     """Updates a employee with the given data."""
     if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    updated_employee = modify_employee(
-        db_session=db_session, employee_id=employee_id, employee_in=employee_in
-    )
-    return updated_employee
+        raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+    if validate_update_employee(db_session=db_session, employee_in=employee_in):
+        try:
+            employee = modify_employee(
+                db_session=db_session, employee_id=employee_id, employee_in=employee_in
+            )
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return employee
 
 
 # DELETE /employees/{employee_id}
 def delete_employee(*, db_session, employee_id: int):
     """Deletes a attendance based on the given id."""
     if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    remove_employee(db_session=db_session, employee_id=employee_id)
-    return {"message": "Employee deleted successfully"}
+        raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+    try:
+        removed_employee = remove_employee(
+            db_session=db_session, employee_id=employee_id
+        )
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return removed_employee
 
 
 def create_employee_by_xlsx(

@@ -8,7 +8,7 @@ from payroll.attendances.repositories import (
     add_attendance,
     modify_attendance,
     remove_attendance,
-    retrievce_attendance_by_employee,
+    retrieve_attendance_by_employee,
     retrieve_all_attendances,
     retrieve_attendance_by_id,
     retrieve_employee_attendances_by_month,
@@ -27,30 +27,57 @@ from payroll.employees.repositories import (
 from payroll.employees.services import check_exist_employee_by_id
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
-from payroll.schedule_details.repositories import retrieve_shifts_by_schedule_id
-from payroll.schedules.repositories import retrieve_schedule_by_id
+from payroll.schedule_details.repositories import (
+    retrieve_schedule_details_by_schedule_id,
+)
 
 log = logging.getLogger(__name__)
 
 # create, get, update, delete
 
 
-def check_exist_attendance_by_id(*, db_session, attendance_id: int) -> bool:
+def check_exist_attendance_by_id(*, db_session, attendance_id: int):
     """Check if attendance exists by id"""
-    attendance = retrieve_attendance_by_id(
-        db_session=db_session, attendance_id=attendance_id
+    return bool(
+        retrieve_attendance_by_id(db_session=db_session, attendance_id=attendance_id)
     )
-    return attendance is not None
 
 
 def check_exist_attendance_by_employee(
     *, db_session, day_attendance: date, employee_id: int
-) -> bool:
+):
     """Check if attendance exists by employee_id and day_attendance."""
-    attendance = retrievce_attendance_by_employee(
-        db_session=db_session, day_attendance=day_attendance, employee_id=employee_id
+    return bool(
+        retrieve_attendance_by_employee(
+            db_session=db_session,
+            day_attendance=day_attendance,
+            employee_id=employee_id,
+        )
     )
-    return attendance is not None
+
+
+def validate_work_hours(work_hours: float):
+    """Check if work hours is valid."""
+    if work_hours < 0 or work_hours > 24:
+        raise False
+    return True
+
+
+def validate_create_attendance(*, attendance_in: AttendanceCreate):
+    """Check if attendance is valid."""
+    if attendance_in.day_attendance > date.today():
+        raise AppException(ErrorMessages.InvalidInput(), "day attendance")
+
+    if not validate_work_hours(attendance_in.work_hours):
+        raise AppException(ErrorMessages.InvalidInput(), "work hours")
+
+    return True
+
+
+def validate_update_attendance(*, attendance_in: AttendanceCreate):
+    """Check if attendance is valid"""
+    if validate_work_hours(attendance_in.work_hours):
+        return True
 
 
 # GET /attendances
@@ -58,7 +85,8 @@ def get_all_attendances(*, db_session):
     """Returns all attendances."""
     list_attendances = retrieve_all_attendances(db_session=db_session)
     if not list_attendances["count"]:
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "attendance")
+
     return list_attendances
 
 
@@ -68,29 +96,27 @@ def get_attendance_by_id(*, db_session, attendance_id: int):
     if not check_exist_attendance_by_id(
         db_session=db_session, attendance_id=attendance_id
     ):
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "attendance")
 
-    attendance = retrieve_attendance_by_id(
-        db_session=db_session, attendance_id=attendance_id
-    )
-    return attendance
+    return retrieve_attendance_by_id(db_session=db_session, attendance_id=attendance_id)
 
 
 # GET /employees/{employee_id}/attendances
 def get_employee_attendances(*, db_session, employee_id: int):
     """Returns all attendances of an employee."""
     if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "employee")
     list_attendances = retrieve_employee_attendances(
         db_session=db_session, employee_id=employee_id
     )
 
     if not list_attendances["count"]:
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "attendance")
+
     return list_attendances
 
 
-# GET /attendances/test?m=1&y=2021
+# GET /attendances/period?m=month&y=year
 def get_attendances_by_month(*, db_session, month: int, year: int):
     """Returns all attendances for a given month and year."""
     list_attendances = retrieve_employee_attendances_by_month(
@@ -98,7 +124,8 @@ def get_attendances_by_month(*, db_session, month: int, year: int):
     )
 
     if not list_attendances["count"]:
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "attendance")
+
     return list_attendances
 
 
@@ -108,9 +135,23 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
     if not check_exist_employee_by_id(
         db_session=db_session, employee_id=attendance_in.employee_id
     ):
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+    if check_exist_attendance_by_employee(
+        db_session=db_session,
+        day_attendance=attendance_in.day_attendance,
+        employee_id=attendance_in.employee_id,
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "attendance")
 
-    attendance = add_attendance(db_session=db_session, attendance_in=attendance_in)
+    if validate_create_attendance(attendance_in=attendance_in):
+        try:
+            attendance = add_attendance(
+                db_session=db_session, attendance_in=attendance_in
+            )
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return attendance
 
@@ -123,11 +164,21 @@ def update_attendance(
     if not check_exist_attendance_by_id(
         db_session=db_session, attendance_id=attendance_id
     ):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    updated_attendance = modify_attendance(
-        db_session=db_session, attendance_id=attendance_id, attendance_in=attendance_in
-    )
-    return updated_attendance
+        raise AppException(ErrorMessages.ResourceNotFound(), "attendance")
+
+    if validate_update_attendance(attendance_in=attendance_in):
+        try:
+            attendance = modify_attendance(
+                db_session=db_session,
+                attendance_id=attendance_id,
+                attendance_in=attendance_in,
+            )
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return attendance
 
 
 # DELETE /attendances/{attendance_id}
@@ -136,9 +187,18 @@ def delete_attendance(*, db_session, attendance_id: int):
     if not check_exist_attendance_by_id(
         db_session=db_session, attendance_id=attendance_id
     ):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    remove_attendance(db_session=db_session, attendance_id=attendance_id)
-    return {"message": "Attendance deleted successfully"}
+        raise AppException(ErrorMessages.ResourceNotFound(), "attendance")
+
+    try:
+        attendance = remove_attendance(
+            db_session=db_session, attendance_id=attendance_id
+        )
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return attendance
 
 
 def attendance_handler(
@@ -151,47 +211,41 @@ def attendance_handler(
     employee = retrieve_employee_by_id(
         db_session=db_session, employee_id=attendance_in.employee_id
     )
-    schedule = retrieve_schedule_by_id(
+    # schedule = retrieve_schedule_by_id(
+    #     db_session=db_session, schedule_id=employee.schedule_id
+    # )
+    schedule_details = retrieve_schedule_details_by_schedule_id(
         db_session=db_session, schedule_id=employee.schedule_id
-    )
-    shift_data = retrieve_shifts_by_schedule_id(
-        db_session=db_session, schedule_id=schedule.id
     )
     day_name = attendance_in.day_attendance.strftime("%A")
 
     shifts_list = [
-        detail.shift for detail in shift_data["data"] if detail.day == day_name
+        detail.shift for detail in schedule_details["data"] if detail.day == day_name
     ]
 
     if not shifts_list:
         return
 
-    attendance_list = retrievce_attendance_by_employee(
+    attendance_list = retrieve_attendance_by_employee(
         db_session=db_session,
         day_attendance=attendance_in.day_attendance,
         employee_id=employee.id,
     )
 
     if isinstance(attendance_in, WorkhoursAttendanceHandlerBase):
-        standard_checkin = min(shift.checkin for shift in shifts_list)
-        standard_checkout = max(shift.checkout for shift in shifts_list)
-
-        add_attendance(
-            db_session=db_session,
-            attendance_in=AttendanceCreate(
-                employee_id=employee.id,
-                day_attendance=attendance_in.day_attendance,
-                check_time=standard_checkin,
-            ),
-        )
-        add_attendance(
-            db_session=db_session,
-            attendance_in=AttendanceCreate(
-                employee_id=employee.id,
-                day_attendance=attendance_in.day_attendance,
-                check_time=standard_checkout,
-            ),
-        )
+        try:
+            attendance = add_attendance(
+                db_session=db_session,
+                attendance_in=AttendanceCreate(
+                    employee_id=employee.id,
+                    day_attendance=attendance_in.day_attendance,
+                    work_hours=attendance_in.work_hours,
+                ),
+            )
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            raise AppException(ErrorMessages.ErrSM99999(), str(e))
     else:
         attendance_time_list = [attendance.check_time for attendance in attendance_list]
 
@@ -227,7 +281,6 @@ def upload_excel(
 ):
     file_path = BytesIO(file.file.read())
     df = pd.read_excel(file_path, skiprows=2)
-
     data = []
     for _, row in df.iterrows():
         employee_code = row["Mã nhân viên"]
@@ -251,7 +304,6 @@ def upload_excel(
                 # Check if value is a float (work hours) or a time range (check-in/check-out)
                 if isinstance(value, float | int):
                     hours = value
-                    checkin = checkout = None
                     if hours != 0:
                         data.append(
                             {
@@ -260,22 +312,21 @@ def upload_excel(
                                 "work_hours": hours,
                             }
                         )
-                elif isinstance(value, str) and "-" in value:
-                    checkin_str, checkout_str = value.split("-")
-                    checkin = pd.to_datetime(checkin_str, format="%H:%M").time()
-                    checkout = pd.to_datetime(checkout_str, format="%H:%M").time()
-                    hours = None
-                    data.append(
-                        {
-                            "employee_id": employee_id,
-                            "day_attendance": parsed_date,
-                            "checkin": checkin,
-                            "checkout": checkout,
-                        }
-                    )
+                # elif isinstance(value, str) and "-" in value:
+                #     checkin_str, checkout_str = value.split("-")
+                #     checkin = pd.to_datetime(checkin_str, format="%H:%M").time()
+                #     checkout = pd.to_datetime(checkout_str, format="%H:%M").time()
+                #     hours = None
+                #     data.append(
+                #         {
+                #             "employee_id": employee_id,
+                #             "day_attendance": parsed_date,
+                #             "checkin": checkin,
+                #             "checkout": checkout,
+                #         }
+                #     )
                 else:
                     continue
-
     for item in data:
         if item.get("work_hours"):
             attendance = WorkhoursAttendanceHandlerBase(**item)

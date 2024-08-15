@@ -1,3 +1,8 @@
+from typing import List
+from payroll.schedule_details.schemas import (
+    ScheduleDetailsCreate,
+    ScheduleDetailsUpdate,
+)
 from payroll.schedules.repositories import (
     add_schedule,
     modify_schedule,
@@ -12,39 +17,41 @@ from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollSchedule
 
 
-def check_exist_schedule_by_id(*, db_session, schedule_id: int) -> bool:
+def check_exist_schedule_by_id(*, db_session, schedule_id: int):
     """Check if schedule exists in the database."""
-    schedule = retrieve_schedule_by_id(db_session=db_session, schedule_id=schedule_id)
-    return schedule is not None
+    return bool(retrieve_schedule_by_id(db_session=db_session, schedule_id=schedule_id))
 
 
-def check_exist_schedule_by_code(*, db_session, schedule_code: str) -> bool:
+def check_exist_schedule_by_code(*, db_session, schedule_code: str):
     """Check if schedule exists in the database."""
-    schedule = retrieve_schedule_by_code(
-        db_session=db_session, schedule_code=schedule_code
+    return bool(
+        retrieve_schedule_by_code(db_session=db_session, schedule_code=schedule_code)
     )
-    return schedule is not None
+
+
+def validate_shift_per_day(*, shift_per_day: int):
+    if shift_per_day < 1 or shift_per_day > 4:
+        raise False
+    return True
 
 
 # GET /schedules/{schedule_id}
 def get_schedule_by_id(*, db_session, schedule_id: int):
     """Returns a schedule based on the given id."""
     if not check_exist_schedule_by_id(db_session=db_session, schedule_id=schedule_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    schedule = retrieve_schedule_by_id(db_session=db_session, schedule_id=schedule_id)
-    return schedule
+        raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
+
+    return retrieve_schedule_by_id(db_session=db_session, schedule_id=schedule_id)
 
 
-def get_schedule_by_code(*, db_session, schedule_code: int):
+def get_schedule_by_code(*, db_session, schedule_code: str):
     """Returns a schedule based on the given code."""
     if not check_exist_schedule_by_code(
         db_session=db_session, schedule_code=schedule_code
     ):
-        raise AppException(ErrorMessages.ResourceNotFound())
-    schedule = retrieve_schedule_by_code(
-        db_session=db_session, schedule_code=schedule_code
-    )
-    return schedule
+        raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
+
+    return retrieve_schedule_by_code(db_session=db_session, schedule_code=schedule_code)
 
 
 # GET /schedules
@@ -52,7 +59,8 @@ def get_all_schedule(*, db_session):
     """Returns all schedules."""
     schedules = retrieve_all_schedules(db_session=db_session)
     if not schedules["count"]:
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
+
     return schedules
 
 
@@ -62,29 +70,113 @@ def create_schedule(*, db_session, schedule_in: ScheduleCreate):
     if check_exist_schedule_by_code(
         db_session=db_session, schedule_code=schedule_in.code
     ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists())
-    schedule = add_schedule(db_session=db_session, schedule_in=schedule_in)
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "schedule")
+    if not validate_shift_per_day(shift_per_day=schedule_in.shift_per_day):
+        AppException(ErrorMessages.InvalidInput(), "shifts per day")
+
+    try:
+        schedule = add_schedule(db_session=db_session, schedule_in=schedule_in)
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
     return schedule
+
+
+def create_schedule_with_details(
+    *,
+    db_session,
+    schedule_in: ScheduleCreate,
+    schedule_detail_list_in: List[ScheduleDetailsCreate],
+):
+    try:
+        if check_exist_schedule_by_code(
+            db_session=db_session, schedule_code=schedule_in.code
+        ):
+            raise AppException(ErrorMessages.ResourceAlreadyExists(), "schedule")
+        if not validate_shift_per_day(shift_per_day=schedule_in.shift_per_day):
+            AppException(ErrorMessages.InvalidInput(), "shifts per day")
+
+        schedule = add_schedule(db_session=db_session, schedule_in=schedule_in)
+
+        schedule = retrieve_schedule_by_code(
+            db_session=db_session, schedule_code=schedule_in.code
+        )
+
+        from payroll.schedule_details.services import create_multi_schedule_details
+
+        schedule_with_details = create_multi_schedule_details(
+            db_session=db_session,
+            schedule_detail_list_in=schedule_detail_list_in,
+            schedule_id=schedule.id,
+        )
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return schedule_with_details
 
 
 # PUT /schedules/{schedule_id}
 def update_schedule(*, db_session, schedule_id: int, schedule_in: ScheduleUpdate):
     """Updates a schedule with the given data."""
     if not check_exist_schedule_by_id(db_session=db_session, schedule_id=schedule_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
+    if not validate_shift_per_day(shift_per_day=schedule_in.shift_per_day):
+        AppException(ErrorMessages.InvalidInput(), "shifts per day")
 
-    updated_schedule = modify_schedule(
-        db_session=db_session, schedule_id=schedule_id, schedule_in=schedule_in
-    )
+    try:
+        schedule = modify_schedule(
+            db_session=db_session, schedule_id=schedule_id, schedule_in=schedule_in
+        )
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
-    return updated_schedule
+    return schedule
+
+
+def update_schedule_with_details(
+    *,
+    db_session,
+    schedule_id: int,
+    schedule_in: ScheduleUpdate,
+    schedule_detail_list_in: List[ScheduleDetailsUpdate],
+):
+    try:
+        schedule = update_schedule(
+            db_session=db_session, schedule_id=schedule_id, schedule_in=schedule_in
+        )
+
+        from payroll.schedule_details.services import update_multi_schedule_details
+
+        schedule_with_details = update_multi_schedule_details(
+            db_session=db_session,
+            schedule_detail_list_in=schedule_detail_list_in,
+            schedule_id=schedule.id,
+        )
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return schedule_with_details
 
 
 # DELETE /schedules/{schedule_id}
 def delete_schedule(*, db_session, schedule_id: int) -> PayrollSchedule:
     """Deletes a schedule based on the given id."""
     if not check_exist_schedule_by_id(db_session=db_session, schedule_id=schedule_id):
-        raise AppException(ErrorMessages.ResourceNotFound())
+        raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
 
-    remove_schedule(db_session=db_session, schedule_id=schedule_id)
-    return {"message": "Schedule deleted successfully."}
+    try:
+        schedule = remove_schedule(db_session=db_session, schedule_id=schedule_id)
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return schedule

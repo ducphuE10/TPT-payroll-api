@@ -5,12 +5,68 @@ from sqlalchemy import func
 from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeUpdate,
-    EmployeesRead,
 )
 from payroll.models import PayrollEmployee
 
 # add, retrieve, modify, remove
 log = logging.getLogger(__name__)
+
+
+# GET /employees/{employee_id}
+def retrieve_employee_by_id(*, db_session, employee_id: int) -> PayrollEmployee:
+    """Returns a employee based on the given id."""
+    return (
+        db_session.query(PayrollEmployee)
+        .filter(PayrollEmployee.id == employee_id)
+        .first()
+    )
+
+
+def retrieve_employee_by_code(*, db_session, employee_code: str) -> PayrollEmployee:
+    """Returns a employee based on the given code."""
+    return (
+        db_session.query(PayrollEmployee)
+        .filter(PayrollEmployee.code == employee_code)
+        .first()
+    )
+
+
+def retrieve_employee_by_cccd(*, db_session, employee_cccd: str) -> PayrollEmployee:
+    """Returns a employee based on the given code."""
+    return (
+        db_session.query(PayrollEmployee)
+        .filter(PayrollEmployee.cccd == employee_cccd)
+        .first()
+    )
+
+
+def retrieve_employee_by_mst(*, db_session, employee_mst: str) -> PayrollEmployee:
+    """Returns a employee based on the given code."""
+    return (
+        db_session.query(PayrollEmployee)
+        .filter(PayrollEmployee.mst == employee_mst)
+        .first()
+    )
+
+
+def retrieve_employee_by_position(*, db_session, position_id: int) -> PayrollEmployee:
+    """Returns a employee based on the given code."""
+    return (
+        db_session.query(PayrollEmployee)
+        .filter(PayrollEmployee.position_id == position_id)
+        .all()
+    )
+
+
+def retrieve_employee_by_department(
+    *, db_session, department_id: int
+) -> PayrollEmployee:
+    """Returns a employee based on the given code."""
+    return (
+        db_session.query(PayrollEmployee)
+        .filter(PayrollEmployee.department_id == department_id)
+        .all()
+    )
 
 
 # GET /employees
@@ -19,53 +75,17 @@ def retrieve_all_employees(*, db_session) -> PayrollEmployee:
     query = db_session.query(PayrollEmployee)
     count = query.count()
     employees = query.all()
+
     return {"count": count, "data": employees}
 
 
-def retrieve_employee_by_code(*, db_session, employee_code: str) -> PayrollEmployee:
-    """Returns a employee based on the given code."""
-    employee = (
-        db_session.query(PayrollEmployee)
-        .filter(PayrollEmployee.code == employee_code)
-        .first()
-    )
-    return employee
-
-
 def search_employees_by_partial_name(*, db_session, name: str):
-    """Searches for employees based on a partial name match (case-insensitive).
-
-    Args:
-        db_session (Session): The database session.
-        name (str): The name to search for.
-
-    Returns:
-        PayrollEmployee: A list of employees matching the search criteria.
-    """
-    employees = (
+    """Searches for employees based on a partial name match (case-insensitive)."""
+    return (
         db_session.query(PayrollEmployee)
         .filter(func.lower(PayrollEmployee.name).like(f"%{name.lower()}%"))
         .all()
     )
-
-    return employees
-
-
-def get_all(*, db_session) -> PayrollEmployee:
-    """Returns all employees."""
-    data = db_session.query(PayrollEmployee).all()
-    return EmployeesRead(data=data)
-
-
-# GET /employees/{employee_id}
-def retrieve_employee_by_id(*, db_session, employee_id: int) -> PayrollEmployee:
-    """Returns a employee based on the given id."""
-    employee = (
-        db_session.query(PayrollEmployee)
-        .filter(PayrollEmployee.id == employee_id)
-        .first()
-    )
-    return employee
 
 
 # POST /employees
@@ -74,7 +94,7 @@ def add_employee(*, db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
     employee = PayrollEmployee(**employee_in.model_dump())
     employee.created_by = "admin"
     db_session.add(employee)
-    db_session.commit()
+
     return employee
 
 
@@ -86,14 +106,16 @@ def modify_employee(
     update_data = employee_in.model_dump(exclude_unset=True)
     query = db_session.query(PayrollEmployee).filter(PayrollEmployee.id == employee_id)
     query.update(update_data, synchronize_session=False)
-    db_session.commit()
-
     updated_employee = query.first()
+
     return updated_employee
 
 
 # DELETE /employees/{employee_id}
 def remove_employee(*, db_session, employee_id: int):
     """Deletes a employee based on the given id."""
-    db_session.query(PayrollEmployee).filter(PayrollEmployee.id == employee_id).delete()
-    db_session.commit()
+    query = db_session.query(PayrollEmployee).filter(PayrollEmployee.id == employee_id)
+    deleted_employee = query.first()
+    query.delete()
+
+    return deleted_employee

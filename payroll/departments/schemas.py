@@ -8,7 +8,6 @@ class DepartmentBase(PayrollBase):
     code: str  # required
     name: str  # required
     description: Optional[str] = None
-    created_by: str  # required
 
 
 class DepartmentRead(DepartmentBase):
@@ -27,7 +26,7 @@ class DepartmentUpdate(PayrollBase):
 
 
 class DepartmentCreate(DepartmentBase):
-    created_by: Optional[str] = None
+    pass
 
 
 class DepartmentPagination(Pagination):
