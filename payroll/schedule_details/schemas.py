@@ -29,8 +29,13 @@ class ScheduleDetailsCreate(PayrollBase):
     day: Optional[Day]
 
 
-class SimpleScheduleDetailsRead(ScheduleDetailsCreate):
+class SimpleScheduleDetailRead(ScheduleDetailsCreate):
     pass
+
+
+class SimpleScheduleDetailsRead(PayrollBase):
+    count: int
+    data: list[SimpleScheduleDetailRead] = []
 
 
 class ScheduleDetailUpdate(PayrollBase):
