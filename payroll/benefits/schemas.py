@@ -33,7 +33,7 @@ class BenefitUpdate(PayrollBase):
 class BenefitCreate(PayrollBase):
     code: str  # required
     name: str  # required
-    replay: str
+    count_salary: bool
     value: float
     description: Optional[str]
 
