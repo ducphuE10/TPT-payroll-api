@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 
 from payroll.database.core import Base
 from payroll.utils.models import (
+    BenefitReplay,
     Day,
     Gender,
     InsuranceType,
@@ -281,6 +282,7 @@ class PayrollBenefit(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
+    replay: Mapped[BenefitReplay] = mapped_column(default=BenefitReplay.DAILY)
     count_salary: Mapped[bool]
     value: Mapped[float]
     description: Mapped[Optional[str]]
@@ -299,3 +301,6 @@ class PayrollCBAssoc(Base, TimeStampMixin):
     benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"), primary_key=True)
 
     benefit: Mapped["PayrollBenefit"] = relationship()
+
+    def __repr__(self) -> str:
+        return f"CBAssoc (contract_id={self.contract_id!r}, benefit_id={self.benefit_id!r})"
