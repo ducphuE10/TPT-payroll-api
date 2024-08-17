@@ -15,6 +15,8 @@ from payroll.attendances.controllers import attendance_router
 from payroll.shifts.controllers import shift_router
 from payroll.schedules.controllers import schedule_router
 from payroll.schedule_details.controllers import schedule_detail_router
+from payroll.welfares.controllers import welfare_router
+from payroll.contract_welfare_assocs.controllers import cwassoc_router
 
 # from payroll.attendances_management.test3 import import_router
 from payroll.config import settings
@@ -53,7 +55,9 @@ router.include_router(
 )
 router.include_router(tax_router, prefix="/taxes", tags=["taxes"])
 router.include_router(insurance_router, prefix="/insurances", tags=["insurances"])
+router.include_router(welfare_router, prefix="/welfares", tags=["welfares"])
 router.include_router(contract_router, prefix="/contracts", tags=["contracts"])
+router.include_router(cwassoc_router, prefix="/cwassocs", tags=["cwassocs"])
 router.include_router(attendance_router, prefix="/attendances", tags=["attendances"])
 router.include_router(shift_router, prefix="/shifts", tags=["shifts"])
 router.include_router(schedule_router, prefix="/schedules", tags=["schedules"])

@@ -14,7 +14,6 @@ class ContractTypeBase(PayrollBase):
     note: Optional[str] = None
     is_probation: bool  # required
     template: bytes
-    created_by: str  # required
 
 
 class ContractTypeRead(ContractTypeBase):
@@ -29,7 +28,6 @@ class ContractTypesRead(PayrollBase):
 
 
 class ContractTypeCreate(ContractTypeBase):
-    created_by: Optional[str] = None
     tax_policy_id: int  # required
     insurance_policy_id: int  # required
 
