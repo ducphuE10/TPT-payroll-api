@@ -76,7 +76,7 @@ class PayrollContract(Base, TimeStampMixin):
     basic_salary: Mapped[float]  # required
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    welfares: Mapped[List["PayrollCWAssoc"]] = relationship()
+    benefits: Mapped[List["PayrollCBAssoc"]] = relationship()
 
     def __repr__(self) -> str:
         return f"Contract (name={self.name!r})"
@@ -276,8 +276,8 @@ class PayrollSchedule(Base, TimeStampMixin):
         return f"Schedule (name={self.name!r}, code={self.code!r})"
 
 
-class PayrollWelfare(Base, TimeStampMixin):
-    __tablename__ = "welfares"
+class PayrollBenefit(Base, TimeStampMixin):
+    __tablename__ = "benefits"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
@@ -286,20 +286,16 @@ class PayrollWelfare(Base, TimeStampMixin):
     description: Mapped[Optional[str]]
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    # contract: Mapped["PayrollContract"] = relationship(
-    #     "PayrollContract", secondary="PayrollCWAssoc", back_populates="welfares"
-    # )
-
     def __repr__(self) -> str:
-        return f"Schedule (name={self.name!r}, code={self.code!r})"
+        return f"Benefit (name={self.name!r}, code={self.code!r})"
 
 
-class PayrollCWAssoc(Base, TimeStampMixin):
-    __tablename__ = "contract_welfare_association"
+class PayrollCBAssoc(Base, TimeStampMixin):
+    __tablename__ = "contract_benefit_association"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     contract_id: Mapped[int] = mapped_column(
         ForeignKey("contracts.id"), primary_key=True
     )
-    welfare_id: Mapped[int] = mapped_column(ForeignKey("welfares.id"), primary_key=True)
+    benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"), primary_key=True)
 
-    welfare: Mapped["PayrollWelfare"] = relationship()
+    benefit: Mapped["PayrollBenefit"] = relationship()
