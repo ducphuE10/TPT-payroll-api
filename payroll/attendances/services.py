@@ -1,6 +1,6 @@
 import logging
 from fastapi import File, UploadFile
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 from io import BytesIO
 
@@ -17,6 +17,7 @@ from payroll.attendances.repositories import (
 from payroll.attendances.schemas import (
     AttendanceCreate,
     AttendanceUpdate,
+    AttendancesCreate,
     TimeAttendanceHandlerBase,
     WorkhoursAttendanceHandlerBase,
 )
@@ -156,6 +157,38 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
     return attendance
 
 
+def create_multi_attendances(*, db_session, attendance_list_in: AttendancesCreate):
+    attendances = []
+    count = 0
+    for employee_id in attendance_list_in.list_emp:
+        if not check_exist_employee_by_id(
+            db_session=db_session, employee_id=employee_id
+        ):
+            raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+        current_date = attendance_list_in.from_date
+        while current_date <= attendance_list_in.to_date:
+            attendance_in = AttendanceCreate(
+                employee_id=employee_id,
+                day_attendance=current_date,
+                work_hours=attendance_list_in.work_hours,
+            )
+            if validate_create_attendance(attendance_in=attendance_in):
+                try:
+                    attendance = add_attendance(
+                        db_session=db_session, attendance_in=attendance_in
+                    )
+                    attendances.append(attendance)
+                    count += 1
+                    db_session.commit()
+                except Exception as e:
+                    db_session.rollback()
+                    raise AppException(ErrorMessages.ErrSM99999(), str(e))
+            current_date += timedelta(days=1)
+
+    return {"count": count, "data": attendances}
+
+
 # PUT /attendances/{attendance_id}
 def update_attendance(
     *, db_session, attendance_id: int, attendance_in: AttendanceUpdate
@@ -199,6 +232,22 @@ def delete_attendance(*, db_session, attendance_id: int):
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return attendance
+
+
+# def schedule_applier(*, db_session, employee_id:int, attendance_in:WorkhoursAttendanceHandlerBase):
+#     employee = retrieve_employee_by_id(
+#         db_session=db_session, employee_id=attendance_in.employee_id
+#     )
+#     schedule_details = retrieve_schedule_details_by_schedule_id(
+#         db_session=db_session, schedule_id=employee.schedule_id
+#     )
+#     day_name = attendance_in.day_attendance.strftime("%A")
+
+#     shifts_list = [
+#         detail.shift for detail in schedule_details["data"] if detail.day == day_name
+#     ]
+#     if not shifts_list:
+#         return
 
 
 def attendance_handler(
@@ -293,7 +342,6 @@ def upload_excel(
                 except ValueError:
                     continue
 
-                # Check if the value is NaN
                 if pd.isna(value):
                     continue
 

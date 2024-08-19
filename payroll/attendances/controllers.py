@@ -5,12 +5,14 @@ from fastapi import APIRouter, File, UploadFile
 from payroll.attendances.schemas import (
     AttendanceRead,
     AttendanceCreate,
+    AttendancesCreate,
     AttendancesRead,
     AttendanceUpdate,
 )
 from payroll.database.core import DbSession
 from payroll.attendances.services import (
     create_attendance,
+    create_multi_attendances,
     delete_attendance,
     get_all_attendances,
     get_attendance_by_id,
@@ -51,6 +53,14 @@ def get_attendance(*, db_session: DbSession, attendance_id: int):
 def create(*, attendance_in: AttendanceCreate, db_session: DbSession):
     """Creates a new attendance."""
     return create_attendance(db_session=db_session, attendance_in=attendance_in)
+
+
+@attendance_router.post("/bulk", response_model=AttendancesRead)
+def create_multi(*, attendance_list_in: AttendancesCreate, db_session: DbSession):
+    """Creates a new attendance."""
+    return create_multi_attendances(
+        db_session=db_session, attendance_list_in=attendance_list_in
+    )
 
 
 # PUT /attendances/{attendance_id}
