@@ -27,5 +27,9 @@ class CBAssocCreate(CBAssocBase):
     pass
 
 
+class CBAssocsCreate(PayrollBase):
+    benefit_id: int
+
+
 class CBAssocPagination(Pagination):
     items: List[CBAssocRead] = []

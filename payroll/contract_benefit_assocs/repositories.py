@@ -42,11 +42,34 @@ def retrieve_all_cbassocs(*, db_session) -> PayrollCBAssoc:
     return {"count": count, "data": cbassocs}
 
 
+def retrieve_cbassocs_by_contract_id(*, db_session, contract_id: int) -> PayrollCBAssoc:
+    """Returns all schedule_details of a schedule."""
+    query = db_session.query(PayrollCBAssoc).filter(
+        PayrollCBAssoc.contract_id == contract_id,
+    )
+    count = query.count()
+    cbassocs = query.all()
+
+    return {"count": count, "data": cbassocs}
+
+
 # POST /cbassocs
 def add_cbassoc(*, db_session, cbassoc_in: CBAssocCreate) -> PayrollCBAssoc:
     """Creates a new cbassoc."""
     cbassoc = PayrollCBAssoc(**cbassoc_in.model_dump())
     cbassoc.created_by = "admin"
+    db_session.add(cbassoc)
+
+    return cbassoc
+
+
+def add_cbassoc_with_contract_id(
+    *, db_session, cbassoc_in: CBAssocCreate, contract_id: int
+) -> PayrollCBAssoc:
+    """Creates a new cbassoc."""
+    cbassoc = PayrollCBAssoc(**cbassoc_in.model_dump())
+    cbassoc.created_by = "admin"
+    cbassoc.contract_id = contract_id
     db_session.add(cbassoc)
 
     return cbassoc

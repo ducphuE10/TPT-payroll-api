@@ -1,3 +1,5 @@
+from typing import List
+from payroll.benefits.schemas import BenefitCreate
 from payroll.contracts.repositories import get_contract_by_code, get_contract_by_id
 from payroll.contracts.schemas import (
     ContractCreate,
@@ -29,6 +31,33 @@ def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:
     contract_repo.create(db_session=db_session, create_data=contract_in.model_dump())
     db_session.commit()
     return contract
+
+
+def create_with_benefits(
+    *, db_session, contract_in: ContractCreate, benefits_list_in: List[BenefitCreate]
+):
+    """Creates a new contract with benefits."""
+    if bool(
+        get_contract_by_code(db_session=db_session, contract_code=contract_in.code)
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
+
+    try:
+        contract = create(db_session=db_session, contract_in=contract_in)
+
+        from payroll.contract_benefit_assocs.services import create_multi_cbassocs
+
+        contract_with_benefits = create_multi_cbassocs(
+            db_session=db_session,
+            contract_id=contract.id,
+            benefits_list_in=benefits_list_in,
+        )
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return contract_with_benefits
 
 
 def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:

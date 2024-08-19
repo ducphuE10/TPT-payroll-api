@@ -1,10 +1,14 @@
+from typing import List
+from payroll.benefits.services import check_exist_benefit_by_id
 from payroll.contract_benefit_assocs.repositories import (
     add_cbassoc,
+    add_cbassoc_with_contract_id,
     modify_cbassoc,
     remove_cbassoc,
     retrieve_all_cbassocs,
     retrieve_cbassoc_by_id,
     retrieve_cbassoc_by_information,
+    retrieve_cbassocs_by_contract_id,
 )
 from payroll.contract_benefit_assocs.schemas import (
     CBAssocCreate,
@@ -63,6 +67,30 @@ def create_cbassoc(*, db_session, cbassoc_in: CBAssocCreate):
         raise e
 
     return cbassoc
+
+
+def create_multi_cbassocs(
+    *, db_session, contract_id: int, cbassoc_list_in: List[CBAssocCreate]
+):
+    try:
+        for cbassoc in cbassoc_list_in:
+            if not check_exist_benefit_by_id(
+                db_session=db_session, benefit_id=cbassoc.benefit_id
+            ):
+                raise AppException(ErrorMessages.ResourceNotFound(), "benefit")
+
+            cbassoc = add_cbassoc_with_contract_id(
+                db_session=db_session, cbassoc_in=cbassoc, contract_id=contract_id
+            )
+        db_session.commit()
+
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return retrieve_cbassocs_by_contract_id(
+        db_session=db_session, contract_id=contract_id
+    )
 
 
 # PUT /cbassocs/{cbassoc_id}
