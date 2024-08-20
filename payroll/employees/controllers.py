@@ -76,6 +76,6 @@ def import_excel(
     return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)
 
 
-@employee_router.post("/search", response_model=EmployeesRead)
+@employee_router.get("/search", response_model=EmployeesRead)
 def search_employee(*, db_session: DbSession, name: str):
     return search_employee_by_name(db_session=db_session, name=name)
