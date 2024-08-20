@@ -32,6 +32,11 @@ def retrieve_employees(
     return get_all_employees(db_session=db_session)
 
 
+@employee_router.get("/search", response_model=EmployeesRead)
+def search_employee(*, db_session: DbSession, name: str):
+    return search_employee_by_name(db_session=db_session, name=name)
+
+
 # GET /employees/{employee_id}
 @employee_router.get("/{employee_id}", response_model=EmployeeRead)
 def get_employee(*, db_session: DbSession, employee_id: int):
@@ -74,8 +79,3 @@ def import_excel(
     *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
 ):
     return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)
-
-
-@employee_router.get("/search", response_model=EmployeesRead)
-def search_employee(*, db_session: DbSession, name: str):
-    return search_employee_by_name(db_session=db_session, name=name)
