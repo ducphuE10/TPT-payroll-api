@@ -164,16 +164,16 @@ def create_multi_attendances(
     attendances = []
     count = 0
     list_id = []
-    print("AAA")
 
     if apply_all:
         list_id = [
             employee.id
             for employee in retrieve_all_employees(db_session=db_session)["data"]
         ]
+
     else:
         list_id = [id for id in attendance_list_in.list_emp]
-    print(list_id)
+
     for employee_id in list_id:
         if not check_exist_employee_by_id(
             db_session=db_session, employee_id=employee_id
@@ -273,22 +273,6 @@ def delete_attendance(*, db_session, attendance_id: int):
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return attendance
-
-
-# def schedule_applier(*, db_session, employee_id:int, attendance_in:WorkhoursAttendanceHandlerBase):
-#     employee = retrieve_employee_by_id(
-#         db_session=db_session, employee_id=attendance_in.employee_id
-#     )
-#     schedule_details = retrieve_schedule_details_by_schedule_id(
-#         db_session=db_session, schedule_id=employee.schedule_id
-#     )
-#     day_name = attendance_in.day_attendance.strftime("%A")
-
-#     shifts_list = [
-#         detail.shift for detail in schedule_details["data"] if detail.day == day_name
-#     ]
-#     if not shifts_list:
-#         return
 
 
 def attendance_handler(
@@ -401,6 +385,7 @@ def upload_excel(
                                 "work_hours": hours,
                             }
                         )
+
                 # elif isinstance(value, str) and "-" in value:
                 #     checkin_str, checkout_str = value.split("-")
                 #     checkin = pd.to_datetime(checkin_str, format="%H:%M").time()
@@ -414,6 +399,7 @@ def upload_excel(
                 #             "checkout": checkout,
                 #         }
                 #     )
+
                 else:
                     continue
     for item in data:
