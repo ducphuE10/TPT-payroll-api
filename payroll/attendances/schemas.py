@@ -29,6 +29,7 @@ class AttendanceCreate(AttendanceBase):
 
 
 class AttendancesCreate(PayrollBase):
+    apply_all: bool = False
     list_emp: List[int]
     from_date: date
     to_date: date

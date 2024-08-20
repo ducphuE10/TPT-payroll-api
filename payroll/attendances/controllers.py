@@ -56,17 +56,12 @@ def create(*, db_session: DbSession, attendance_in: AttendanceCreate):
 
 
 @attendance_router.post("/bulk", response_model=AttendancesRead)
-def create_multi(
-    *,
-    db_session: DbSession,
-    attendance_list_in: AttendancesCreate,
-    apply_all: bool = False,
-):
+def create_multi(*, db_session: DbSession, attendance_list_in: AttendancesCreate):
     """Creates a new attendance."""
     return create_multi_attendances(
         db_session=db_session,
         attendance_list_in=attendance_list_in,
-        apply_all=apply_all,
+        apply_all=attendance_list_in.apply_all,
     )
 
 
