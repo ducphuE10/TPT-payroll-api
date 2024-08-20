@@ -22,6 +22,7 @@ from payroll.attendances.schemas import (
     WorkhoursAttendanceHandlerBase,
 )
 from payroll.employees.repositories import (
+    retrieve_all_employees,
     retrieve_employee_by_code,
     retrieve_employee_by_id,
 )
@@ -157,10 +158,23 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
     return attendance
 
 
-def create_multi_attendances(*, db_session, attendance_list_in: AttendancesCreate):
+def create_multi_attendances(
+    *, db_session, attendance_list_in: AttendancesCreate, apply_all: bool = False
+):
     attendances = []
     count = 0
-    for employee_id in attendance_list_in.list_emp:
+    list_id = []
+    print("AAA")
+
+    if apply_all:
+        list_id = [
+            employee.id
+            for employee in retrieve_all_employees(db_session=db_session)["data"]
+        ]
+    else:
+        list_id = [id for id in attendance_list_in.list_emp]
+    print(list_id)
+    for employee_id in list_id:
         if not check_exist_employee_by_id(
             db_session=db_session, employee_id=employee_id
         ):
@@ -173,17 +187,44 @@ def create_multi_attendances(*, db_session, attendance_list_in: AttendancesCreat
                 day_attendance=current_date,
                 work_hours=attendance_list_in.work_hours,
             )
-            if validate_create_attendance(attendance_in=attendance_in):
-                try:
-                    attendance = add_attendance(
-                        db_session=db_session, attendance_in=attendance_in
-                    )
-                    attendances.append(attendance)
-                    count += 1
-                    db_session.commit()
-                except Exception as e:
-                    db_session.rollback()
-                    raise AppException(ErrorMessages.ErrSM99999(), str(e))
+            if check_exist_attendance_by_employee(
+                db_session=db_session,
+                day_attendance=current_date,
+                employee_id=employee_id,
+            ):
+                if validate_update_attendance(attendance_in=attendance_in):
+                    try:
+                        attendance_id = retrieve_attendance_by_employee(
+                            db_session=db_session,
+                            day_attendance=current_date,
+                            employee_id=employee_id,
+                        ).id
+                        attendance = update_attendance(
+                            db_session=db_session,
+                            attendance_id=attendance_id,
+                            attendance_in=attendance_in,
+                        )
+                        print(attendance_id)
+                        attendances.append(attendance)
+                        count += 1
+                        db_session.commit()
+                    except Exception as e:
+                        db_session.rollback()
+                        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            else:
+                if validate_create_attendance(attendance_in=attendance_in):
+                    try:
+                        attendance = add_attendance(
+                            db_session=db_session, attendance_in=attendance_in
+                        )
+                        attendances.append(attendance)
+                        count += 1
+                        db_session.commit()
+                    except Exception as e:
+                        db_session.rollback()
+                        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
             current_date += timedelta(days=1)
 
     return {"count": count, "data": attendances}
