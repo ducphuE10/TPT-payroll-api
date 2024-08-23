@@ -141,7 +141,9 @@ class PayrollEmployee(Base, TimeStampMixin):
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
     schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
-    # ot_schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("overtime_schedules.id"))
+    overtime_schedule_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("overtime_schedules.id")
+    )
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
     created_by: Mapped[str] = mapped_column(String(30))  # required
@@ -317,9 +319,5 @@ class PayrollOvertimeSchedule(Base, TimeStampMixin):
 
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    # shifts: Mapped[List["PayrollScheduleDetail"]] = relationship(
-    #     "PayrollScheduleDetail", cascade="all, delete-orphan", back_populates="schedule"
-    # )
-
     def __repr__(self) -> str:
-        return f"Overtime chedule (name={self.name!r}, code={self.code!r})"
+        return f"Overtime schedule (name={self.name!r}, code={self.code!r})"

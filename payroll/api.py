@@ -16,6 +16,7 @@ from payroll.shifts.controllers import shift_router
 from payroll.schedules.controllers import schedule_router
 from payroll.schedule_details.controllers import schedule_detail_router
 from payroll.overtimes.controllers import overtime_router
+from payroll.overtime_schedules.controllers import overtime_schedule_router
 
 # from payroll.attendances_management.test3 import import_router
 from payroll.config import settings
@@ -62,6 +63,9 @@ router.include_router(
     schedule_detail_router, prefix="/schedule_details", tags=["schedule_details"]
 )
 router.include_router(overtime_router, prefix="/overtimes", tags=["overtimes"])
+router.include_router(
+    overtime_schedule_router, prefix="/overtime_schedules", tags=["overtime_schedules"]
+)
 # router.include_router(import_router, prefix="/import_router", tags=["import_router"])
 
 api_router.include_router(
