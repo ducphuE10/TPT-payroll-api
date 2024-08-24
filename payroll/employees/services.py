@@ -28,7 +28,6 @@ from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeImport,
     EmployeeUpdate,
-    EmployeesRead,
 )
 from payroll.schedules.services import check_exist_schedule_by_id
 
@@ -365,6 +364,6 @@ def uploadXLSX(
     return {"message": "Nhân viên đã được thêm thành công từ tệp Excel"}
 
 
-def search_employee_by_name(*, db_session, name: str) -> EmployeesRead:
-    data = search_employees_by_partial_name(db_session=db_session, name=name)
-    return EmployeesRead(data=data)
+def search_employee_by_name(*, db_session, name: str) -> PayrollEmployee:
+    employees = search_employees_by_partial_name(db_session=db_session, name=name)
+    return employees

@@ -81,11 +81,13 @@ def retrieve_all_employees(*, db_session) -> PayrollEmployee:
 
 def search_employees_by_partial_name(*, db_session, name: str):
     """Searches for employees based on a partial name match (case-insensitive)."""
-    return (
-        db_session.query(PayrollEmployee)
-        .filter(func.lower(PayrollEmployee.name).like(f"%{name.lower()}%"))
-        .all()
+    query = db_session.query(PayrollEmployee).filter(
+        func.lower(PayrollEmployee.name).like(f"%{name.lower()}%")
     )
+    count = query.count()
+    employees = query.all()
+
+    return {"count": count, "data": employees}
 
 
 # POST /employees
