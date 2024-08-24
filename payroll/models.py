@@ -13,6 +13,7 @@ from sqlalchemy.orm import relationship
 
 from payroll.database.core import Base
 from payroll.utils.models import (
+    BenefitReplay,
     Day,
     Gender,
     InsuranceType,
@@ -75,6 +76,8 @@ class PayrollContract(Base, TimeStampMixin):
     salary: Mapped[float]  # required
     basic_salary: Mapped[float]  # required
     created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    benefits: Mapped[List["PayrollCBAssoc"]] = relationship()
 
     def __repr__(self) -> str:
         return f"Contract (name={self.name!r})"
@@ -280,6 +283,35 @@ class PayrollSchedule(Base, TimeStampMixin):
     def __repr__(self) -> str:
         return f"Schedule (name={self.name!r}, code={self.code!r})"
 
+
+
+class PayrollBenefit(Base, TimeStampMixin):
+    __tablename__ = "benefits"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
+    replay: Mapped[BenefitReplay] = mapped_column(default=BenefitReplay.DAILY)
+    count_salary: Mapped[bool]
+    value: Mapped[float]
+    description: Mapped[Optional[str]]
+    created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    def __repr__(self) -> str:
+        return f"Benefit (name={self.name!r}, code={self.code!r})"
+
+
+class PayrollCBAssoc(Base, TimeStampMixin):
+    __tablename__ = "contract_benefit_association"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    contract_id: Mapped[int] = mapped_column(
+        ForeignKey("contracts.id"), primary_key=True
+    )
+    benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"), primary_key=True)
+
+    benefit: Mapped["PayrollBenefit"] = relationship()
+
+    def __repr__(self) -> str:
+        return f"CBAssoc (contract_id={self.contract_id!r}, benefit_id={self.benefit_id!r})"
 
 class PayrollOvertime(Base, TimeStampMixin):
     __tablename__ = "overtimes"

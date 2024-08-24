@@ -15,6 +15,8 @@ from payroll.attendances.controllers import attendance_router
 from payroll.shifts.controllers import shift_router
 from payroll.schedules.controllers import schedule_router
 from payroll.schedule_details.controllers import schedule_detail_router
+from payroll.benefits.controllers import benefit_router
+from payroll.contract_benefit_assocs.controllers import cbassoc_router
 from payroll.overtimes.controllers import overtime_router
 from payroll.overtime_schedules.controllers import overtime_schedule_router
 
@@ -55,7 +57,9 @@ router.include_router(
 )
 router.include_router(tax_router, prefix="/taxes", tags=["taxes"])
 router.include_router(insurance_router, prefix="/insurances", tags=["insurances"])
+router.include_router(benefit_router, prefix="/benefits", tags=["benefits"])
 router.include_router(contract_router, prefix="/contracts", tags=["contracts"])
+router.include_router(cbassoc_router, prefix="/cbassocs", tags=["cbassocs"])
 router.include_router(attendance_router, prefix="/attendances", tags=["attendances"])
 router.include_router(shift_router, prefix="/shifts", tags=["shifts"])
 router.include_router(schedule_router, prefix="/schedules", tags=["schedules"])
