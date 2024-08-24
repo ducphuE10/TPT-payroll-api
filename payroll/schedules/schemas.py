@@ -1,6 +1,9 @@
 from datetime import datetime
 from typing import List, Optional
 
+from payroll.schedule_details.schemas import (
+    SimpleScheduleDetailRead,
+)
 from payroll.utils.models import Pagination, PayrollBase
 
 
@@ -20,8 +23,9 @@ class SchedulesRead(PayrollBase):
     data: list[ScheduleRead] = []
 
 
-# class ScheduleWithDetailsRead(ScheduleRead):
-#     schedule_details: List[SimpleScheduleDetailsRead]
+class ScheduleWithDetailsRead(PayrollBase):
+    schedule_in: ScheduleBase
+    schedule_detail_list_in: List[SimpleScheduleDetailRead]
 
 
 class ScheduleUpdate(PayrollBase):

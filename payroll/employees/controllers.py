@@ -24,11 +24,10 @@ employee_router = APIRouter()
 
 # GET /employees
 @employee_router.get("", response_model=EmployeesRead)
-def retrieve_employees(
-    *,
-    db_session: DbSession,
-):
+def retrieve_employees(*, db_session: DbSession, name: str = None):
     """Returns all employees."""
+    if name:
+        return search_employee_by_name(db_session=db_session, name=name)
     return get_all_employees(db_session=db_session)
 
 
@@ -74,8 +73,3 @@ def import_excel(
     *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
 ):
     return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)
-
-
-@employee_router.post("/search", response_model=EmployeesRead)
-def search_employee(*, db_session: DbSession, name: str):
-    return search_employee_by_name(db_session=db_session, name=name)

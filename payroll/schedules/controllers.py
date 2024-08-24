@@ -10,6 +10,7 @@ from payroll.schedules.schemas import (
     ScheduleRead,
     ScheduleCreate,
     ScheduleUpdate,
+    ScheduleWithDetailsRead,
     SchedulesRead,
 )
 from payroll.database.core import DbSession
@@ -19,6 +20,7 @@ from payroll.schedules.services import (
     delete_schedule,
     get_all_schedule,
     get_schedule_by_id,
+    get_schedule_with_details_by_id,
     update_schedule,
     update_schedule_with_details,
 )
@@ -41,6 +43,15 @@ def retrieve_schedules(
 def retrieve_schedule(*, db_session: DbSession, schedule_id: int):
     """Retrieve a schedule by id."""
     return get_schedule_by_id(db_session=db_session, schedule_id=schedule_id)
+
+
+# GET /schedules/{schedule_id}/details
+@schedule_router.get("/{schedule_id}/details", response_model=ScheduleWithDetailsRead)
+def retrieve_schedule_with_details(*, db_session: DbSession, schedule_id: int):
+    """Retrieve a schedule by id."""
+    return get_schedule_with_details_by_id(
+        db_session=db_session, schedule_id=schedule_id
+    )
 
 
 # POST /schedules
