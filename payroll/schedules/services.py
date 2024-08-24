@@ -15,7 +15,7 @@ from payroll.schedules.repositories import (
     retrieve_schedule_by_code,
     retrieve_schedule_by_id,
 )
-from payroll.schedules.schemas import ScheduleCreate, ScheduleRead, ScheduleUpdate
+from payroll.schedules.schemas import ScheduleCreate, ScheduleUpdate
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollSchedule
@@ -67,13 +67,10 @@ def get_schedule_with_details_by_id(*, db_session, schedule_id: int):
     schedule_details = retrieve_schedule_details_by_schedule_id(
         db_session=db_session, schedule_id=schedule_id
     )
+    schedule_with_details = ScheduleDetailsRead(**schedule_details).model_dump()["data"]
+    # schedule_with_details["schedule_in"] = {"name":schedule.name,"shift_per_day":schedule.shift_per_day}
 
-    schedule_with_details = ScheduleRead(**schedule.dict()).model_dump()
-    schedule_with_details["schedule_details"] = ScheduleDetailsRead(
-        **schedule_details
-    ).model_dump()
-
-    return schedule_with_details
+    return {"schedule_in": schedule, "schedule_detail_list_in": schedule_with_details}
 
 
 # GET /schedules

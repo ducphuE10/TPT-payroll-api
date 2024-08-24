@@ -32,7 +32,7 @@ def retrieve_attendance_by_employee(
             PayrollAttendance.day_attendance == day_attendance,
             PayrollAttendance.employee_id == employee_id,
         )
-        .all()
+        .first()
     )
 
 

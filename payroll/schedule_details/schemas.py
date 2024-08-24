@@ -30,11 +30,10 @@ class ScheduleDetailsCreate(PayrollBase):
 
 
 class SimpleScheduleDetailRead(ScheduleDetailsCreate):
-    pass
+    id: int
 
 
 class SimpleScheduleDetailsRead(PayrollBase):
-    count: int
     data: list[SimpleScheduleDetailRead] = []
 
 

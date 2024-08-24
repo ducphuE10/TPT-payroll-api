@@ -1,6 +1,6 @@
 import logging
 from fastapi import File, UploadFile
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 from io import BytesIO
 
@@ -17,10 +17,12 @@ from payroll.attendances.repositories import (
 from payroll.attendances.schemas import (
     AttendanceCreate,
     AttendanceUpdate,
+    AttendancesCreate,
     TimeAttendanceHandlerBase,
     WorkhoursAttendanceHandlerBase,
 )
 from payroll.employees.repositories import (
+    retrieve_all_employees,
     retrieve_employee_by_code,
     retrieve_employee_by_id,
 )
@@ -154,6 +156,78 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return attendance
+
+
+def create_multi_attendances(
+    *, db_session, attendance_list_in: AttendancesCreate, apply_all: bool = False
+):
+    attendances = []
+    count = 0
+    list_id = []
+
+    if apply_all:
+        list_id = [
+            employee.id
+            for employee in retrieve_all_employees(db_session=db_session)["data"]
+        ]
+
+    else:
+        list_id = [id for id in attendance_list_in.list_emp]
+
+    for employee_id in list_id:
+        if not check_exist_employee_by_id(
+            db_session=db_session, employee_id=employee_id
+        ):
+            raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+        current_date = attendance_list_in.from_date
+        while current_date <= attendance_list_in.to_date:
+            attendance_in = AttendanceCreate(
+                employee_id=employee_id,
+                day_attendance=current_date,
+                work_hours=attendance_list_in.work_hours,
+            )
+            if check_exist_attendance_by_employee(
+                db_session=db_session,
+                day_attendance=current_date,
+                employee_id=employee_id,
+            ):
+                if validate_update_attendance(attendance_in=attendance_in):
+                    try:
+                        attendance_id = retrieve_attendance_by_employee(
+                            db_session=db_session,
+                            day_attendance=current_date,
+                            employee_id=employee_id,
+                        ).id
+                        attendance = update_attendance(
+                            db_session=db_session,
+                            attendance_id=attendance_id,
+                            attendance_in=attendance_in,
+                        )
+                        print(attendance_id)
+                        attendances.append(attendance)
+                        count += 1
+                        db_session.commit()
+                    except Exception as e:
+                        db_session.rollback()
+                        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            else:
+                if validate_create_attendance(attendance_in=attendance_in):
+                    try:
+                        attendance = add_attendance(
+                            db_session=db_session, attendance_in=attendance_in
+                        )
+                        attendances.append(attendance)
+                        count += 1
+                        db_session.commit()
+                    except Exception as e:
+                        db_session.rollback()
+                        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            current_date += timedelta(days=1)
+
+    return {"count": count, "data": attendances}
 
 
 # PUT /attendances/{attendance_id}
@@ -293,7 +367,6 @@ def upload_excel(
                 except ValueError:
                     continue
 
-                # Check if the value is NaN
                 if pd.isna(value):
                     continue
 
@@ -312,6 +385,7 @@ def upload_excel(
                                 "work_hours": hours,
                             }
                         )
+
                 # elif isinstance(value, str) and "-" in value:
                 #     checkin_str, checkout_str = value.split("-")
                 #     checkin = pd.to_datetime(checkin_str, format="%H:%M").time()
@@ -325,6 +399,7 @@ def upload_excel(
                 #             "checkout": checkout,
                 #         }
                 #     )
+
                 else:
                     continue
     for item in data:
