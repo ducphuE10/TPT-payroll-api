@@ -30,6 +30,7 @@ class EmployeeBase(PayrollBase):
     department_id: int  # required
     position_id: int  # required
     schedule_id: Optional[int] = None
+    overtime_schedule_id: Optional[int] = None
     email: Optional[str] = None
     cv: Optional[bytes] = None
 
@@ -75,6 +76,7 @@ class EmployeeUpdate(PayrollBase):
     department_id: Optional[int] = None
     position_id: Optional[int] = None
     schedule_id: Optional[int] = None
+    overtime_schedule_id: Optional[int] = None
     email: Optional[str] = None
     cv: Optional[bytes] = None
 

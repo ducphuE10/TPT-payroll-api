@@ -141,6 +141,9 @@ class PayrollEmployee(Base, TimeStampMixin):
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
     schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
+    overtime_schedule_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("overtime_schedules.id")
+    )
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
     created_by: Mapped[str] = mapped_column(String(30))  # required
@@ -148,6 +151,10 @@ class PayrollEmployee(Base, TimeStampMixin):
     attendances: Mapped[List["PayrollAttendance"]] = relationship(
         "PayrollAttendance", back_populates="employee", cascade="all, delete-orphan"
     )
+    overtimes: Mapped[List["PayrollOvertime"]] = relationship(
+        "PayrollOvertime", back_populates="employee", cascade="all, delete-orphan"
+    )
+
     department: Mapped["PayrollDepartment"] = relationship(
         "PayrollDepartment", back_populates="employees"
     )
@@ -272,3 +279,45 @@ class PayrollSchedule(Base, TimeStampMixin):
 
     def __repr__(self) -> str:
         return f"Schedule (name={self.name!r}, code={self.code!r})"
+
+
+class PayrollOvertime(Base, TimeStampMixin):
+    __tablename__ = "overtimes"
+
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    overtime_hours: Mapped[float]  # required
+    day_overtime: Mapped[date]  # required
+    employee_id: Mapped[int] = mapped_column(
+        ForeignKey("employees.id", ondelete="CASCADE")
+    )  # required
+    created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    employee: Mapped["PayrollEmployee"] = relationship(
+        "PayrollEmployee", back_populates="overtimes"
+    )
+
+    __table_args__ = (
+        UniqueConstraint("employee_id", "day_overtime", name="uq_employee_overtime"),
+    )
+
+    def __repr__(self) -> str:
+        return f"Overtime (employee_id={self.employee_id!r}, overtime_hours={self.overtime_hours!r}, day_overtime={self.day_overtime!r})"
+
+
+class PayrollOvertimeSchedule(Base, TimeStampMixin):
+    __tablename__ = "overtime_schedules"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
+    mon: Mapped[Optional[float]]
+    tue: Mapped[Optional[float]]
+    wed: Mapped[Optional[float]]
+    thur: Mapped[Optional[float]]
+    fri: Mapped[Optional[float]]
+    sat: Mapped[Optional[float]]
+    sun: Mapped[Optional[float]]
+
+    created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    def __repr__(self) -> str:
+        return f"Overtime schedule (name={self.name!r}, code={self.code!r})"
