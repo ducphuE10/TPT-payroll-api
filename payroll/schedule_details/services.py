@@ -206,9 +206,10 @@ def update_multi_schedule_details(
     """Creates multiple schedule_details"""
     try:
         for schedule_detail in schedule_detail_list_in:
-            if not check_exist_schedule_by_id(
-                db_session=db_session, schedule_id=schedule_detail.id
+            if not check_exist_schedule_detail_by_id(
+                db_session=db_session, schedule_detail_id=schedule_detail.id
             ):
+                print("AAAAAAAAAAAAAAAAAAAAAA")
                 schedule_detail_create = ScheduleDetailCreate(
                     **schedule_detail.model_dump(), schedule_id=schedule_id
                 )
