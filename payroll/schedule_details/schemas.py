@@ -1,7 +1,7 @@
 from pydantic import Field
 from datetime import datetime
 from typing import List, Optional
-from payroll.utils.models import Day, Pagination, PayrollBase
+from payroll.utils.models import Day, Pagination, PayrollBase, UpdateStatus
 
 
 class ScheduleDetailBase(PayrollBase):
@@ -44,6 +44,7 @@ class ScheduleDetailUpdate(PayrollBase):
 
 class ScheduleDetailsUpdate(PayrollBase):
     id: int = Field(..., Literal=True)
+    status: UpdateStatus
     shift_id: Optional[int]
     day: Optional[Day]
 

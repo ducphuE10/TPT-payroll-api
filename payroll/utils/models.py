@@ -107,3 +107,9 @@ class Status(str, Enum):
     INACTIVE = "inactive"
     PENDING = "pending"
     DELETED = "deleted"
+
+
+class UpdateStatus(str, Enum):
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
