@@ -22,7 +22,9 @@ def retrieve_all_overtimes(*, db_session) -> PayrollOvertime:
     return {"count": count, "data": overtimes}
 
 
-def retrieve_overtime_by_employee(*, db_session, day_overtime: date, employee_id: int):
+def retrieve_overtime_by_employee_and_day(
+    *, db_session, day_overtime: date, employee_id: int
+):
     """Returns a overtime based on the given day and employee_id."""
     return (
         db_session.query(PayrollOvertime)

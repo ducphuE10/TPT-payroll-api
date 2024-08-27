@@ -33,7 +33,6 @@ class TaxPolicyRead(PayrollBase):
         Optional[confloat(ge=0.0, le=100.0)], AfterValidator(change_percentage)
     ] = None
     created_at: datetime
-    updated_at: datetime
 
 
 class TaxPoliciesRead(PayrollBase):

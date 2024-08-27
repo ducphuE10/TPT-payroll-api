@@ -164,6 +164,9 @@ class PayrollEmployee(Base, TimeStampMixin):
     position: Mapped["PayrollPosition"] = relationship(
         "PayrollPosition", back_populates="employees"
     )
+    payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
+        "PayrollPayrollManagement", back_populates="employee"
+    )
 
     def __repr__(self) -> str:
         return f"Employee (name={self.name!r})"
@@ -284,7 +287,6 @@ class PayrollSchedule(Base, TimeStampMixin):
         return f"Schedule (name={self.name!r}, code={self.code!r})"
 
 
-
 class PayrollBenefit(Base, TimeStampMixin):
     __tablename__ = "benefits"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
@@ -312,6 +314,7 @@ class PayrollCBAssoc(Base, TimeStampMixin):
 
     def __repr__(self) -> str:
         return f"CBAssoc (contract_id={self.contract_id!r}, benefit_id={self.benefit_id!r})"
+
 
 class PayrollOvertime(Base, TimeStampMixin):
     __tablename__ = "overtimes"
@@ -341,15 +344,31 @@ class PayrollOvertimeSchedule(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
-    mon: Mapped[Optional[float]]
-    tue: Mapped[Optional[float]]
-    wed: Mapped[Optional[float]]
-    thur: Mapped[Optional[float]]
-    fri: Mapped[Optional[float]]
-    sat: Mapped[Optional[float]]
-    sun: Mapped[Optional[float]]
+    mon: Mapped[float]
+    tue: Mapped[float]
+    wed: Mapped[float]
+    thu: Mapped[float]
+    fri: Mapped[float]
+    sat: Mapped[float]
+    sun: Mapped[float]
 
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     def __repr__(self) -> str:
         return f"Overtime schedule (name={self.name!r}, code={self.code!r})"
+
+
+class PayrollPayrollManagement(Base, TimeStampMixin):
+    __tablename__ = "payroll_managements"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+    value: Mapped[float]
+    month: Mapped[date]
+    created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    employee: Mapped["PayrollEmployee"] = relationship(
+        "PayrollEmployee", back_populates="payroll_managements"
+    )
+
+    def __repr__(self) -> str:
+        return f"Payroll (employee_id={self.employee_id!r}, value={self.value!r}, month={self.month!r})"

@@ -1,35 +1,34 @@
 import logging
 from fastapi import File, UploadFile
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 from io import BytesIO
 
+from payroll.overtime_schedules.repositories import retrieve_overtime_schedule_by_id
 from payroll.overtimes.repositories import (
     add_overtime,
     modify_overtime,
     remove_overtime,
-    retrieve_overtime_by_employee,
     retrieve_all_overtimes,
+    retrieve_overtime_by_employee_and_day,
     retrieve_overtime_by_id,
     retrieve_employee_overtimes_by_month,
     retrieve_employee_overtimes,
 )
 from payroll.overtimes.schemas import (
+    OvertimeBase,
     OvertimeCreate,
     OvertimeUpdate,
-    TimeOvertimeHandlerBase,
-    WorkhoursOvertimeHandlerBase,
+    OvertimesCreate,
 )
 from payroll.employees.repositories import (
+    retrieve_all_employees,
     retrieve_employee_by_code,
     retrieve_employee_by_id,
 )
 from payroll.employees.services import check_exist_employee_by_id
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
-from payroll.schedule_details.repositories import (
-    retrieve_schedule_details_by_schedule_id,
-)
 
 log = logging.getLogger(__name__)
 
@@ -41,12 +40,12 @@ def check_exist_overtime_by_id(*, db_session, overtime_id: int):
     return bool(retrieve_overtime_by_id(db_session=db_session, overtime_id=overtime_id))
 
 
-def check_exist_overtime_by_employee(
+def check_exist_overtime_by_employee_and_day(
     *, db_session, day_overtime: date, employee_id: int
 ):
     """Check if overtime exists by employee_id and day_overtime."""
     return bool(
-        retrieve_overtime_by_employee(
+        retrieve_overtime_by_employee_and_day(
             db_session=db_session,
             day_overtime=day_overtime,
             employee_id=employee_id,
@@ -132,7 +131,7 @@ def create_overtime(*, db_session, overtime_in: OvertimeCreate):
         db_session=db_session, employee_id=overtime_in.employee_id
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "employee")
-    if check_exist_overtime_by_employee(
+    if check_exist_overtime_by_employee_and_day(
         db_session=db_session,
         day_overtime=overtime_in.day_overtime,
         employee_id=overtime_in.employee_id,
@@ -148,6 +147,86 @@ def create_overtime(*, db_session, overtime_in: OvertimeCreate):
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return overtime
+
+
+def create_multi_overtimes(
+    *, db_session, overtime_list_in: OvertimesCreate, apply_all: bool = False
+):
+    overtimes = []
+    count = 0
+    list_id = []
+
+    if apply_all:
+        list_id = [
+            employee.id
+            for employee in retrieve_all_employees(db_session=db_session)["data"]
+        ]
+
+    else:
+        list_id = [id for id in overtime_list_in.list_emp]
+
+    for employee_id in list_id:
+        if not check_exist_employee_by_id(
+            db_session=db_session, employee_id=employee_id
+        ):
+            raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+        current_date = overtime_list_in.from_date
+        while current_date <= overtime_list_in.to_date:
+            overtime_in = OvertimeCreate(
+                employee_id=employee_id,
+                day_overtime=current_date,
+                overtime_hours=overtime_list_in.overtime_hours,
+            )
+            if check_exist_overtime_by_employee_and_day(
+                db_session=db_session,
+                day_overtime=current_date,
+                employee_id=employee_id,
+            ):
+                if validate_update_overtime(overtime_in=overtime_in):
+                    try:
+                        overtime_id = retrieve_overtime_by_employee_and_day(
+                            db_session=db_session,
+                            day_overtime=current_date,
+                            employee_id=employee_id,
+                        ).id
+                        overtime = update_overtime(
+                            db_session=db_session,
+                            overtime_id=overtime_id,
+                            overtime_in=overtime_in,
+                        )
+                        overtimes.append(overtime)
+                        count += 1
+                        db_session.commit()
+                    except Exception as e:
+                        db_session.rollback()
+                        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            else:
+                if validate_create_overtime(overtime_in=overtime_in):
+                    try:
+                        overtime_in = OvertimeBase(**overtime_in.model_dump())
+
+                        # attendance = add_attendance(
+                        #     db_session=db_session, attendance_in=attendance_handler
+                        # )
+                        overtime = overtime_handler(
+                            db_session=db_session,
+                            overtime_in=overtime_in,
+                        )
+
+                        if overtime:
+                            overtimes.append(overtime)
+                            count += 1
+
+                        db_session.commit()
+                    except Exception as e:
+                        db_session.rollback()
+                        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            current_date += timedelta(days=1)
+
+    return {"count": count, "data": overtimes}
 
 
 # PUT /overtimes/{overtime_id}
@@ -190,35 +269,22 @@ def delete_overtime(*, db_session, overtime_id: int):
 def overtime_handler(
     *,
     db_session,
-    overtime_in: WorkhoursOvertimeHandlerBase | TimeOvertimeHandlerBase,
-    update_on_exists: bool = False,
+    overtime_in: OvertimeBase,
+    # update_on_exists: bool = False,
 ):
     """Handles overtime based on standard work field or specific times."""
     employee = retrieve_employee_by_id(
         db_session=db_session, employee_id=overtime_in.employee_id
     )
-    # schedule = retrieve_schedule_by_id(
-    #     db_session=db_session, schedule_id=employee.schedule_id
-    # )
-    schedule_details = retrieve_schedule_details_by_schedule_id(
-        db_session=db_session, schedule_id=employee.schedule_id
-    )
-    day_name = overtime_in.day_overtime.strftime("%A")
 
-    shifts_list = [
-        detail.shift for detail in schedule_details["data"] if detail.day == day_name
-    ]
-
-    if not shifts_list:
-        return
-
-    overtime_list = retrieve_overtime_by_employee(
-        db_session=db_session,
-        day_overtime=overtime_in.day_overtime,
-        employee_id=employee.id,
+    overtime_schedule_id = employee.overtime_schedule_id
+    overtime_schedule = retrieve_overtime_schedule_by_id(
+        db_session=db_session, overtime_schedule_id=overtime_schedule_id
     )
 
-    if isinstance(overtime_in, WorkhoursOvertimeHandlerBase):
+    day_name = overtime_in.day_overtime.strftime("%a").lower()
+    overtime_hours = getattr(overtime_schedule, day_name)
+    if overtime_hours > 0:
         try:
             overtime = add_overtime(
                 db_session=db_session,
@@ -232,38 +298,16 @@ def overtime_handler(
         except Exception as e:
             db_session.rollback()
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
-    else:
-        overtime_time_list = [overtime.check_time for overtime in overtime_list]
 
-        if (
-            overtime_in.checkin in overtime_time_list
-            and overtime_in.checkout in overtime_time_list
-        ):
-            return
-
-        for overtime in overtime_list:
-            remove_overtime(db_session=db_session, overtime_id=overtime.id)
-
-        add_overtime(
-            db_session=db_session,
-            overtime_in=OvertimeCreate(
-                employee_id=employee.id,
-                day_overtime=overtime_in.day_overtime,
-                check_time=overtime_in.checkin,
-            ),
-        )
-        add_overtime(
-            db_session=db_session,
-            overtime_in=OvertimeCreate(
-                employee_id=employee.id,
-                day_overtime=overtime_in.day_overtime,
-                check_time=overtime_in.checkout,
-            ),
-        )
+        return overtime
+    return
 
 
 def upload_excel(
-    *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
+    *,
+    db_session,
+    file: UploadFile = File(...),
+    # update_on_exists: bool = False
 ):
     file_path = BytesIO(file.file.read())
     df = pd.read_excel(file_path, skiprows=2)
@@ -285,39 +329,19 @@ def upload_excel(
                     db_session=db_session, employee_code=employee_code
                 ).id
 
-                # Check if value is a float (overtime hours) or a time range (check-in/check-out)
-                if isinstance(value, float | int):
-                    hours = value
-                    if hours != 0:
-                        data.append(
-                            {
-                                "employee_id": employee_id,
-                                "day_overtime": parsed_date,
-                                "overtime_hours": hours,
-                            }
-                        )
-                # elif isinstance(value, str) and "-" in value:
-                #     checkin_str, checkout_str = value.split("-")
-                #     checkin = pd.to_datetime(checkin_str, format="%H:%M").time()
-                #     checkout = pd.to_datetime(checkout_str, format="%H:%M").time()
-                #     hours = None
-                #     data.append(
-                #         {
-                #             "employee_id": employee_id,
-                #             "day_overtime": parsed_date,
-                #             "checkin": checkin,
-                #             "checkout": checkout,
-                #         }
-                #     )
-                else:
-                    continue
-    for item in data:
-        if item.get("overtime_hours"):
-            overtime = WorkhoursOvertimeHandlerBase(**item)
-        else:
-            overtime = TimeOvertimeHandlerBase(**item)
+                hours = value
+                if hours != 0:
+                    data.append(
+                        {
+                            "employee_id": employee_id,
+                            "day_overtime": parsed_date,
+                            "overtime_hours": hours,
+                        }
+                    )
+
+    for overtime in data:
         overtime_handler(
             db_session=db_session,
             overtime_in=overtime,
-            update_on_exists=update_on_exists,
+            # update_on_exists=update_on_exists,
         )

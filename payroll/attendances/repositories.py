@@ -22,7 +22,7 @@ def retrieve_all_attendances(*, db_session) -> PayrollAttendance:
     return {"count": count, "data": attendances}
 
 
-def retrieve_attendance_by_employee(
+def retrieve_attendance_by_employee_and_day(
     *, db_session, day_attendance: date, employee_id: int
 ):
     """Returns a attendance based on the given day and employee_id."""
