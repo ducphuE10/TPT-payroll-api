@@ -9,6 +9,7 @@ from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollContractType
 
+
 log = logging.getLogger(__name__)
 
 

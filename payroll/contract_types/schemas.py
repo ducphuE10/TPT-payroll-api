@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
+
 from payroll.insurances.schemas import InsurancePolicyRead
 from payroll.taxes.schemas import TaxPolicyRead
 from payroll.utils.models import Pagination, PayrollBase
@@ -13,7 +14,8 @@ class ContractTypeBase(PayrollBase):
     number_of_months: int  # required
     note: Optional[str] = None
     is_probation: bool  # required
-    template: bytes
+    template: Optional[str] = None  # url to the file
+    created_by: str  # required
 
 
 class ContractTypeRead(ContractTypeBase):

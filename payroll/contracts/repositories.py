@@ -1,5 +1,7 @@
 import logging
-from payroll.models import PayrollContract
+
+from fastapi import HTTPException
+from payroll.models import PayrollContract, PayrollContractType
 
 log = logging.getLogger(__name__)
 
@@ -43,3 +45,14 @@ def delete(*, db_session, id: int) -> None:
     """Deletes a contract based on the given id."""
     db_session.query(PayrollContract).filter(PayrollContract.id == id).delete()
     db_session.commit()
+
+
+def get_contractType_template(*, db_session, code: str) -> PayrollContract:
+    """Returns a contract template based on the given code."""
+    contract_type = db_session.query(PayrollContractType).filter_by(code=code).first()
+    if not contract_type or not contract_type.template:
+        raise HTTPException(
+            status_code=404, detail="Contract type or template not found"
+        )
+
+    return contract_type.template
