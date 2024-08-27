@@ -18,7 +18,6 @@ class InsurancePolicyRead(PayrollBase):
     company_percentage: PercentageType
     employee_percentage: PercentageType
     created_at: datetime
-    updated_at: datetime
 
 
 class InsurancePoliciesRead(PayrollBase):

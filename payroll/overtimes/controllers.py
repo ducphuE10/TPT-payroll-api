@@ -5,11 +5,13 @@ from fastapi import APIRouter, File, UploadFile
 from payroll.overtimes.schemas import (
     OvertimeRead,
     OvertimeCreate,
+    OvertimesCreate,
     OvertimesRead,
     OvertimeUpdate,
 )
 from payroll.database.core import DbSession
 from payroll.overtimes.services import (
+    create_multi_overtimes,
     create_overtime,
     delete_overtime,
     get_all_overtimes,
@@ -51,6 +53,16 @@ def get_overtime(*, db_session: DbSession, overtime_id: int):
 def create(*, overtime_in: OvertimeCreate, db_session: DbSession):
     """Creates a new overtime."""
     return create_overtime(db_session=db_session, overtime_in=overtime_in)
+
+
+@overtime_router.post("/bulk", response_model=OvertimesRead)
+def create_multi(*, db_session: DbSession, overtime_list_in: OvertimesCreate):
+    """Creates a new attendance."""
+    return create_multi_overtimes(
+        db_session=db_session,
+        overtime_list_in=overtime_list_in,
+        apply_all=overtime_list_in.apply_all,
+    )
 
 
 # PUT /overtimes/{overtime_id}

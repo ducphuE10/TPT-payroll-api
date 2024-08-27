@@ -3,19 +3,6 @@ from typing import List, Optional
 
 from payroll.utils.models import Pagination, PayrollBase
 
-"""
-    id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
-    mon: Mapped[Optional[float]]
-    tue: Mapped[Optional[float]]
-    wed: Mapped[Optional[float]]
-    thur: Mapped[Optional[float]]
-    fri: Mapped[Optional[float]]
-    sat: Mapped[Optional[float]]
-    sun: Mapped[Optional[float]]
-"""
-
 
 class OvertimeScheduleBase(PayrollBase):
     code: str  # required
@@ -23,7 +10,7 @@ class OvertimeScheduleBase(PayrollBase):
     mon: Optional[float] = None
     tue: Optional[float] = None
     wed: Optional[float] = None
-    thur: Optional[float] = None
+    thu: Optional[float] = None
     fri: Optional[float] = None
     sat: Optional[float] = None
     sun: Optional[float] = None
@@ -48,7 +35,7 @@ class OvertimeScheduleUpdate(PayrollBase):
     mon: Optional[float] = None
     tue: Optional[float] = None
     wed: Optional[float] = None
-    thur: Optional[float] = None
+    thu: Optional[float] = None
     fri: Optional[float] = None
     sat: Optional[float] = None
     sun: Optional[float] = None

@@ -8,8 +8,8 @@ from payroll.attendances.repositories import (
     add_attendance,
     modify_attendance,
     remove_attendance,
-    retrieve_attendance_by_employee,
     retrieve_all_attendances,
+    retrieve_attendance_by_employee_and_day,
     retrieve_attendance_by_id,
     retrieve_employee_attendances_by_month,
     retrieve_employee_attendances,
@@ -45,12 +45,12 @@ def check_exist_attendance_by_id(*, db_session, attendance_id: int):
     )
 
 
-def check_exist_attendance_by_employee(
+def check_exist_attendance_by_employee_and_day(
     *, db_session, day_attendance: date, employee_id: int
 ):
     """Check if attendance exists by employee_id and day_attendance."""
     return bool(
-        retrieve_attendance_by_employee(
+        retrieve_attendance_by_employee_and_day(
             db_session=db_session,
             day_attendance=day_attendance,
             employee_id=employee_id,
@@ -138,7 +138,7 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
         db_session=db_session, employee_id=attendance_in.employee_id
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "employee")
-    if check_exist_attendance_by_employee(
+    if check_exist_attendance_by_employee_and_day(
         db_session=db_session,
         day_attendance=attendance_in.day_attendance,
         employee_id=attendance_in.employee_id,
@@ -187,14 +187,14 @@ def create_multi_attendances(
                 day_attendance=current_date,
                 work_hours=attendance_list_in.work_hours,
             )
-            if check_exist_attendance_by_employee(
+            if check_exist_attendance_by_employee_and_day(
                 db_session=db_session,
                 day_attendance=current_date,
                 employee_id=employee_id,
             ):
                 if validate_update_attendance(attendance_in=attendance_in):
                     try:
-                        attendance_id = retrieve_attendance_by_employee(
+                        attendance_id = retrieve_attendance_by_employee_and_day(
                             db_session=db_session,
                             day_attendance=current_date,
                             employee_id=employee_id,
@@ -204,7 +204,6 @@ def create_multi_attendances(
                             attendance_id=attendance_id,
                             attendance_in=attendance_in,
                         )
-                        print(attendance_id)
                         attendances.append(attendance)
                         count += 1
                         db_session.commit()
@@ -215,11 +214,22 @@ def create_multi_attendances(
             else:
                 if validate_create_attendance(attendance_in=attendance_in):
                     try:
-                        attendance = add_attendance(
-                            db_session=db_session, attendance_in=attendance_in
+                        attendance_in = WorkhoursAttendanceHandlerBase(
+                            **attendance_in.model_dump()
                         )
-                        attendances.append(attendance)
-                        count += 1
+
+                        # attendance = add_attendance(
+                        #     db_session=db_session, attendance_in=attendance_handler
+                        # )
+                        attendance = attendance_handler(
+                            db_session=db_session,
+                            attendance_in=attendance_in,
+                        )
+
+                        if attendance:
+                            attendances.append(attendance)
+                            count += 1
+
                         db_session.commit()
                     except Exception as e:
                         db_session.rollback()
@@ -279,7 +289,7 @@ def attendance_handler(
     *,
     db_session,
     attendance_in: WorkhoursAttendanceHandlerBase | TimeAttendanceHandlerBase,
-    update_on_exists: bool = False,
+    # update_on_exists: bool = False,
 ):
     """Handles attendance based on standard work field or specific times."""
     employee = retrieve_employee_by_id(
@@ -300,7 +310,7 @@ def attendance_handler(
     if not shifts_list:
         return
 
-    attendance_list = retrieve_attendance_by_employee(
+    attendance_list = retrieve_attendance_by_employee_and_day(
         db_session=db_session,
         day_attendance=attendance_in.day_attendance,
         employee_id=employee.id,
@@ -320,6 +330,8 @@ def attendance_handler(
         except Exception as e:
             db_session.rollback()
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+        return attendance
     else:
         attendance_time_list = [attendance.check_time for attendance in attendance_list]
 
@@ -351,7 +363,10 @@ def attendance_handler(
 
 
 def upload_excel(
-    *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
+    *,
+    db_session,
+    file: UploadFile = File(...),
+    # update_on_exists: bool = False
 ):
     file_path = BytesIO(file.file.read())
     df = pd.read_excel(file_path, skiprows=2)
@@ -410,5 +425,5 @@ def upload_excel(
         attendance_handler(
             db_session=db_session,
             attendance_in=attendance,
-            update_on_exists=update_on_exists,
+            # update_on_exists=update_on_exists,
         )
