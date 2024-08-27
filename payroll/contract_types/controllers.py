@@ -31,7 +31,6 @@ def retrieve_contracttype(*, db_session: DbSession, id: int):
 
 @contracttype_router.post("", response_model=ContractTypeRead)
 def create_contracttype(*, contracttype_in: ContractTypeCreate, db_session: DbSession):
-    contracttype_in.created_by = "admin"
     contracttype = create(db_session=db_session, contracttype_in=contracttype_in)
     return contracttype
 

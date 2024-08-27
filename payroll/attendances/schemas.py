@@ -7,7 +7,7 @@ from payroll.utils.models import Pagination, PayrollBase
 class AttendanceBase(PayrollBase):
     employee_id: int  # required
     day_attendance: date  # required
-    check_time: time  # required
+    work_hours: float  # required
 
 
 class AttendanceRead(AttendanceBase):
@@ -21,16 +21,22 @@ class AttendancesRead(PayrollBase):
 
 
 class AttendanceUpdate(PayrollBase):
-    check_time: Optional[bool] = None
+    work_hours: Optional[float] = None
 
 
-class AttendanceCreate(PayrollBase):
-    employee_id: int  # required
-    day_attendance: date  # required
-    check_time: time  # required
+class AttendanceCreate(AttendanceBase):
+    pass
 
 
-class PositionPagination(Pagination):
+class AttendancesCreate(PayrollBase):
+    apply_all: bool = False
+    list_emp: List[int]
+    from_date: date
+    to_date: date
+    work_hours: float
+
+
+class AttendancePagination(Pagination):
     items: List[AttendanceRead] = []
 
 

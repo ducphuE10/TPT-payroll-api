@@ -107,3 +107,9 @@ class Status(str, Enum):
     INACTIVE = "inactive"
     PENDING = "pending"
     DELETED = "deleted"
+
+
+class BenefitReplay(str, Enum):
+    DAILY = "daily"
+    MONTHLY = "monthly"
+    YEARLY = "yearly"

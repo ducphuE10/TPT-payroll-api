@@ -1,18 +1,28 @@
+from typing import List
 from fastapi import APIRouter
 
+from payroll.schedule_details.schemas import (
+    ScheduleDetailsCreate,
+    ScheduleDetailsRead,
+    ScheduleDetailsUpdate,
+)
 from payroll.schedules.schemas import (
     ScheduleRead,
     ScheduleCreate,
-    SchedulesRead,
     ScheduleUpdate,
+    ScheduleWithDetailsRead,
+    SchedulesRead,
 )
 from payroll.database.core import DbSession
 from payroll.schedules.services import (
     create_schedule,
+    create_schedule_with_details,
     delete_schedule,
     get_all_schedule,
     get_schedule_by_id,
+    get_schedule_with_details_by_id,
     update_schedule,
+    update_schedule_with_details,
 )
 
 schedule_router = APIRouter()
@@ -35,12 +45,36 @@ def retrieve_schedule(*, db_session: DbSession, schedule_id: int):
     return get_schedule_by_id(db_session=db_session, schedule_id=schedule_id)
 
 
+# GET /schedules/{schedule_id}/details
+@schedule_router.get("/{schedule_id}/details", response_model=ScheduleWithDetailsRead)
+def retrieve_schedule_with_details(*, db_session: DbSession, schedule_id: int):
+    """Retrieve a schedule by id."""
+    return get_schedule_with_details_by_id(
+        db_session=db_session, schedule_id=schedule_id
+    )
+
+
 # POST /schedules
 @schedule_router.post("", response_model=ScheduleRead)
-def create(*, schedule_in: ScheduleCreate, db_session: DbSession):
+def create(*, db_session: DbSession, schedule_in: ScheduleCreate):
     """Creates a new schedule."""
-    schedule = create_schedule(db_session=db_session, schedule_in=schedule_in)
-    return schedule
+    return create_schedule(db_session=db_session, schedule_in=schedule_in)
+
+
+# POST /schedules
+@schedule_router.post("/both", response_model=ScheduleDetailsRead)
+def create_with_details(
+    *,
+    db_session: DbSession,
+    schedule_in: ScheduleCreate,
+    schedule_detail_list_in: List[ScheduleDetailsCreate],
+):
+    """Creates a new schedule."""
+    return create_schedule_with_details(
+        db_session=db_session,
+        schedule_in=schedule_in,
+        schedule_detail_list_in=schedule_detail_list_in,
+    )
 
 
 # PUT /schedules/{schedule_id}
@@ -49,6 +83,24 @@ def update(*, db_session: DbSession, schedule_id: int, schedule_in: ScheduleUpda
     """Update a schedule by id."""
     return update_schedule(
         db_session=db_session, schedule_id=schedule_id, schedule_in=schedule_in
+    )
+
+
+# PUT /schedules/{schedule_id}
+@schedule_router.put("/{schedule_id}/both", response_model=ScheduleDetailsRead)
+def update_with_details(
+    *,
+    db_session: DbSession,
+    schedule_id: int,
+    schedule_in: ScheduleUpdate,
+    schedule_detail_list_in: List[ScheduleDetailsUpdate],
+):
+    """Update a schedule by id."""
+    return update_schedule_with_details(
+        db_session=db_session,
+        schedule_id=schedule_id,
+        schedule_in=schedule_in,
+        schedule_detail_list_in=schedule_detail_list_in,
     )
 
 

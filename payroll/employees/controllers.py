@@ -24,11 +24,10 @@ employee_router = APIRouter()
 
 # GET /employees
 @employee_router.get("", response_model=EmployeesRead)
-def retrieve_employees(
-    *,
-    db_session: DbSession,
-):
+def retrieve_employees(*, db_session: DbSession, name: str = None):
     """Returns all employees."""
+    if name:
+        return search_employee_by_name(db_session=db_session, name=name)
     return get_all_employees(db_session=db_session)
 
 
@@ -49,8 +48,7 @@ def retrieve_employee_attendances(*, db_session: DbSession, employee_id: int):
 @employee_router.post("", response_model=EmployeeRead)
 def create(*, employee_in: EmployeeCreate, db_session: DbSession):
     """Creates a new employee."""
-    employee = create_employee(db_session=db_session, employee_in=employee_in)
-    return employee
+    return create_employee(db_session=db_session, employee_in=employee_in)
 
 
 # PUT /employees/{employee_id}
@@ -63,7 +61,7 @@ def update(*, db_session: DbSession, employee_id: int, employee_in: EmployeeUpda
 
 
 # DELETE /employees/{employee_id}
-@employee_router.delete("/{employee_id}")
+@employee_router.delete("/{employee_id}", response_model=EmployeeRead)
 def delete(*, db_session: DbSession, employee_id: int):
     """Deletes a employee based on the given id."""
     return delete_employee(db_session=db_session, employee_id=employee_id)
@@ -75,8 +73,3 @@ def import_excel(
     *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
 ):
     return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)
-
-
-@employee_router.post("/search", response_model=EmployeesRead)
-def search_employee(*, db_session: DbSession, name: str):
-    return search_employee_by_name(db_session=db_session, name=name)

@@ -5,12 +5,14 @@ from fastapi import APIRouter, File, UploadFile
 from payroll.attendances.schemas import (
     AttendanceRead,
     AttendanceCreate,
+    AttendancesCreate,
     AttendancesRead,
     AttendanceUpdate,
 )
 from payroll.database.core import DbSession
 from payroll.attendances.services import (
     create_attendance,
+    create_multi_attendances,
     delete_attendance,
     get_all_attendances,
     get_attendance_by_id,
@@ -32,11 +34,11 @@ def retrieve_attendances(
     return get_all_attendances(db_session=db_session)
 
 
-# GET /attendances/test?m=1&y=2021
-@attendance_router.get("/test", response_model=AttendancesRead)
-def retrieve_attendances_by_month(*, db_session: DbSession, m: int, y: int):
+# GET /attendances/period?m=month&y=year
+@attendance_router.get("/period", response_model=AttendancesRead)
+def retrieve_attendances_by_month(*, db_session: DbSession, month: int, year: int):
     """Retrieve all attendances of employees by month and year"""
-    return get_attendances_by_month(db_session=db_session, month=m, year=y)
+    return get_attendances_by_month(db_session=db_session, month=month, year=year)
 
 
 # GET /attendances/{attendance_id}
@@ -48,10 +50,19 @@ def get_attendance(*, db_session: DbSession, attendance_id: int):
 
 # POST /attendances
 @attendance_router.post("", response_model=AttendanceRead)
-def create(*, attendance_in: AttendanceCreate, db_session: DbSession):
+def create(*, db_session: DbSession, attendance_in: AttendanceCreate):
     """Creates a new attendance."""
-    attendance = create_attendance(db_session=db_session, attendance_in=attendance_in)
-    return attendance
+    return create_attendance(db_session=db_session, attendance_in=attendance_in)
+
+
+@attendance_router.post("/bulk", response_model=AttendancesRead)
+def create_multi(*, db_session: DbSession, attendance_list_in: AttendancesCreate):
+    """Creates a new attendance."""
+    return create_multi_attendances(
+        db_session=db_session,
+        attendance_list_in=attendance_list_in,
+        apply_all=attendance_list_in.apply_all,
+    )
 
 
 # PUT /attendances/{attendance_id}
