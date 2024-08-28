@@ -41,7 +41,22 @@ class ContractCreate(ContractBase):
 
 
 class ContractUpdate(ContractBase):
-    pass
+    name: Optional[str] = None
+    status: Optional[Status] = None
+    description: Optional[str] = None
+    employee_code: Optional[str] = None
+    type_code: Optional[str] = None
+    ct_date: Optional[date] = None
+    ct_code: Optional[str] = None
+    signed_date: Optional[date] = None
+    start_date: Optional[date] = None
+    end_date: Optional[date] = None
+    is_current: Optional[bool] = None
+    active_from: Optional[date] = None
+    payment_method: Optional[PaymentMethod] = None
+    attachments: Optional[str] = None
+    salary: Optional[float] = None
+    basic_salary: Optional[float] = None
 
 
 class ContractPagination(Pagination):

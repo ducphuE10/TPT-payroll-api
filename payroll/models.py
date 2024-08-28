@@ -78,6 +78,9 @@ class PayrollContract(Base, TimeStampMixin):
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     benefits: Mapped[List["PayrollCBAssoc"]] = relationship()
+    payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
+        "PayrollPayrollManagement", back_populates="contract"
+    )
 
     def __repr__(self) -> str:
         return f"Contract (name={self.name!r})"
@@ -147,6 +150,7 @@ class PayrollEmployee(Base, TimeStampMixin):
     overtime_schedule_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("overtime_schedules.id")
     )
+
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
     created_by: Mapped[str] = mapped_column(String(30))  # required
@@ -268,7 +272,7 @@ class PayrollShift(Base, TimeStampMixin):
     created_by: Mapped[str] = mapped_column(String(30))
 
     def __repr__(self) -> str:
-        return f"Shift (name={self.name!r}, code={self.code!r}, checkin={self.checkin!r}, checkout={self.checkout!r})"
+        return f"Shift (name={self.name!r}, code={self.code!r}, standard_work_hours={self.standard_work_hours!r})"
 
 
 class PayrollSchedule(Base, TimeStampMixin):
@@ -305,12 +309,14 @@ class PayrollBenefit(Base, TimeStampMixin):
 class PayrollCBAssoc(Base, TimeStampMixin):
     __tablename__ = "contract_benefit_association"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    contract_id: Mapped[int] = mapped_column(
-        ForeignKey("contracts.id"), primary_key=True
-    )
-    benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"), primary_key=True)
+    contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"))
+    benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"))
+    created_by: Mapped[str] = mapped_column(String(30))  # required
 
     benefit: Mapped["PayrollBenefit"] = relationship()
+    contract: Mapped["PayrollContract"] = relationship(
+        "PayrollContract", back_populates="benefits"
+    )
 
     def __repr__(self) -> str:
         return f"CBAssoc (contract_id={self.contract_id!r}, benefit_id={self.benefit_id!r})"
@@ -362,12 +368,16 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
     __tablename__ = "payroll_managements"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+    contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"))
     value: Mapped[float]
     month: Mapped[date]
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     employee: Mapped["PayrollEmployee"] = relationship(
         "PayrollEmployee", back_populates="payroll_managements"
+    )
+    contract: Mapped["PayrollContract"] = relationship(
+        "PayrollContract", back_populates="payroll_managements"
     )
 
     def __repr__(self) -> str:

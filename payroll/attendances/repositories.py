@@ -58,8 +58,23 @@ def retrieve_employee_attendances(*, db_session, employee_id: int) -> PayrollAtt
     return {"count": count, "data": attendances}
 
 
-# GET /attendances/period?m=month&y=year
 def retrieve_employee_attendances_by_month(
+    *, db_session, employee_id: int, month: int, year: int
+) -> PayrollAttendance:
+    """Returns all attendances of an employee."""
+    query = db_session.query(PayrollAttendance).filter(
+        PayrollAttendance.employee_id == employee_id,
+        extract("month", PayrollAttendance.day_attendance) == month,
+        extract("year", PayrollAttendance.day_attendance) == year,
+    )
+    count = query.count()
+    attendances = query.all()
+
+    return {"count": count, "data": attendances}
+
+
+# GET /attendances/period?m=month&y=year
+def retrieve_attendances_by_month(
     *, db_session, month: int, year: int
 ) -> PayrollAttendance:
     """Retrieve all attendances of employees by month and year"""

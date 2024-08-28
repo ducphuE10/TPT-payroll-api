@@ -1,4 +1,6 @@
+from datetime import date
 import logging
+from sqlalchemy import and_, or_
 
 from fastapi import HTTPException
 from payroll.models import PayrollContract, PayrollContractType
@@ -17,6 +19,25 @@ def get_contract_by_code(*, db_session, code: str) -> PayrollContract:
 
     return (
         db_session.query(PayrollContract).filter(PayrollContract.code == code).first()
+    )
+
+
+def retrieve_contract_by_employee_id_and_period(
+    *, db_session, employee_code: str, from_date: date, to_date: date
+):
+    return (
+        db_session.query(PayrollContract)
+        .filter(
+            PayrollContract.employee_code == employee_code,
+            and_(
+                PayrollContract.start_date <= to_date,
+                or_(
+                    PayrollContract.end_date.is_(None),
+                    PayrollContract.end_date >= from_date,
+                ),
+            ),
+        )
+        .first()
     )
 
 
