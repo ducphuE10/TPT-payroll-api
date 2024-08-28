@@ -1,9 +1,7 @@
-import io
-from docx import Document
+# from docx import Document
 from payroll.contracts.repositories import (
     get_contract_by_code,
     get_contract_by_id,
-    get_contractType_template,
 )
 from typing import List
 from payroll.benefits.schemas import BenefitCreate
@@ -16,7 +14,8 @@ from payroll.contracts.schemas import (
 from payroll.exception import AppException, ErrorMessages
 from payroll.models import PayrollContract
 from payroll.contracts import repositories as contract_repo
-from payroll.storage.services import read_file_from_minio
+
+# from payroll.storage.services import read_file_from_minio
 
 
 def get_one_by_id(*, db_session, id: int) -> ContractRead:
@@ -94,31 +93,31 @@ def get_all(*, db_session) -> ContractsRead:
     return ContractsRead(data=data)
 
 
-def generate_contract_docx(*, db_session, id: int) -> io.BytesIO:
-    """Generate a contract docx file based on the given data and template."""
+# def generate_contract_docx(*, db_session, id: int) -> io.BytesIO:
+#     """Generate a contract docx file based on the given data and template."""
 
-    contract_data = get_contract_by_id(db_session=db_session, id=id)
+#     contract_data = get_contract_by_id(db_session=db_session, id=id)
 
-    if not contract_data:
-        raise AppException(ErrorMessages.ResourceNotFound())
+#     if not contract_data:
+#         raise AppException(ErrorMessages.ResourceNotFound())
 
-    template_path = get_contractType_template(
-        db_session=db_session, code=contract_data.type_code
-    )
-    template_stream = read_file_from_minio(template_path)
+#     template_path = get_contractType_template(
+#         db_session=db_session, code=contract_data.type_code
+#     )
+#     template_stream = read_file_from_minio(template_path)
 
-    doc = Document(template_stream)
+#     doc = Document(template_stream)
 
-    # Create a temporary directory to store the generated contract
-    for paragraph in doc.paragraphs:
-        paragraph.text = paragraph.text.replace("{{contract_name}}", contract_data.name)
-        paragraph.text = paragraph.text.replace(
-            "{{employee_name}}", contract_data.employee.name
-        )
+#     # Create a temporary directory to store the generated contract
+#     for paragraph in doc.paragraphs:
+#         paragraph.text = paragraph.text.replace("{{contract_name}}", contract_data.name)
+#         paragraph.text = paragraph.text.replace(
+#             "{{employee_name}}", contract_data.employee.name
+#         )
 
-    # Load the template
-    file_stream = io.BytesIO()
-    doc.save(file_stream)
-    file_stream.seek(0)  # Move the pointer to the beginning of the stream
+#     # Load the template
+#     file_stream = io.BytesIO()
+#     doc.save(file_stream)
+#     file_stream.seek(0)  # Move the pointer to the beginning of the stream
 
-    return file_stream
+#     return file_stream

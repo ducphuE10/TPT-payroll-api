@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import List, Optional
+from typing import List
 
 from payroll.utils.models import Pagination, PayrollBase
 
@@ -17,30 +17,31 @@ from payroll.utils.models import Pagination, PayrollBase
 #     )
 
 
-class PayrollBase(PayrollBase):
+class PayrollManagementBase(PayrollBase):
     employee_id: int  # required
     value: float  # required
     month: date  # required
 
 
-class DepartmentRead(DepartmentBase):
+class PayrollManagementRead(PayrollManagementBase):
     id: int
     created_at: datetime
 
 
-class DepartmentsRead(PayrollBase):
+class PayrollManagementsRead(PayrollBase):
     count: int
-    data: list[DepartmentRead] = []
+    data: list[PayrollManagementRead] = []
 
 
-class DepartmentUpdate(PayrollBase):
-    name: Optional[str] = None
-    description: Optional[str] = None
+# class PayrollManagementUpdate(PayrollBase):
+#     name: Optional[str] = None
+#     description: Optional[str] = None
 
 
-class DepartmentCreate(DepartmentBase):
-    pass
+class PayrollManagementCreate(PayrollBase):
+    employee_id: int  # required
+    month: date  # required
 
 
-class DepartmentPagination(Pagination):
-    items: List[DepartmentRead] = []
+class PayrollManagementBPagination(Pagination):
+    items: List[PayrollManagementRead] = []
