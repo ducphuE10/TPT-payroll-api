@@ -25,8 +25,8 @@ def retrieve_cbassoc_by_information(
     return (
         db_session.query(PayrollCBAssoc)
         .filter(
-            PayrollCBAssoc.contract_id == cbassoc_in.contract_id
-            and PayrollCBAssoc.benefit_id == cbassoc_in.benefit_id
+            PayrollCBAssoc.contract_id == cbassoc_in.contract_id,
+            PayrollCBAssoc.benefit_id == cbassoc_in.benefit_id,
         )
         .first()
     )
@@ -38,7 +38,6 @@ def retrieve_all_cbassocs(*, db_session) -> PayrollCBAssoc:
     query = db_session.query(PayrollCBAssoc)
     count = query.count()
     cbassocs = query.all()
-    print(cbassocs)
     return {"count": count, "data": cbassocs}
 
 

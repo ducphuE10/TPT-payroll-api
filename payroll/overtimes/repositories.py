@@ -36,6 +36,21 @@ def retrieve_overtime_by_employee_and_day(
     )
 
 
+def retrieve_employee_overtime_by_month(
+    *, db_session, employee_id: int, month: int, year: int
+) -> PayrollOvertime:
+    """Returns all attendances of an employee."""
+    query = db_session.query(PayrollOvertime).filter(
+        PayrollOvertime.employee_id == employee_id,
+        extract("month", PayrollOvertime.day_overtime) == month,
+        extract("year", PayrollOvertime.day_overtime) == year,
+    )
+    count = query.count()
+    overtimes = query.all()
+
+    return {"count": count, "data": overtimes}
+
+
 # GET /overtimes/{overtime_id}
 def retrieve_overtime_by_id(*, db_session, overtime_id: int) -> PayrollOvertime:
     """Returns a overtime based on the given id."""

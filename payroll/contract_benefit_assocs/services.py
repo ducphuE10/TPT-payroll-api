@@ -46,7 +46,6 @@ def get_cbassoc_by_id(*, db_session, cbassoc_id: int):
 def get_all_cbassoc(*, db_session):
     """Returns all cbassocs."""
     cbassocs = retrieve_all_cbassocs(db_session=db_session)
-    print(cbassocs)
     if not cbassocs["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "cbassoc")
 

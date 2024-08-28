@@ -11,7 +11,7 @@ from payroll.attendances.repositories import (
     retrieve_all_attendances,
     retrieve_attendance_by_employee_and_day,
     retrieve_attendance_by_id,
-    retrieve_employee_attendances_by_month,
+    retrieve_attendances_by_month,
     retrieve_employee_attendances,
 )
 from payroll.attendances.schemas import (
@@ -121,7 +121,7 @@ def get_employee_attendances(*, db_session, employee_id: int):
 # GET /attendances/period?m=month&y=year
 def get_attendances_by_month(*, db_session, month: int, year: int):
     """Returns all attendances for a given month and year."""
-    list_attendances = retrieve_employee_attendances_by_month(
+    list_attendances = retrieve_attendances_by_month(
         db_session=db_session, month=month, year=year
     )
 
