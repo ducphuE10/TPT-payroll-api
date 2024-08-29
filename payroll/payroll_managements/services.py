@@ -449,40 +449,51 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
     )
 
     # BENEFIT
-    benefit_salary = 0
-    attendant_benefit = 0
+    (
+        benefit_salary,
+        attendant_benefit,
+        travel_benefit,
+        phone_benefit,
+        housing_benefit,
+        meal_benefit,
+    ) = 0
+    (attendant_benefit,) = 0
     benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
 
     if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
         attendant_benefit = benefits[f"{BenefitType.ATTENDANT}"]
 
-    travel_benefit = benefit_salary_handler(
-        benefit_value=benefits[f"{BenefitType.TRAVEL}"],
-        work_days_standard=work_days_standard,
-        work_hours_standard=work_hours_standard,
-        work_hours_real=work_hours["adequate_hours"],
-    )
+    if f"{BenefitType.TRAVEL}" in benefits:
+        travel_benefit = benefit_salary_handler(
+            benefit_value=benefits[f"{BenefitType.TRAVEL}"],
+            work_days_standard=work_days_standard,
+            work_hours_standard=work_hours_standard,
+            work_hours_real=work_hours["adequate_hours"],
+        )
 
-    phone_benefit = benefit_salary_handler(
-        benefit_value=benefits[f"{BenefitType.PHONE}"],
-        work_days_standard=work_days_standard,
-        work_hours_standard=work_hours_standard,
-        work_hours_real=work_hours["adequate_hours"],
-    )
+    if f"{BenefitType.PHONE}" in benefits:
+        phone_benefit = benefit_salary_handler(
+            benefit_value=benefits[f"{BenefitType.PHONE}"],
+            work_days_standard=work_days_standard,
+            work_hours_standard=work_hours_standard,
+            work_hours_real=work_hours["adequate_hours"],
+        )
 
-    housing_benefit = benefit_salary_handler(
-        benefit_value=benefits[f"{BenefitType.HOUSING}"],
-        work_days_standard=work_days_standard,
-        work_hours_standard=work_hours_standard,
-        work_hours_real=work_hours["adequate_hours"],
-    )
+    if f"{BenefitType.HOUSING}" in benefits:
+        housing_benefit = benefit_salary_handler(
+            benefit_value=benefits[f"{BenefitType.HOUSING}"],
+            work_days_standard=work_days_standard,
+            work_hours_standard=work_hours_standard,
+            work_hours_real=work_hours["adequate_hours"],
+        )
 
-    meal_benefit = benefit_salary_handler(
-        benefit_value=benefits[f"{BenefitType.MEAL}"],
-        work_days_standard=work_days_standard,
-        work_hours_standard=work_hours_standard,
-        work_hours_real=work_hours["adequate_hours"],
-    )
+    if f"{BenefitType.MEAL}" in benefits:
+        meal_benefit = benefit_salary_handler(
+            benefit_value=benefits[f"{BenefitType.MEAL}"],
+            work_days_standard=work_days_standard,
+            work_hours_standard=work_hours_standard,
+            work_hours_real=work_hours["adequate_hours"],
+        )
 
     benefit_salary = (
         travel_benefit

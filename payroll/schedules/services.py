@@ -1,4 +1,5 @@
 from typing import List
+from payroll.employees.repositories import retrieve_schedule_by_employee_id
 from payroll.schedule_details.repositories import (
     retrieve_schedule_details_by_schedule_id,
 )
@@ -30,6 +31,12 @@ def check_exist_schedule_by_code(*, db_session, schedule_code: str):
     """Check if schedule exists in the database."""
     return bool(
         retrieve_schedule_by_code(db_session=db_session, schedule_code=schedule_code)
+    )
+
+
+def check_exist_schedule_by_employee_id(*, db_session, employee_id: int):
+    return bool(
+        retrieve_schedule_by_employee_id(db_session=db_session, employee_id=employee_id)
     )
 
 
