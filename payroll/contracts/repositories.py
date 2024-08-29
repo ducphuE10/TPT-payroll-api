@@ -73,7 +73,6 @@ def update(*, db_session, id: int, update_data: dict):
     db_session.query(PayrollContract).filter(PayrollContract.id == id).update(
         update_data, synchronize_session=False
     )
-    db_session.commit()
 
 
 def delete(*, db_session, id: int) -> None:

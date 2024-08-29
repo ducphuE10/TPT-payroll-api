@@ -14,6 +14,7 @@ from payroll.contract_benefit_assocs.schemas import (
     CBAssocCreate,
     CBAssocUpdate,
     CBAssocBase,
+    CBAssocsUpdate,
 )
 
 # from payroll.employees.repositories import retrieve_employee_by_cbassoc
@@ -110,6 +111,45 @@ def update_cbassoc(*, db_session, cbassoc_id: int, cbassoc_in: CBAssocUpdate):
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return cbassoc
+
+
+def update_multi_cbassocs(
+    *,
+    db_session,
+    cbassoc_list_in: List[CBAssocsUpdate],
+    contract_id: int,
+):
+    """Creates multiple schedule_details"""
+    try:
+        for cbassoc in cbassoc_list_in:
+            if not check_exist_cbassoc_by_id(
+                db_session=db_session, cbassoc_id=cbassoc.id
+            ):
+                cbassoc_create = CBAssocCreate(
+                    **cbassoc.model_dump(), contract_id=contract_id
+                )
+                add_cbassoc(db_session=db_session, cbassoc_in=cbassoc_create)
+
+            if not check_exist_benefit_by_id(
+                db_session=db_session, benefit_id=cbassoc.benefit_id
+            ):
+                raise AppException(ErrorMessages.ResourceNotFound(), "benefit")
+
+            cbassoc = modify_cbassoc(
+                db_session=db_session,
+                cbassoc_id=cbassoc.id,
+                cbassoc_in=cbassoc,
+            )
+
+        db_session.commit()
+
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return retrieve_cbassocs_by_contract_id(
+        db_session=db_session, contract_id=contract_id
+    )
 
 
 # DELETE /cbassocs/{cbassoc_id}

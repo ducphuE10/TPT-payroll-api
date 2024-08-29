@@ -1,4 +1,5 @@
 # from docx import Document
+from payroll.contract_benefit_assocs.schemas import CBAssocsUpdate
 from payroll.contracts.repositories import (
     get_contract_by_code,
     get_contract_by_id,
@@ -78,8 +79,41 @@ def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
 
     update_data = contract_in.model_dump(exclude_unset=True)
 
-    contract_repo.update(db_session=db_session, id=id, update_data=update_data)
+    try:
+        contract_repo.update(db_session=db_session, id=id, update_data=update_data)
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
     return ContractRead.from_orm(contract_db)
+
+
+def update_contract_with_benefits(
+    *,
+    db_session,
+    contract_id: int,
+    contract_in: ContractUpdate,
+    cbassoc_list_in: List[CBAssocsUpdate],
+):
+    try:
+        contract = update(
+            db_session=db_session, id=contract_id, contract_in=contract_in
+        )
+
+        from payroll.contract_benefit_assocs.services import update_multi_cbassocs
+
+        contract_with_benefits = update_multi_cbassocs(
+            db_session=db_session,
+            cbassoc_list_in=cbassoc_list_in,
+            contract_id=contract.id,
+        )
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return contract_with_benefits
 
 
 def delete(*, db_session, id: int) -> None:

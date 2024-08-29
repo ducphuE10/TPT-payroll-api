@@ -6,10 +6,21 @@ from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeUpdate,
 )
-from payroll.models import PayrollEmployee
+from payroll.models import PayrollEmployee, PayrollSchedule
 
 # add, retrieve, modify, remove
 log = logging.getLogger(__name__)
+
+
+def retrieve_schedule_by_employee_id(
+    *, db_session, employee_id: int
+) -> PayrollSchedule:
+    """Returns a schedule based on the given id."""
+    return (
+        db_session.query(PayrollEmployee.schedule_id)
+        .filter(PayrollEmployee.id == employee_id)
+        .scalar()
+    )
 
 
 # GET /employees/{employee_id}
