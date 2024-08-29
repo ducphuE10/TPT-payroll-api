@@ -1,6 +1,7 @@
 from datetime import datetime, date
 from typing import List, Optional
 
+from payroll.contract_benefit_assocs.schemas import CBAssocsRead
 from payroll.employees.schemas import EmployeeBase
 from payroll.utils.models import PaymentMethod, Status
 from payroll.utils.models import Pagination, PayrollBase
@@ -30,6 +31,11 @@ class ContractRead(ContractBase):
     id: int
     created_at: datetime
     employee: EmployeeBase
+
+
+class ContractWithBenefitRead(PayrollBase):
+    contract_in: ContractBase
+    benefits_list_in: Optional[CBAssocsRead] = None
 
 
 class ContractsRead(PayrollBase):

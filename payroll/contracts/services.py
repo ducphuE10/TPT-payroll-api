@@ -37,37 +37,42 @@ def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:
     if contract_db:
         raise AppException(ErrorMessages.ResourceAlreadyExists())
     contract_repo.create(db_session=db_session, create_data=contract_in.model_dump())
-    db_session.commit()
+
     return contract
 
 
 def create_contract_with_benefits(
-    *, db_session, contract_in: ContractCreate, benefits_list_in: List[BenefitCreate]
+    *,
+    db_session,
+    contract_in: ContractCreate,
+    benefits_list_in: Optional[List[BenefitCreate]] = None,
 ):
     """Creates a new contract with benefits."""
     if bool(get_contract_by_code(db_session=db_session, code=contract_in.code)):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
     # def create(*, db_session, create_data: dict)
     try:
-        contract = create(db_session=db_session, create_data=contract_in)
+        contract = create(db_session=db_session, contract_in=contract_in)
 
         contract = retrieve_contract_by_code(
             db_session=db_session, contract_code=contract_in.code
         )
+        contract_with_benefits = None
+        if benefits_list_in:
+            from payroll.contract_benefit_assocs.services import create_multi_cbassocs
 
-        from payroll.contract_benefit_assocs.services import create_multi_cbassocs
-
-        contract_with_benefits = create_multi_cbassocs(
-            db_session=db_session,
-            contract_id=contract.id,
-            cbassoc_list_in=benefits_list_in,
-        )
+            contract_with_benefits = create_multi_cbassocs(
+                db_session=db_session,
+                contract_id=contract.id,
+                cbassoc_list_in=benefits_list_in,
+            )
+            return {"contract_in": contract, "benefits_list_in": contract_with_benefits}
         db_session.commit()
     except AppException as e:
         db_session.rollback()
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
-
-    return contract_with_benefits
+    # print({"contract_in": contract, "benefits_list_in": contract_with_benefits})
+    return {"contract_in": contract}
 
 
 def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
