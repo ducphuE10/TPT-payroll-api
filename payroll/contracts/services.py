@@ -45,7 +45,6 @@ def create_contract_with_benefits(
 ):
     """Creates a new contract with benefits."""
     if bool(get_contract_by_code(db_session=db_session, code=contract_in.code)):
-        print("assssssss")
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
     # def create(*, db_session, create_data: dict)
     try:

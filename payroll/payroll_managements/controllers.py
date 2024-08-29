@@ -54,7 +54,7 @@ def create_multi(
     return create_multi_payroll_managements(
         db_session=db_session,
         payroll_management_list_in=payroll_management_list_in,
-        apply_all=payroll_management_list_in.apply_all,
+        # apply_all=payroll_management_list_in.apply_all,
     )
 
 
