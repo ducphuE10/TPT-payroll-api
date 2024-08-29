@@ -109,6 +109,12 @@ class Status(str, Enum):
     DELETED = "deleted"
 
 
+
+class UpdateStatus(str, Enum):
+    CREATE = "create"
+    UPDATE = "update"
+    DELETE = "delete"
+
 class BenefitReplay(str, Enum):
     DAILY = "daily"
     MONTHLY = "monthly"

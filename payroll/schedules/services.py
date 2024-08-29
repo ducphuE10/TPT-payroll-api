@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from payroll.employees.repositories import retrieve_schedule_by_employee_id
 from payroll.schedule_details.repositories import (
     retrieve_schedule_details_by_schedule_id,
@@ -169,21 +169,23 @@ def update_schedule_with_details(
     *,
     db_session,
     schedule_id: int,
-    schedule_in: ScheduleUpdate,
-    schedule_detail_list_in: List[ScheduleDetailsUpdate],
+    schedule_in: Optional[ScheduleUpdate] = None,
+    schedule_detail_list_in: Optional[List[ScheduleDetailsUpdate]] = None,
 ):
     try:
-        schedule = update_schedule(
-            db_session=db_session, schedule_id=schedule_id, schedule_in=schedule_in
-        )
+        if schedule_in:
+            update_schedule(
+                db_session=db_session, schedule_id=schedule_id, schedule_in=schedule_in
+            )
 
-        from payroll.schedule_details.services import update_multi_schedule_details
+        if schedule_detail_list_in:
+            from payroll.schedule_details.services import update_multi_schedule_details
 
-        schedule_with_details = update_multi_schedule_details(
-            db_session=db_session,
-            schedule_detail_list_in=schedule_detail_list_in,
-            schedule_id=schedule.id,
-        )
+            schedule_with_details = update_multi_schedule_details(
+                db_session=db_session,
+                schedule_detail_list_in=schedule_detail_list_in,
+                schedule_id=schedule_id,
+            )
         db_session.commit()
     except AppException as e:
         db_session.rollback()

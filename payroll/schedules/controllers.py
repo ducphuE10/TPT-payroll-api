@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter
 
 from payroll.schedule_details.schemas import (
@@ -92,8 +92,8 @@ def update_with_details(
     *,
     db_session: DbSession,
     schedule_id: int,
-    schedule_in: ScheduleUpdate,
-    schedule_detail_list_in: List[ScheduleDetailsUpdate],
+    schedule_in: Optional[ScheduleUpdate] = None,
+    schedule_detail_list_in: Optional[List[ScheduleDetailsUpdate]] = None,
 ):
     """Update a schedule by id."""
     return update_schedule_with_details(
