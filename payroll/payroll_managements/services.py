@@ -150,13 +150,13 @@ def create_multi_payroll_managements(
     *,
     db_session,
     payroll_management_list_in: PayrollManagementsCreate,
-    apply_all: bool = False,
+    # apply_all: bool = False,
 ):
     payroll_managements = []
     count = 0
     list_id = []
 
-    if apply_all:
+    if payroll_management_list_in.apply_all:
         list_id = [
             employee.id
             for employee in retrieve_all_employees(db_session=db_session)["data"]

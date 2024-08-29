@@ -159,13 +159,16 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
 
 
 def create_multi_attendances(
-    *, db_session, attendance_list_in: AttendancesCreate, apply_all: bool = False
+    *,
+    db_session,
+    attendance_list_in: AttendancesCreate,
+    # , apply_all: bool = False
 ):
     attendances = []
     count = 0
     list_id = []
 
-    if apply_all:
+    if attendance_list_in.apply_all:
         list_id = [
             employee.id
             for employee in retrieve_all_employees(db_session=db_session)["data"]
