@@ -447,21 +447,15 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
         * 2
         * overtime_hours["overtime_2_0x"]
     )
-
     # BENEFIT
-    (
-        benefit_salary,
-        attendant_benefit,
-        travel_benefit,
-        phone_benefit,
-        housing_benefit,
-        meal_benefit,
-    ) = 0
-    (attendant_benefit,) = 0
-    benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
+    benefit_salary = (
+        attendant_benefit
+    ) = travel_benefit = phone_benefit = housing_benefit = meal_benefit = 0
 
-    if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
-        attendant_benefit = benefits[f"{BenefitType.ATTENDANT}"]
+    benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
+    if f"{BenefitType.ATTENDANT}" in benefits:
+        if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
+            attendant_benefit = benefits[f"{BenefitType.ATTENDANT}"]
 
     if f"{BenefitType.TRAVEL}" in benefits:
         travel_benefit = benefit_salary_handler(
