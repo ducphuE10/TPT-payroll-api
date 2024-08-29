@@ -158,7 +158,7 @@ class PayrollEmployee(Base, TimeStampMixin):
         backref="positions",
     )
     schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
-    schedule: Mapped["PayrollSchedule"] = relationship(
+    schedule: Mapped[Optional["PayrollSchedule"]] = relationship(
         "PayrollSchedule",
         backref="schedules",
     )

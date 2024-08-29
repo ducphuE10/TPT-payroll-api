@@ -84,7 +84,6 @@ def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
         db_session=db_session, position_id=employee_in.position_id
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "position")
-
     if employee_in.schedule_id is not None and not check_exist_schedule_by_id(
         db_session=db_session, schedule_id=employee_in.schedule_id
     ):
@@ -175,7 +174,6 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
         except Exception as e:
             db_session.rollback()
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
-
     return employee
 
 

@@ -43,7 +43,7 @@ class EmployeeRead(EmployeeBase):
     created_at: datetime
     department: DepartmentBase
     position: PositionBase
-    schedule: ScheduleBase
+    schedule: Optional[ScheduleBase]
 
 
 class EmployeesRead(PayrollBase):
