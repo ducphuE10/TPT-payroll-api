@@ -453,9 +453,7 @@ class PayrollDependentPerson(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
-    employee_id: Mapped[int] = mapped_column(
-        ForeignKey("employees.id"), unique=True
-    )  # required
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
     date_of_birth: Mapped[date]  # required
     gender: Mapped[Gender]  # required
     nationality: Mapped[Optional[Nationality]]

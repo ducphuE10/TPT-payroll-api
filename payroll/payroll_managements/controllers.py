@@ -37,15 +37,6 @@ def retrieve_payroll_management(*, db_session: DbSession, payroll_management_id:
     )
 
 
-# # POST /payroll_managements
-# @payroll_management_router.post("", response_model=PayrollManagementRead)
-# def create(*, payroll_management_in: PayrollManagementCreate, db_session: DbSession):
-#     """Creates a new payroll_management."""
-#     return create_payroll_management(
-#         db_session=db_session, payroll_management_in=payroll_management_in
-#     )
-
-
 @payroll_management_router.post("", response_model=PayrollManagementRead)
 def create(*, payroll_management_in: PayrollManagementCreate, db_session: DbSession):
     return create_payroll_management(
