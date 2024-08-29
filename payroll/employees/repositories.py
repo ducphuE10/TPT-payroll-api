@@ -31,22 +31,30 @@ def retrieve_employee_by_code(*, db_session, employee_code: str) -> PayrollEmplo
     )
 
 
-def retrieve_employee_by_cccd(*, db_session, employee_cccd: str) -> PayrollEmployee:
+def retrieve_employee_by_cccd(
+    *, db_session, employee_cccd: str, exclude_employee_id: int = None
+) -> PayrollEmployee:
     """Returns a employee based on the given code."""
-    return (
-        db_session.query(PayrollEmployee)
-        .filter(PayrollEmployee.cccd == employee_cccd)
-        .first()
+    query = db_session.query(PayrollEmployee).filter(
+        PayrollEmployee.cccd == employee_cccd
     )
+    if exclude_employee_id:
+        query = query.filter(PayrollEmployee.id != exclude_employee_id)
+
+    return query.first()
 
 
-def retrieve_employee_by_mst(*, db_session, employee_mst: str) -> PayrollEmployee:
+def retrieve_employee_by_mst(
+    *, db_session, employee_mst: str, exclude_employee_id: int = None
+) -> PayrollEmployee:
     """Returns a employee based on the given code."""
-    return (
-        db_session.query(PayrollEmployee)
-        .filter(PayrollEmployee.mst == employee_mst)
-        .first()
+    query = db_session.query(PayrollEmployee).filter(
+        PayrollEmployee.mst == employee_mst
     )
+    if exclude_employee_id:
+        query = query.filter(PayrollEmployee.id != exclude_employee_id)
+
+    return query.first()
 
 
 def retrieve_employee_by_position(*, db_session, position_id: int) -> PayrollEmployee:

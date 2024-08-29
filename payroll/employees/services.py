@@ -48,17 +48,29 @@ def check_exist_employee_by_code(*, db_session, employee_code: str):
     )
 
 
-def check_exist_employee_by_cccd(*, db_session, employee_cccd: str):
+def check_exist_employee_by_cccd(
+    *, db_session, employee_cccd: str, exclude_employee_id: int = None
+):
     """Check if employee exists in the database."""
     return bool(
-        retrieve_employee_by_cccd(db_session=db_session, employee_cccd=employee_cccd)
+        retrieve_employee_by_cccd(
+            db_session=db_session,
+            employee_cccd=employee_cccd,
+            exclude_employee_id=exclude_employee_id,
+        )
     )
 
 
-def check_exist_employee_by_mst(*, db_session, employee_mst: str):
+def check_exist_employee_by_mst(
+    *, db_session, employee_mst: str, exclude_employee_id: int = None
+):
     """Check if employee exists in the database."""
     return bool(
-        retrieve_employee_by_mst(db_session=db_session, employee_mst=employee_mst)
+        retrieve_employee_by_mst(
+            db_session=db_session,
+            employee_mst=employee_mst,
+            exclude_employee_id=exclude_employee_id,
+        )
     )
 
 
@@ -94,7 +106,9 @@ def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
     return True
 
 
-def validate_update_employee(*, db_session, employee_in: EmployeeUpdate):
+def validate_update_employee(
+    *, db_session, employee_id: int, employee_in: EmployeeUpdate
+):
     if employee_in.department_id is not None and not check_exist_department_by_id(
         db_session=db_session, department_id=employee_in.department_id
     ):
@@ -110,18 +124,22 @@ def validate_update_employee(*, db_session, employee_in: EmployeeUpdate):
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
 
-    if employee_in.code and check_exist_employee_by_code(
-        db_session=db_session, employee_code=employee_in.code
-    ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists(), "employee")
+    # if employee_in.code and check_exist_employee_by_code(
+    #     db_session=db_session, employee_code=employee_in.code
+    # ):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "employee")
 
     if employee_in.cccd and check_exist_employee_by_cccd(
-        db_session=db_session, employee_cccd=employee_in.cccd
+        db_session=db_session,
+        employee_cccd=employee_in.cccd,
+        exclude_employee_id=employee_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
 
     if employee_in.mst and check_exist_employee_by_mst(
-        db_session=db_session, employee_mst=employee_in.mst
+        db_session=db_session,
+        employee_mst=employee_in.mst,
+        exclude_employee_id=employee_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
 
@@ -167,7 +185,9 @@ def update_employee(*, db_session, employee_id: int, employee_in: EmployeeUpdate
     if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
         raise AppException(ErrorMessages.ResourceNotFound(), "employee")
 
-    if validate_update_employee(db_session=db_session, employee_in=employee_in):
+    if validate_update_employee(
+        db_session=db_session, employee_id=employee_id, employee_in=employee_in
+    ):
         try:
             employee = modify_employee(
                 db_session=db_session, employee_id=employee_id, employee_in=employee_in

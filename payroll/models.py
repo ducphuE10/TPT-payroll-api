@@ -146,8 +146,20 @@ class PayrollEmployee(Base, TimeStampMixin):
     start_work: Mapped[Optional[date]]
     note: Mapped[Optional[str]] = mapped_column(String(255))
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
+    department: Mapped["PayrollDepartment"] = relationship(
+        "PayrollDepartment",
+        backref="departments",
+    )
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
+    position: Mapped["PayrollPosition"] = relationship(
+        "PayrollPosition",
+        backref="positions",
+    )
     schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
+    schedule: Mapped["PayrollSchedule"] = relationship(
+        "PayrollSchedule",
+        backref="schedules",
+    )
     overtime_schedule_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("overtime_schedules.id")
     )
