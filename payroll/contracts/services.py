@@ -1,4 +1,11 @@
-from payroll.contracts.repositories import get_contract_by_code, get_contract_by_id
+# from docx import Document
+from payroll.contracts.repositories import (
+    get_contract_by_code,
+    get_contract_by_id,
+    retrieve_contract_by_code,
+)
+from typing import List
+from payroll.benefits.schemas import BenefitCreate
 from payroll.contracts.schemas import (
     ContractCreate,
     ContractRead,
@@ -8,6 +15,8 @@ from payroll.contracts.schemas import (
 from payroll.exception import AppException, ErrorMessages
 from payroll.models import PayrollContract
 from payroll.contracts import repositories as contract_repo
+
+# from payroll.storage.services import read_file_from_minio
 
 
 def get_one_by_id(*, db_session, id: int) -> ContractRead:
@@ -29,6 +38,35 @@ def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:
     contract_repo.create(db_session=db_session, create_data=contract_in.model_dump())
     db_session.commit()
     return contract
+
+
+def create_contract_with_benefits(
+    *, db_session, contract_in: ContractCreate, benefits_list_in: List[BenefitCreate]
+):
+    """Creates a new contract with benefits."""
+    if bool(get_contract_by_code(db_session=db_session, code=contract_in.code)):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
+    # def create(*, db_session, create_data: dict)
+    try:
+        contract = create(db_session=db_session, create_data=contract_in)
+
+        contract = retrieve_contract_by_code(
+            db_session=db_session, contract_code=contract_in.code
+        )
+
+        from payroll.contract_benefit_assocs.services import create_multi_cbassocs
+
+        contract_with_benefits = create_multi_cbassocs(
+            db_session=db_session,
+            contract_id=contract.id,
+            cbassoc_list_in=benefits_list_in,
+        )
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return contract_with_benefits
 
 
 def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
@@ -56,3 +94,33 @@ def get_all(*, db_session) -> ContractsRead:
     """Returns all contracts."""
     data = contract_repo.get_all(db_session=db_session)
     return ContractsRead(data=data)
+
+
+# def generate_contract_docx(*, db_session, id: int) -> io.BytesIO:
+#     """Generate a contract docx file based on the given data and template."""
+
+#     contract_data = get_contract_by_id(db_session=db_session, id=id)
+
+#     if not contract_data:
+#         raise AppException(ErrorMessages.ResourceNotFound())
+
+#     template_path = get_contractType_template(
+#         db_session=db_session, code=contract_data.type_code
+#     )
+#     template_stream = read_file_from_minio(template_path)
+
+#     doc = Document(template_stream)
+
+#     # Create a temporary directory to store the generated contract
+#     for paragraph in doc.paragraphs:
+#         paragraph.text = paragraph.text.replace("{{contract_name}}", contract_data.name)
+#         paragraph.text = paragraph.text.replace(
+#             "{{employee_name}}", contract_data.employee.name
+#         )
+
+#     # Load the template
+#     file_stream = io.BytesIO()
+#     doc.save(file_stream)
+#     file_stream.seek(0)  # Move the pointer to the beginning of the stream
+
+#     return file_stream

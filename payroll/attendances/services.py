@@ -1,6 +1,6 @@
 import logging
 from fastapi import File, UploadFile
-from datetime import date
+from datetime import date, timedelta
 import pandas as pd
 from io import BytesIO
 
@@ -8,19 +8,21 @@ from payroll.attendances.repositories import (
     add_attendance,
     modify_attendance,
     remove_attendance,
-    retrieve_attendance_by_employee,
     retrieve_all_attendances,
+    retrieve_attendance_by_employee_and_day,
     retrieve_attendance_by_id,
-    retrieve_employee_attendances_by_month,
+    retrieve_attendances_by_month,
     retrieve_employee_attendances,
 )
 from payroll.attendances.schemas import (
     AttendanceCreate,
     AttendanceUpdate,
+    AttendancesCreate,
     TimeAttendanceHandlerBase,
     WorkhoursAttendanceHandlerBase,
 )
 from payroll.employees.repositories import (
+    retrieve_all_employees,
     retrieve_employee_by_code,
     retrieve_employee_by_id,
 )
@@ -43,12 +45,12 @@ def check_exist_attendance_by_id(*, db_session, attendance_id: int):
     )
 
 
-def check_exist_attendance_by_employee(
+def check_exist_attendance_by_employee_and_day(
     *, db_session, day_attendance: date, employee_id: int
 ):
     """Check if attendance exists by employee_id and day_attendance."""
     return bool(
-        retrieve_attendance_by_employee(
+        retrieve_attendance_by_employee_and_day(
             db_session=db_session,
             day_attendance=day_attendance,
             employee_id=employee_id,
@@ -119,7 +121,7 @@ def get_employee_attendances(*, db_session, employee_id: int):
 # GET /attendances/period?m=month&y=year
 def get_attendances_by_month(*, db_session, month: int, year: int):
     """Returns all attendances for a given month and year."""
-    list_attendances = retrieve_employee_attendances_by_month(
+    list_attendances = retrieve_attendances_by_month(
         db_session=db_session, month=month, year=year
     )
 
@@ -136,7 +138,7 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
         db_session=db_session, employee_id=attendance_in.employee_id
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "employee")
-    if check_exist_attendance_by_employee(
+    if check_exist_attendance_by_employee_and_day(
         db_session=db_session,
         day_attendance=attendance_in.day_attendance,
         employee_id=attendance_in.employee_id,
@@ -154,6 +156,91 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return attendance
+
+
+def create_multi_attendances(
+    *,
+    db_session,
+    attendance_list_in: AttendancesCreate,
+    # , apply_all: bool = False
+):
+    attendances = []
+    count = 0
+    list_id = []
+
+    if attendance_list_in.apply_all:
+        list_id = [
+            employee.id
+            for employee in retrieve_all_employees(db_session=db_session)["data"]
+        ]
+
+    else:
+        list_id = [id for id in attendance_list_in.list_emp]
+
+    for employee_id in list_id:
+        if not check_exist_employee_by_id(
+            db_session=db_session, employee_id=employee_id
+        ):
+            raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+        current_date = attendance_list_in.from_date
+        while current_date <= attendance_list_in.to_date:
+            attendance_in = AttendanceCreate(
+                employee_id=employee_id,
+                day_attendance=current_date,
+                work_hours=attendance_list_in.work_hours,
+            )
+            if check_exist_attendance_by_employee_and_day(
+                db_session=db_session,
+                day_attendance=current_date,
+                employee_id=employee_id,
+            ):
+                if validate_update_attendance(attendance_in=attendance_in):
+                    try:
+                        attendance_id = retrieve_attendance_by_employee_and_day(
+                            db_session=db_session,
+                            day_attendance=current_date,
+                            employee_id=employee_id,
+                        ).id
+                        attendance = update_attendance(
+                            db_session=db_session,
+                            attendance_id=attendance_id,
+                            attendance_in=attendance_in,
+                        )
+                        attendances.append(attendance)
+                        count += 1
+                        db_session.commit()
+                    except Exception as e:
+                        db_session.rollback()
+                        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            else:
+                if validate_create_attendance(attendance_in=attendance_in):
+                    try:
+                        attendance_in = WorkhoursAttendanceHandlerBase(
+                            **attendance_in.model_dump()
+                        )
+
+                        # attendance = add_attendance(
+                        #     db_session=db_session, attendance_in=attendance_handler
+                        # )
+                        attendance = attendance_handler(
+                            db_session=db_session,
+                            attendance_in=attendance_in,
+                        )
+
+                        if attendance:
+                            attendances.append(attendance)
+                            count += 1
+
+                        db_session.commit()
+                    except Exception as e:
+                        db_session.rollback()
+                        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            current_date += timedelta(days=1)
+
+    return {"count": count, "data": attendances}
 
 
 # PUT /attendances/{attendance_id}
@@ -205,7 +292,7 @@ def attendance_handler(
     *,
     db_session,
     attendance_in: WorkhoursAttendanceHandlerBase | TimeAttendanceHandlerBase,
-    update_on_exists: bool = False,
+    # update_on_exists: bool = False,
 ):
     """Handles attendance based on standard work field or specific times."""
     employee = retrieve_employee_by_id(
@@ -226,7 +313,7 @@ def attendance_handler(
     if not shifts_list:
         return
 
-    attendance_list = retrieve_attendance_by_employee(
+    attendance_list = retrieve_attendance_by_employee_and_day(
         db_session=db_session,
         day_attendance=attendance_in.day_attendance,
         employee_id=employee.id,
@@ -246,6 +333,8 @@ def attendance_handler(
         except Exception as e:
             db_session.rollback()
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+        return attendance
     else:
         attendance_time_list = [attendance.check_time for attendance in attendance_list]
 
@@ -277,7 +366,10 @@ def attendance_handler(
 
 
 def upload_excel(
-    *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
+    *,
+    db_session,
+    file: UploadFile = File(...),
+    # update_on_exists: bool = False
 ):
     file_path = BytesIO(file.file.read())
     df = pd.read_excel(file_path, skiprows=2)
@@ -293,7 +385,6 @@ def upload_excel(
                 except ValueError:
                     continue
 
-                # Check if the value is NaN
                 if pd.isna(value):
                     continue
 
@@ -312,6 +403,7 @@ def upload_excel(
                                 "work_hours": hours,
                             }
                         )
+
                 # elif isinstance(value, str) and "-" in value:
                 #     checkin_str, checkout_str = value.split("-")
                 #     checkin = pd.to_datetime(checkin_str, format="%H:%M").time()
@@ -325,6 +417,7 @@ def upload_excel(
                 #             "checkout": checkout,
                 #         }
                 #     )
+
                 else:
                     continue
     for item in data:
@@ -335,5 +428,5 @@ def upload_excel(
         attendance_handler(
             db_session=db_session,
             attendance_in=attendance,
-            update_on_exists=update_on_exists,
+            # update_on_exists=update_on_exists,
         )

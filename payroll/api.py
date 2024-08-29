@@ -9,12 +9,22 @@ from payroll.positions.controllers import position_router
 from payroll.contract_types.controllers import contracttype_router
 from payroll.employees.controllers import employee_router
 from payroll.taxes.controllers import tax_router
+
+# from payroll.storage.controllers import storage_router
 from payroll.insurances.controllers import insurance_router
 from payroll.contracts.controllers import contract_router
 from payroll.attendances.controllers import attendance_router
 from payroll.shifts.controllers import shift_router
 from payroll.schedules.controllers import schedule_router
 from payroll.schedule_details.controllers import schedule_detail_router
+from payroll.benefits.controllers import benefit_router
+from payroll.contract_benefit_assocs.controllers import cbassoc_router
+from payroll.overtimes.controllers import overtime_router
+from payroll.payroll_managements.controllers import payroll_management_router
+from payroll.payroll_management_details.controllers import (
+    payroll_management_detail_router,
+)
+from payroll.dependent_persons.controllers import dependent_person_router
 
 # from payroll.attendances_management.test3 import import_router
 from payroll.config import settings
@@ -53,14 +63,33 @@ router.include_router(
 )
 router.include_router(tax_router, prefix="/taxes", tags=["taxes"])
 router.include_router(insurance_router, prefix="/insurances", tags=["insurances"])
+router.include_router(benefit_router, prefix="/benefits", tags=["benefits"])
 router.include_router(contract_router, prefix="/contracts", tags=["contracts"])
+router.include_router(cbassoc_router, prefix="/cbassocs", tags=["cbassocs"])
 router.include_router(attendance_router, prefix="/attendances", tags=["attendances"])
 router.include_router(shift_router, prefix="/shifts", tags=["shifts"])
 router.include_router(schedule_router, prefix="/schedules", tags=["schedules"])
 router.include_router(
     schedule_detail_router, prefix="/schedule_details", tags=["schedule_details"]
 )
-# router.include_router(import_router, prefix="/import_router", tags=["import_router"])
+# router.include_router(storage_router, prefix="/storage", tags=["storage"])
+router.include_router(overtime_router, prefix="/overtimes", tags=["overtimes"])
+# router.include_router(
+#     overtime_schedule_router, prefix="/overtime_schedules", tags=["overtime_schedules"]
+# )
+router.include_router(
+    dependent_person_router, prefix="/dependent_persons", tags=["dependent_persons"]
+)
+router.include_router(
+    payroll_management_router,
+    prefix="/payroll_managements",
+    tags=["payroll_managements"],
+)
+router.include_router(
+    payroll_management_detail_router,
+    prefix="/payroll_management_details",
+    tags=["payroll_management_details"],
+)
 
 api_router.include_router(
     authenticated_api_router,

@@ -9,6 +9,7 @@ from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollContractType
 
+
 log = logging.getLogger(__name__)
 
 
@@ -22,14 +23,14 @@ def get_contract_type_by_id(*, db_session, id: int) -> ContractTypeRead:
     return contracttype
 
 
-def get_contract_type_code(*, db_session, code: str) -> ContractTypeRead:
+def get_contract_type_by_code(*, db_session, code: str) -> ContractTypeRead:
     """Returns a contract based on the given code."""
-    department = (
+    contracttype = (
         db_session.query(PayrollContractType)
         .filter(PayrollContractType.code == code)
         .first()
     )
-    return department
+    return contracttype
 
 
 def get_all(*, db_session) -> ContractTypesRead:
@@ -51,7 +52,7 @@ def create(*, db_session, contracttype_in: ContractTypeCreate) -> ContractTypeRe
     """Creates a new contract type."""
     contracttype = PayrollContractType(**contracttype_in.model_dump())
     contracttype.created_by = "admin"
-    contracttype_db = get_contract_type_code(
+    contracttype_db = get_contract_type_by_code(
         db_session=db_session, code=contracttype.code
     )
     if contracttype_db:

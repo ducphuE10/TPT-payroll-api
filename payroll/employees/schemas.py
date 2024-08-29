@@ -1,5 +1,8 @@
 from datetime import datetime, date
 from typing import List, Optional
+from payroll.departments.schemas import DepartmentBase
+from payroll.positions.schemas import PositionBase
+from payroll.schedules.schemas import ScheduleBase
 from payroll.utils.models import Gender, Nationality, Pagination, PayrollBase
 
 
@@ -30,6 +33,7 @@ class EmployeeBase(PayrollBase):
     department_id: int  # required
     position_id: int  # required
     schedule_id: Optional[int] = None
+    overtime_schedule_id: Optional[int] = None
     email: Optional[str] = None
     cv: Optional[bytes] = None
 
@@ -37,6 +41,9 @@ class EmployeeBase(PayrollBase):
 class EmployeeRead(EmployeeBase):
     id: int
     created_at: datetime
+    department: DepartmentBase
+    position: PositionBase
+    schedule: Optional[ScheduleBase]
 
 
 class EmployeesRead(PayrollBase):
@@ -49,7 +56,6 @@ class EmployeeCreate(EmployeeBase):
 
 
 class EmployeeUpdate(PayrollBase):
-    code: Optional[str] = None
     name: Optional[str] = None
     date_of_birth: Optional[date] = None
     gender: Optional[Gender] = None
@@ -75,6 +81,7 @@ class EmployeeUpdate(PayrollBase):
     department_id: Optional[int] = None
     position_id: Optional[int] = None
     schedule_id: Optional[int] = None
+    overtime_schedule_id: Optional[int] = None
     email: Optional[str] = None
     cv: Optional[bytes] = None
 

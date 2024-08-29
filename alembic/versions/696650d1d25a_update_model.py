@@ -1,16 +1,16 @@
-"""refactor id field for schedule_details table
+"""update model
 
-Revision ID: 76fe5d185772
-Revises: f9d0ff5c02a9
-Create Date: 2024-07-27 11:51:39.763245
+Revision ID: 696650d1d25a
+Revises: 5cd3ab0b4abc
+Create Date: 2024-08-10 16:22:28.190488
 
 """
 from typing import Sequence, Union
 
 
 # revision identifiers, used by Alembic.
-revision: str = "76fe5d185772"
-down_revision: Union[str, None] = "f9d0ff5c02a9"
+revision: str = "696650d1d25a"
+down_revision: Union[str, None] = "5cd3ab0b4abc"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

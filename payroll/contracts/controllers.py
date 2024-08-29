@@ -1,5 +1,8 @@
+from typing import List
 from fastapi import APIRouter
+from fastapi.responses import StreamingResponse
 
+from payroll.contract_benefit_assocs.schemas import CBAssocsCreate, CBAssocsRead
 from payroll.database.core import DbSession
 from payroll.contracts import services as contract_services
 from payroll.contracts.schemas import (
@@ -31,6 +34,22 @@ def create(*, db_session: DbSession, contract_in: ContractCreate):
     return contract_services.create(db_session=db_session, contract_in=contract_in)
 
 
+# POST /schedules
+@contract_router.post("/both", response_model=CBAssocsRead)
+def create_with_benefits(
+    *,
+    db_session: DbSession,
+    contract_in: ContractCreate,
+    benefits_list_in: List[CBAssocsCreate],
+):
+    """Creates a new schedule."""
+    return contract_services.create_contract_with_benefits(
+        db_session=db_session,
+        contract_in=contract_in,
+        benefits_list_in=benefits_list_in,
+    )
+
+
 @contract_router.put("/{id}")
 def update(*, db_session: DbSession, id: int, contract_in: ContractUpdate):
     return contract_services.update(
@@ -41,3 +60,16 @@ def update(*, db_session: DbSession, id: int, contract_in: ContractUpdate):
 @contract_router.delete("/{id}")
 def delete(*, db_session: DbSession, id: int):
     return contract_services.delete(db_session=db_session, id=id)
+
+
+@contract_router.get("/export/{id}")
+def export_contract(*, db_session: DbSession, id: int):
+    file_stream = contract_services.generate_contract_docx(db_session=db_session, id=id)
+
+    response = StreamingResponse(
+        file_stream,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+    )
+    response.headers["Content-Disposition"] = f"attachment; filename=contract_{id}.docx"
+
+    return response
