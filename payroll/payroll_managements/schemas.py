@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import List
 
+from payroll.employees.schemas import EmployeeBase
 from payroll.utils.models import Pagination, PayrollBase
 
 
@@ -14,6 +15,7 @@ class PayrollManagementBase(PayrollBase):
 class PayrollManagementRead(PayrollManagementBase):
     id: int
     created_at: datetime
+    employee: EmployeeBase
 
 
 class PayrollManagementsRead(PayrollBase):
