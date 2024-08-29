@@ -22,7 +22,7 @@ class ContractTypeRead(ContractTypeBase):
     id: int
     created_at: datetime
     tax_policy: TaxPolicyRead
-    insurance_policy: InsurancePolicyRead
+    insurance_policy: Optional[InsurancePolicyRead]
 
 
 class ContractTypesRead(PayrollBase):
