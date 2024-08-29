@@ -20,9 +20,10 @@ from payroll.schedule_details.controllers import schedule_detail_router
 from payroll.benefits.controllers import benefit_router
 from payroll.contract_benefit_assocs.controllers import cbassoc_router
 from payroll.overtimes.controllers import overtime_router
-
-# from payroll.overtime_schedules.controllers import overtime_schedule_router
 from payroll.payroll_managements.controllers import payroll_management_router
+from payroll.payroll_management_details.controllers import (
+    payroll_management_detail_router,
+)
 from payroll.dependent_persons.controllers import dependent_person_router
 
 # from payroll.attendances_management.test3 import import_router
@@ -83,6 +84,11 @@ router.include_router(
     payroll_management_router,
     prefix="/payroll_managements",
     tags=["payroll_managements"],
+)
+router.include_router(
+    payroll_management_detail_router,
+    prefix="/payroll_management_details",
+    tags=["payroll_management_details"],
 )
 
 api_router.include_router(

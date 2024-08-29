@@ -27,5 +27,12 @@ class PayrollManagementCreate(PayrollBase):
     year: int
 
 
+class PayrollManagementsCreate(PayrollBase):
+    apply_all: bool = False
+    list_emp: List[int]
+    month: int
+    year: int
+
+
 class PayrollManagementBPagination(Pagination):
     items: List[PayrollManagementRead] = []

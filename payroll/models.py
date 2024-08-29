@@ -78,7 +78,9 @@ class PayrollContract(Base, TimeStampMixin):
     basic_salary: Mapped[float]  # required
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    benefits: Mapped[List["PayrollCBAssoc"]] = relationship()
+    benefits: Mapped[List["PayrollCBAssoc"]] = relationship(
+        "PayrollCBAssoc", cascade="all, delete-orphan", back_populates="contract"
+    )
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="contract"
     )
@@ -328,13 +330,16 @@ class PayrollBenefit(Base, TimeStampMixin):
 class PayrollCBAssoc(Base, TimeStampMixin):
     __tablename__ = "contract_benefit_association"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"))
+    contract_id: Mapped[int] = mapped_column(
+        ForeignKey("contracts.id", ondelete="CASCADE")
+    )
     benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     benefit: Mapped["PayrollBenefit"] = relationship()
     contract: Mapped["PayrollContract"] = relationship(
-        "PayrollContract", back_populates="benefits"
+        "PayrollContract",
+        back_populates="benefits",
     )
 
     def __repr__(self) -> str:
@@ -417,7 +422,7 @@ class PayrollPayrollManagementDetail(Base, TimeStampMixin):
     __tablename__ = "payroll_management_details"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     payroll_management_id: Mapped[int] = mapped_column(
-        ForeignKey("payroll_managements.id"), unique=True
+        ForeignKey("payroll_managements.id", ondelete="CASCADE"), unique=True
     )  # required
     salary: Mapped[float]
     work_days: Mapped[float]

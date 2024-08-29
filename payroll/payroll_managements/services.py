@@ -14,7 +14,11 @@ from payroll.contracts.repositories import (
 from payroll.dependent_persons.repositories import (
     retrieve_all_dependent_persons_by_employee_id,
 )
-from payroll.employees.repositories import retrieve_employee_by_id
+from payroll.employees.repositories import (
+    retrieve_all_employees,
+    retrieve_employee_by_id,
+)
+from payroll.employees.services import check_exist_employee_by_id
 from payroll.insurances.repositories import get_insurance_policy_by_id
 from payroll.models import PayrollPayrollManagementDetail, PayrollScheduleDetail
 from payroll.overtimes.repositories import retrieve_employee_overtime_by_month
@@ -28,7 +32,10 @@ from payroll.payroll_managements.repositories import (
     retrieve_payroll_management_by_id,
     retrieve_payroll_management_by_information,
 )
-from payroll.payroll_managements.schemas import PayrollManagementCreate
+from payroll.payroll_managements.schemas import (
+    PayrollManagementCreate,
+    PayrollManagementsCreate,
+)
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.schedule_details.repositories import (
@@ -137,6 +144,54 @@ def create_payroll_management(
         raise e
 
     return payroll_management
+
+
+def create_multi_payroll_managements(
+    *,
+    db_session,
+    payroll_management_list_in: PayrollManagementsCreate,
+    apply_all: bool = False,
+):
+    payroll_managements = []
+    count = 0
+    list_id = []
+
+    if apply_all:
+        list_id = [
+            employee.id
+            for employee in retrieve_all_employees(db_session=db_session)["data"]
+        ]
+
+    else:
+        list_id = [id for id in payroll_management_list_in.list_emp]
+    try:
+        for employee_id in list_id:
+            if not check_exist_employee_by_id(
+                db_session=db_session, employee_id=employee_id
+            ):
+                raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+            try:
+                payroll_management_in = PayrollManagementCreate(
+                    employee_id=employee_id,
+                    month=payroll_management_list_in.month,
+                    year=payroll_management_list_in.year,
+                )
+
+                payroll_management = create_payroll_management(
+                    db_session=db_session, payroll_management_in=payroll_management_in
+                )
+                payroll_managements.append(payroll_management)
+                count += 1
+
+            except Exception as e:
+                db_session.rollback()
+                raise AppException(ErrorMessages.ErrSM99999(), str(e))
+            db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return {"count": count, "data": payroll_managements}
 
 
 # DELETE /payroll_managements/{payroll_management_id}

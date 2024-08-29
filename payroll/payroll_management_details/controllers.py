@@ -1,46 +1,48 @@
 from fastapi import APIRouter
 
-from payroll.payroll_managements.schemas import (
-    PayrollManagementRead,
-    PayrollManagementsRead,
+from payroll.payroll_management_details.schemas import (
+    PayrollManagementDetailRead,
+    PayrollManagementDetailsRead,
 )
 from payroll.database.core import DbSession
-from payroll.payroll_managements.services import (
-    delete_payroll_management,
-    get_all_payroll_management,
-    get_payroll_management_by_id,
+from payroll.payroll_management_details.services import (
+    delete_payroll_management_detail,
+    get_all_payroll_management_details,
+    get_payroll_management_detail_by_id,
 )
 
-payroll_management_router = APIRouter()
+payroll_management_detail_router = APIRouter()
 
 
-# GET /payroll_managements
-@payroll_management_router.get("", response_model=PayrollManagementsRead)
-def retrieve_payroll_managements(
+# GET /payroll_management_details
+@payroll_management_detail_router.get("", response_model=PayrollManagementDetailsRead)
+def retrieve_payroll_management_details(
     *,
     db_session: DbSession,
 ):
-    """Retrieve all payroll_managements."""
-    return get_all_payroll_management(db_session=db_session)
+    """Retrieve all payroll_management_details."""
+    return get_all_payroll_management_details(db_session=db_session)
 
 
-# GET /payroll_managements/{payroll_management_id}
-@payroll_management_router.get(
-    "/{payroll_management_id}", response_model=PayrollManagementRead
+# GET /payroll_management_details/{payroll_management_detail_id}
+@payroll_management_detail_router.get(
+    "/{payroll_management_detail_id}", response_model=PayrollManagementDetailRead
 )
-def retrieve_payroll_management(*, db_session: DbSession, payroll_management_id: int):
-    """Retrieve a payroll_management by id."""
-    return get_payroll_management_by_id(
-        db_session=db_session, payroll_management_id=payroll_management_id
+def retrieve_payroll_management_detail(
+    *, db_session: DbSession, payroll_management_detail_id: int
+):
+    """Retrieve a payroll_management_detail by id."""
+    return get_payroll_management_detail_by_id(
+        db_session=db_session, payroll_management_detail_id=payroll_management_detail_id
     )
 
 
-# DELETE /payroll_managements/{payroll_management_id}
-@payroll_management_router.delete(
-    "/{payroll_management_id}", response_model=PayrollManagementRead
+# DELETE /payroll_management_details/{payroll_management_detail_id}
+@payroll_management_detail_router.delete(
+    "/{payroll_management_detail_id}", response_model=PayrollManagementDetailRead
 )
-def delete(*, db_session: DbSession, payroll_management_id: int):
-    """Delete a payroll_management by id."""
-    return delete_payroll_management(
-        db_session=db_session, payroll_management_id=payroll_management_id
+def delete(*, db_session: DbSession, payroll_management_detail_id: int):
+    """Delete a payroll_management_detail by id."""
+    return delete_payroll_management_detail(
+        db_session=db_session, payroll_management_detail_id=payroll_management_detail_id
     )
