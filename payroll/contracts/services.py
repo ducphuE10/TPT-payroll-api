@@ -5,7 +5,7 @@ from payroll.contracts.repositories import (
     get_contract_by_id,
     retrieve_contract_by_code,
 )
-from typing import List
+from typing import List, Optional
 from payroll.benefits.schemas import BenefitCreate
 from payroll.contracts.schemas import (
     ContractCreate,
@@ -93,21 +93,23 @@ def update_contract_with_benefits(
     *,
     db_session,
     contract_id: int,
-    contract_in: ContractUpdate,
-    cbassoc_list_in: List[CBAssocsUpdate],
+    contract_in: Optional[ContractUpdate] = None,
+    cbassoc_list_in: Optional[List[CBAssocsUpdate]] = None,
 ):
     try:
-        contract = update(
-            db_session=db_session, id=contract_id, contract_in=contract_in
-        )
+        if contract_in:
+            contract = update(
+                db_session=db_session, id=contract_id, contract_in=contract_in
+            )
 
-        from payroll.contract_benefit_assocs.services import update_multi_cbassocs
+        if cbassoc_list_in:
+            from payroll.contract_benefit_assocs.services import update_multi_cbassocs
 
-        contract_with_benefits = update_multi_cbassocs(
-            db_session=db_session,
-            cbassoc_list_in=cbassoc_list_in,
-            contract_id=contract.id,
-        )
+            contract_with_benefits = update_multi_cbassocs(
+                db_session=db_session,
+                cbassoc_list_in=cbassoc_list_in,
+                contract_id=contract.id,
+            )
         db_session.commit()
     except AppException as e:
         db_session.rollback()

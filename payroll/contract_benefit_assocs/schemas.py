@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import Field
 
-from payroll.utils.models import Pagination, PayrollBase
+from payroll.utils.models import Pagination, PayrollBase, UpdateStatus
 
 
 class CBAssocBase(PayrollBase):
@@ -27,6 +27,7 @@ class CBAssocUpdate(PayrollBase):
 
 class CBAssocsUpdate(PayrollBase):
     id: int = Field(..., Literal=True)
+    status: UpdateStatus
     benefit_id: Optional[int]
 
 
