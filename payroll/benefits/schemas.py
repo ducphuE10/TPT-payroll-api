@@ -1,13 +1,14 @@
 from datetime import datetime
 from typing import List, Optional
 
-from payroll.utils.models import Pagination, PayrollBase
+from payroll.utils.models import BenefitType, Pagination, PayrollBase
 
 
 class BenefitBase(PayrollBase):
     code: str  # required
     name: str  # required
     replay: str
+    type: BenefitType
     count_salary: bool
     value: float
     description: Optional[str]
@@ -33,7 +34,8 @@ class BenefitUpdate(PayrollBase):
 class BenefitCreate(PayrollBase):
     code: str  # required
     name: str  # required
-    count_salary: bool
+    type: BenefitType  # required
+    count_salary: bool = False
     value: float
     description: Optional[str]
 

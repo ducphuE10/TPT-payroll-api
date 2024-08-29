@@ -113,3 +113,11 @@ class BenefitReplay(str, Enum):
     DAILY = "daily"
     MONTHLY = "monthly"
     YEARLY = "yearly"
+
+
+class BenefitType(str, Enum):
+    MEAL = "meal"
+    TRAVEL = "travel"
+    HOUSING = "housing"
+    PHONE = "phone"
+    ATTENDANT = "attendant"
