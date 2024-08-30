@@ -93,11 +93,6 @@ def validate_create_dependent_person(
 def validate_update_dependent_person(
     *, db_session, dependent_person_in: DependentPersonUpdate
 ):
-    if dependent_person_in.code and check_exist_dependent_person_by_code(
-        db_session=db_session, dependent_person_code=dependent_person_in.code
-    ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists(), "dependent person")
-
     if dependent_person_in.cccd and check_exist_dependent_person_by_cccd(
         db_session=db_session, dependent_person_cccd=dependent_person_in.cccd
     ):

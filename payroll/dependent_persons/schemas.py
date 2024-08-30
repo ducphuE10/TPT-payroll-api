@@ -45,7 +45,6 @@ class DependentPersonCreate(DependentPersonBase):
 
 
 class DependentPersonUpdate(PayrollBase):
-    code: Optional[str] = None
     name: Optional[str] = None
     date_of_birth: Optional[date] = None
     gender: Optional[Gender] = None
