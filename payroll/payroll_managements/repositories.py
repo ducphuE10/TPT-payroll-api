@@ -1,8 +1,7 @@
 import logging
 
-from payroll.payroll_managements.schemas import (
-    PayrollManagementCreate,
-)
+from sqlalchemy import func
+
 from payroll.models import PayrollPayrollManagement
 
 # add, retrieve, modify, remove
@@ -23,19 +22,15 @@ def retrieve_payroll_management_by_id(
     )
 
 
-# def retrieve_payroll_management_by_information(
-#     *, db_session, employee_id: int, month: int, year: int
-# ) -> PayrollPayrollManagement:
-#     """Returns a payroll_management based on the given id."""
-#     return (
-#         db_session.query(PayrollPayrollManagement)
-#         .filter(
-#             PayrollPayrollManagement.employee_id == employee_id,
-#             PayrollPayrollManagement.month == month,
-#             PayrollPayrollManagement.year == year,
-#         )
-#         .first()
-#     )
+def retrieve_number_of_payroll(*, db_session, month: int, year: int) -> int:
+    return (
+        db_session.query(PayrollPayrollManagement)
+        .filter(
+            PayrollPayrollManagement.month == month,
+            PayrollPayrollManagement.year == year,
+        )
+        .count()
+    )
 
 
 def retrieve_payroll_management_by_information(
@@ -64,21 +59,76 @@ def retrieve_all_payroll_managements(*, db_session) -> PayrollPayrollManagement:
     return {"count": count, "data": payroll_managements}
 
 
+def retrieve_total_gross_income_by_period(
+    *, db_session, month: int, year: int
+) -> float:
+    return (
+        db_session.query(func.sum(PayrollPayrollManagement.gross_income))
+        .filter(
+            PayrollPayrollManagement.month == month,
+            PayrollPayrollManagement.year == year,
+        )
+        .scalar()
+    )
+
+
+def retrieve_total_tax_by_period(*, db_session, month: int, year: int) -> float:
+    return (
+        db_session.query(func.sum(PayrollPayrollManagement.tax))
+        .filter(
+            PayrollPayrollManagement.month == month,
+            PayrollPayrollManagement.year == year,
+        )
+        .scalar()
+    )
+
+
+def retrieve_total_overtime_salary_by_period(
+    *, db_session, month: int, year: int
+) -> float:
+    return (
+        db_session.query(
+            func.sum(PayrollPayrollManagement.overtime_1_5x_salary)
+            + func.sum(PayrollPayrollManagement.overtime_2_0x_salary)
+        )
+        .filter(
+            PayrollPayrollManagement.month == month,
+            PayrollPayrollManagement.year == year,
+        )
+        .scalar()
+    )
+
+
+def retrieve_total_benefit_salary_by_period(
+    *, db_session, month: int, year: int
+) -> float:
+    return (
+        db_session.query(
+            func.sum(PayrollPayrollManagement.meal_benefit_salary)
+            + func.sum(PayrollPayrollManagement.attendant_benefit_salary)
+            + func.sum(PayrollPayrollManagement.travel_benefit_salary)
+            + func.sum(PayrollPayrollManagement.housing_benefit_salary)
+            + func.sum(PayrollPayrollManagement.phone_benefit_salary)
+        )
+        .filter(
+            PayrollPayrollManagement.month == month,
+            PayrollPayrollManagement.year == year,
+        )
+        .scalar()
+    )
+
+
 # POST /payroll_managements
 def add_payroll_management(
     *,
     db_session,
-    payroll_management_in: PayrollManagementCreate,
-    value: float,
-    contract_id: int,
+    payroll_management_in: PayrollPayrollManagement,
 ) -> PayrollPayrollManagement:
     """Creates a new payroll_management."""
-    payroll_management = PayrollPayrollManagement(**payroll_management_in.model_dump())
-    payroll_management.created_by = "admin"
-    payroll_management.value = value
-    payroll_management.contract_id = contract_id
-    db_session.add(payroll_management)
-    return payroll_management
+    payroll_management_in.created_by = "admin"
+    db_session.add(payroll_management_in)
+
+    return payroll_management_in
 
 
 # DELETE /payroll_managements/{payroll_management_id}

@@ -20,11 +20,12 @@ from payroll.employees.repositories import (
 )
 from payroll.employees.services import check_exist_employee_by_id
 from payroll.insurances.repositories import get_insurance_policy_by_id
-from payroll.models import PayrollPayrollManagementDetail, PayrollScheduleDetail
-from payroll.overtimes.repositories import retrieve_employee_overtime_by_month
-from payroll.payroll_management_details.repositories import (
-    add_payroll_management_detail,
+from payroll.models import (
+    PayrollPayrollManagement,
+    PayrollScheduleDetail,
 )
+from payroll.overtimes.repositories import retrieve_employee_overtime_by_month
+
 from payroll.payroll_managements.repositories import (
     add_payroll_management,
     remove_payroll_management,
@@ -55,7 +56,7 @@ def check_exist_payroll_management_by_id(*, db_session, payroll_management_id: i
 
 
 def check_exist_payroll_management_by_information(
-    *, db_session, employee_id: int, contract_id: int, month: date
+    *, db_session, employee_id: int, contract_id: int, month: int, year: int
 ):
     """Check if payroll_management exists in the database."""
     return bool(
@@ -64,8 +65,32 @@ def check_exist_payroll_management_by_information(
             employee_id=employee_id,
             contract_id=contract_id,
             month=month,
+            year=year,
         )
     )
+
+
+def check_available_employee_create_payroll(
+    *, db_session, employee_id: int, month: int, year: int
+):
+    employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
+    employee_code = retrieve_employee_by_id(
+        db_session=db_session, employee_id=employee_id
+    ).code
+    if not employee.schedule_id:
+        return False
+    first_day, last_day = get_month_boundaries(month=month, year=year)
+
+    contract = retrieve_contract_by_employee_id_and_period(
+        db_session=db_session,
+        employee_code=employee_code,
+        from_date=first_day,
+        to_date=last_day,
+    )
+    if not contract:
+        return False
+
+    return True
 
 
 # GET /payroll_managements/{payroll_management_id}
@@ -94,55 +119,21 @@ def get_all_payroll_management(*, db_session):
 def create_payroll_management(
     *, db_session, payroll_management_in: PayrollManagementCreate
 ):
-    value, payroll_management_detail = net_income_handler(
+    payroll_management_create = payroll_handler(
         db_session=db_session,
         employee_id=payroll_management_in.employee_id,
         month=payroll_management_in.month,
         year=payroll_management_in.year,
     )
-
-    employee = retrieve_employee_by_id(
-        db_session=db_session, employee_id=payroll_management_in.employee_id
-    )
-
-    first_day, last_day = get_month_boundaries(
-        month=payroll_management_in.month, year=payroll_management_in.year
-    )
-
-    contract_id = retrieve_contract_by_employee_id_and_period(
-        db_session=db_session,
-        employee_code=employee.code,
-        from_date=first_day,
-        to_date=last_day,
-    ).id
-
     try:
         payroll_management = add_payroll_management(
             db_session=db_session,
-            payroll_management_in=payroll_management_in,
-            value=value,
-            contract_id=contract_id,
+            payroll_management_in=payroll_management_create,
         )
-
-        payroll_management_id = retrieve_payroll_management_by_information(
-            db_session=db_session,
-            employee_id=employee.id,
-            contract_id=contract_id,
-            month=payroll_management_in.month,
-            year=payroll_management_in.year,
-        ).id
-
-        payroll_management_detail.payroll_management_id = payroll_management_id
-        add_payroll_management_detail(
-            db_session=db_session,
-            payroll_management_detail_in=payroll_management_detail,
-        )
-
         db_session.commit()
     except Exception as e:
         db_session.rollback()
         raise e
-
     return payroll_management
 
 
@@ -171,17 +162,24 @@ def create_multi_payroll_managements(
             ):
                 raise AppException(ErrorMessages.ResourceNotFound(), "employee")
             try:
-                payroll_management_in = PayrollManagementCreate(
+                if check_available_employee_create_payroll(
+                    db_session=db_session,
                     employee_id=employee_id,
                     month=payroll_management_list_in.month,
                     year=payroll_management_list_in.year,
-                )
+                ):
+                    payroll_management_in = PayrollManagementCreate(
+                        employee_id=employee_id,
+                        month=payroll_management_list_in.month,
+                        year=payroll_management_list_in.year,
+                    )
 
-                payroll_management = create_payroll_management(
-                    db_session=db_session, payroll_management_in=payroll_management_in
-                )
-                payroll_managements.append(payroll_management)
-                count += 1
+                    payroll_management = create_payroll_management(
+                        db_session=db_session,
+                        payroll_management_in=payroll_management_in,
+                    )
+                    payroll_managements.append(payroll_management)
+                    count += 1
 
             except Exception as e:
                 db_session.rollback()
@@ -382,8 +380,7 @@ def benefit_salary_handler(
     return benefit_value / work_days_standard / work_hours_standard * work_hours_real
 
 
-def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
-    payroll_management_detail = PayrollPayrollManagementDetail()
+def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
     employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
     employee_code = retrieve_employee_by_id(
         db_session=db_session, employee_id=employee_id
@@ -403,6 +400,15 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
         to_date=last_day,
     )
 
+    if check_exist_payroll_management_by_information(
+        db_session=db_session,
+        employee_id=employee_id,
+        contract_id=contract.id,
+        month=month,
+        year=year,
+    ):
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "payroll management")
+
     work_days_standard = work_days_standard_handler(schedule_details=schedule_details)
 
     work_hours_standard = work_hours_standard_handler(
@@ -420,7 +426,7 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
     basic_salary = contract.salary
 
     # WORK HOURS SALARY
-    work_hours_salary = (
+    work_days_salary = (
         basic_salary
         / work_days_standard
         / work_hours_standard
@@ -449,16 +455,18 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
     )
     # BENEFIT
     benefit_salary = (
-        attendant_benefit
-    ) = travel_benefit = phone_benefit = housing_benefit = meal_benefit = 0
+        attendant_benefit_salary
+    ) = (
+        travel_benefit_salary
+    ) = phone_benefit_salary = housing_benefit_salary = meal_benefit_salary = 0
 
     benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
     if f"{BenefitType.ATTENDANT}" in benefits:
         if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
-            attendant_benefit = benefits[f"{BenefitType.ATTENDANT}"]
+            attendant_benefit_salary = benefits[f"{BenefitType.ATTENDANT}"]
 
     if f"{BenefitType.TRAVEL}" in benefits:
-        travel_benefit = benefit_salary_handler(
+        travel_benefit_salary = benefit_salary_handler(
             benefit_value=benefits[f"{BenefitType.TRAVEL}"],
             work_days_standard=work_days_standard,
             work_hours_standard=work_hours_standard,
@@ -466,7 +474,7 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
         )
 
     if f"{BenefitType.PHONE}" in benefits:
-        phone_benefit = benefit_salary_handler(
+        phone_benefit_salary = benefit_salary_handler(
             benefit_value=benefits[f"{BenefitType.PHONE}"],
             work_days_standard=work_days_standard,
             work_hours_standard=work_hours_standard,
@@ -474,7 +482,7 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
         )
 
     if f"{BenefitType.HOUSING}" in benefits:
-        housing_benefit = benefit_salary_handler(
+        housing_benefit_salary = benefit_salary_handler(
             benefit_value=benefits[f"{BenefitType.HOUSING}"],
             work_days_standard=work_days_standard,
             work_hours_standard=work_hours_standard,
@@ -482,7 +490,7 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
         )
 
     if f"{BenefitType.MEAL}" in benefits:
-        meal_benefit = benefit_salary_handler(
+        meal_benefit_salary = benefit_salary_handler(
             benefit_value=benefits[f"{BenefitType.MEAL}"],
             work_days_standard=work_days_standard,
             work_hours_standard=work_hours_standard,
@@ -490,15 +498,15 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
         )
 
     benefit_salary = (
-        travel_benefit
-        + attendant_benefit
-        + phone_benefit
-        + housing_benefit
-        + meal_benefit
+        travel_benefit_salary
+        + attendant_benefit_salary
+        + phone_benefit_salary
+        + housing_benefit_salary
+        + meal_benefit_salary
     )
 
     gross_income = (
-        work_hours_salary + overtime_1_5x_salary + overtime_2_0x_salary + benefit_salary
+        work_days_salary + overtime_1_5x_salary + overtime_2_0x_salary + benefit_salary
     )
 
     # DEDUCTION HANDLER
@@ -516,7 +524,7 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
         company_insurance = basic_salary * insurance_policy.company_percentage / 100
 
     # NO TAX HANDLER
-    no_tax_salary = meal_benefit + (  # TIEN AN
+    no_tax_salary = meal_benefit_salary + (  # TIEN AN
         overtime_1_5x_salary
         + overtime_2_0x_salary
         - basic_salary
@@ -547,25 +555,34 @@ def net_income_handler(*, db_session, employee_id: int, month: int, year: int):
 
     net_income = round(gross_income - total_deduction, -3)
 
-    payroll_management_detail.work_days_salary = work_hours_salary
-    payroll_management_detail.salary = basic_salary
-    payroll_management_detail.work_days = work_days_standard
-    payroll_management_detail.overtime_1_5x_hours = overtime_hours["overtime_1_5x"]
-    payroll_management_detail.overtime_2_0x_hours = overtime_hours["overtime_2_0x"]
-    payroll_management_detail.overtime_1_5x_salary = overtime_1_5x_salary
-    payroll_management_detail.overtime_2_0x_salary = overtime_2_0x_salary
-    payroll_management_detail.travel_benefit_salary = travel_benefit
-    payroll_management_detail.phone_benefit_salary = phone_benefit
-    payroll_management_detail.housing_benefit_salary = housing_benefit
-    payroll_management_detail.attendant_benefit_salary = attendant_benefit
-    payroll_management_detail.meal_benefit_salary = meal_benefit
-    payroll_management_detail.gross_income = gross_income
-    payroll_management_detail.employee_insurance = employee_insurance
-    payroll_management_detail.company_insurance = company_insurance
-    payroll_management_detail.no_tax_salary = no_tax_salary
-    payroll_management_detail.dependant_people = dependent_pers
-    payroll_management_detail.tax_salary = tax_salary
-    payroll_management_detail.tax = tax
-    payroll_management_detail.total_deduction = total_deduction
+    payroll_management_data = {
+        "employee_id": employee_id,
+        "contract_id": contract.id,
+        "net_income": net_income,
+        "month": month,
+        "year": year,
+        "salary": basic_salary,
+        "work_days": work_days_standard,
+        "work_days_salary": work_days_salary,
+        "overtime_1_5x_hours": overtime_hours["overtime_1_5x"],
+        "overtime_1_5x_salary": overtime_1_5x_salary,
+        "overtime_2_0x_hours": overtime_hours["overtime_2_0x"],
+        "overtime_2_0x_salary": overtime_2_0x_salary,
+        "travel_benefit_salary": travel_benefit_salary,
+        "attendant_benefit_salary": attendant_benefit_salary,
+        "housing_benefit_salary": housing_benefit_salary,
+        "phone_benefit_salary": phone_benefit_salary,
+        "meal_benefit_salary": meal_benefit_salary,
+        "gross_income": gross_income,
+        "employee_insurance": employee_insurance,
+        "company_insurance": company_insurance,
+        "no_tax_salary": no_tax_salary,
+        "dependant_people": dependent_pers,
+        "tax_salary": tax_salary,
+        "tax": tax,
+        "total_deduction": total_deduction,
+    }
 
-    return (net_income, payroll_management_detail)
+    # Create the PayrollPayrollManagement object
+    payroll_management = PayrollPayrollManagement(**payroll_management_data)
+    return payroll_management

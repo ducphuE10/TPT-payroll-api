@@ -71,7 +71,6 @@ def create_contract_with_benefits(
     except AppException as e:
         db_session.rollback()
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
-    # print({"contract_in": contract, "benefits_list_in": contract_with_benefits})
     return {"contract_in": contract}
 
 
