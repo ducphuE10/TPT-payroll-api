@@ -54,7 +54,13 @@ def retrieve_all_payroll_managements(
     *, db_session, month: int = None, year: int = None
 ) -> PayrollPayrollManagement:
     """Returns all payroll_managements."""
+    print("AAAAAAAAAAA", month, year)
     query = db_session.query(PayrollPayrollManagement)
+    if month and year:
+        query = query.filter(
+            PayrollPayrollManagement.month == month,
+            PayrollPayrollManagement.year == year,
+        )
     count = query.count()
     payroll_managements = query.all()
 
