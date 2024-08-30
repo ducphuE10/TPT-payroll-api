@@ -43,20 +43,28 @@ def check_exist_dependent_person_by_code(*, db_session, dependent_person_code: s
     )
 
 
-def check_exist_dependent_person_by_cccd(*, db_session, dependent_person_cccd: str):
+def check_exist_dependent_person_by_cccd(
+    *, db_session, dependent_person_cccd: str, exclude_dependent_person_id: int = None
+):
     """Check if dependent_person exists in the database."""
     return bool(
         retrieve_dependent_person_by_cccd(
-            db_session=db_session, dependent_person_cccd=dependent_person_cccd
+            db_session=db_session,
+            dependent_person_cccd=dependent_person_cccd,
+            exclude_dependent_person_id=exclude_dependent_person_id,
         )
     )
 
 
-def check_exist_dependent_person_by_mst(*, db_session, dependent_person_mst: str):
+def check_exist_dependent_person_by_mst(
+    *, db_session, dependent_person_mst: str, exclude_dependent_person_id: int = None
+):
     """Check if dependent_person exists in the database."""
     return bool(
         retrieve_dependent_person_by_mst(
-            db_session=db_session, dependent_person_mst=dependent_person_mst
+            db_session=db_session,
+            dependent_person_mst=dependent_person_mst,
+            exclude_dependent_person_id=exclude_dependent_person_id,
         )
     )
 

@@ -36,25 +36,29 @@ def retrieve_dependent_person_by_code(
 
 
 def retrieve_dependent_person_by_cccd(
-    *, db_session, dependent_person_cccd: str
+    *, db_session, dependent_person_cccd: str, exclude_dependent_person_id: int = None
 ) -> PayrollDependentPerson:
     """Returns a dependent_person based on the given code."""
-    return (
-        db_session.query(PayrollDependentPerson)
-        .filter(PayrollDependentPerson.cccd == dependent_person_cccd)
-        .first()
+    query = db_session.query(PayrollDependentPerson).filter(
+        PayrollDependentPerson.cccd == dependent_person_cccd
     )
+    if exclude_dependent_person_id:
+        query = query.filter(PayrollDependentPerson.id != exclude_dependent_person_id)
+
+    return query.first()
 
 
 def retrieve_dependent_person_by_mst(
-    *, db_session, dependent_person_mst: str
+    *, db_session, dependent_person_mst: str, exclude_dependent_person_id: int = None
 ) -> PayrollDependentPerson:
     """Returns a dependent_person based on the given code."""
-    return (
-        db_session.query(PayrollDependentPerson)
-        .filter(PayrollDependentPerson.mst == dependent_person_mst)
-        .first()
+    query = db_session.query(PayrollDependentPerson).filter(
+        PayrollDependentPerson.mst == dependent_person_mst
     )
+    if exclude_dependent_person_id:
+        query = query.filter(PayrollDependentPerson.id != exclude_dependent_person_id)
+
+    return query.first()
 
 
 def retrieve_all_dependent_persons_by_employee_id(
