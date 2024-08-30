@@ -50,7 +50,9 @@ def retrieve_payroll_management_by_information(
 
 
 # GET /payroll_managements
-def retrieve_all_payroll_managements(*, db_session) -> PayrollPayrollManagement:
+def retrieve_all_payroll_managements(
+    *, db_session, month: int = None, year: int = None
+) -> PayrollPayrollManagement:
     """Returns all payroll_managements."""
     query = db_session.query(PayrollPayrollManagement)
     count = query.count()
