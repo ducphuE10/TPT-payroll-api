@@ -61,7 +61,7 @@ def create_multi(*, db_session: DbSession, attendance_list_in: AttendancesCreate
     return create_multi_attendances(
         db_session=db_session,
         attendance_list_in=attendance_list_in,
-        apply_all=attendance_list_in.apply_all,
+        # apply_all=attendance_list_in.apply_all,
     )
 
 

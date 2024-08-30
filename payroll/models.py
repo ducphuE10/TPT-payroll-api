@@ -14,6 +14,7 @@ from sqlalchemy.orm import relationship
 from payroll.database.core import Base
 from payroll.utils.models import (
     BenefitReplay,
+    BenefitType,
     Day,
     Gender,
     InsuranceType,
@@ -38,10 +39,10 @@ class PayrollContractType(Base, TimeStampMixin):
         ForeignKey("tax_policies.id")
     )  # required
     tax_policy: Mapped["TaxPolicy"] = relationship("TaxPolicy", backref="contracttypes")
-    insurance_policy_id: Mapped[int] = mapped_column(
+    insurance_policy_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("insurance_policies.id")
     )  # required
-    insurance_policy: Mapped["InsurancePolicy"] = relationship(
+    insurance_policy: Mapped[Optional["InsurancePolicy"]] = relationship(
         "InsurancePolicy", backref="contracttypes"
     )
     template: Mapped[Optional[str]] = mapped_column(String(255))
@@ -77,7 +78,9 @@ class PayrollContract(Base, TimeStampMixin):
     basic_salary: Mapped[float]  # required
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    benefits: Mapped[List["PayrollCBAssoc"]] = relationship()
+    benefits: Mapped[List["PayrollCBAssoc"]] = relationship(
+        "PayrollCBAssoc", cascade="all, delete-orphan", back_populates="contract"
+    )
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="contract"
     )
@@ -145,8 +148,20 @@ class PayrollEmployee(Base, TimeStampMixin):
     start_work: Mapped[Optional[date]]
     note: Mapped[Optional[str]] = mapped_column(String(255))
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
+    department: Mapped["PayrollDepartment"] = relationship(
+        "PayrollDepartment",
+        backref="departments",
+    )
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
+    position: Mapped["PayrollPosition"] = relationship(
+        "PayrollPosition",
+        backref="positions",
+    )
     schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
+    schedule: Mapped[Optional["PayrollSchedule"]] = relationship(
+        "PayrollSchedule",
+        backref="schedules",
+    )
     overtime_schedule_id: Mapped[Optional[int]] = mapped_column(
         ForeignKey("overtime_schedules.id")
     )
@@ -170,6 +185,11 @@ class PayrollEmployee(Base, TimeStampMixin):
     )
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="employee"
+    )
+    dependent_persons: Mapped[List["PayrollDependentPerson"]] = relationship(
+        "PayrollDependentPerson",
+        back_populates="employee",
+        cascade="all, delete-orphan",
     )
 
     def __repr__(self) -> str:
@@ -297,6 +317,7 @@ class PayrollBenefit(Base, TimeStampMixin):
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
     replay: Mapped[BenefitReplay] = mapped_column(default=BenefitReplay.DAILY)
+    type: Mapped[BenefitType]
     count_salary: Mapped[bool]
     value: Mapped[float]
     description: Mapped[Optional[str]]
@@ -309,13 +330,16 @@ class PayrollBenefit(Base, TimeStampMixin):
 class PayrollCBAssoc(Base, TimeStampMixin):
     __tablename__ = "contract_benefit_association"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"))
+    contract_id: Mapped[int] = mapped_column(
+        ForeignKey("contracts.id", ondelete="CASCADE")
+    )
     benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     benefit: Mapped["PayrollBenefit"] = relationship()
     contract: Mapped["PayrollContract"] = relationship(
-        "PayrollContract", back_populates="benefits"
+        "PayrollContract",
+        back_populates="benefits",
     )
 
     def __repr__(self) -> str:
@@ -369,8 +393,30 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
     contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"))
-    value: Mapped[float]
-    month: Mapped[date]
+    net_income: Mapped[float]
+    month: Mapped[int]
+    year: Mapped[int]
+    salary: Mapped[float]
+    work_days: Mapped[float]
+    work_days_salary: Mapped[float]
+    overtime_1_5x_hours: Mapped[Optional[float]]
+    overtime_1_5x_salary: Mapped[Optional[float]]
+    overtime_2_0x_hours: Mapped[Optional[float]]
+    overtime_2_0x_salary: Mapped[Optional[float]]
+    travel_benefit_salary: Mapped[float]
+    attendant_benefit_salary: Mapped[float]
+    housing_benefit_salary: Mapped[float]
+    phone_benefit_salary: Mapped[float]
+    meal_benefit_salary: Mapped[float]
+    gross_income: Mapped[float]
+    employee_insurance: Mapped[Optional[float]]
+    company_insurance: Mapped[Optional[float]]
+    no_tax_salary: Mapped[float]
+    dependant_people: Mapped[Optional[int]]
+    tax_salary: Mapped[Optional[float]]
+    tax: Mapped[Optional[float]]
+    total_deduction: Mapped[Optional[float]]
+
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     employee: Mapped["PayrollEmployee"] = relationship(
@@ -381,4 +427,78 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
-        return f"Payroll (employee_id={self.employee_id!r}, value={self.value!r}, month={self.month!r})"
+        return f"Payroll (employee_id={self.employee_id!r}, value={self.net_income!r}, month={self.month!r})"
+
+
+# class PayrollPayrollManagementDetail(Base, TimeStampMixin):
+#     __tablename__ = "payroll_management_details"
+#     id: Mapped[int] = mapped_column(primary_key=True)  # required
+#     payroll_management_id: Mapped[int] = mapped_column(
+#         ForeignKey("payroll_managements.id", ondelete="CASCADE"), unique=True
+#     )  # required
+#     salary: Mapped[float]
+#     work_days: Mapped[float]
+#     work_days_salary: Mapped[float]
+#     overtime_1_5x_hours: Mapped[Optional[float]]
+#     overtime_1_5x_salary: Mapped[Optional[float]]
+#     overtime_2_0x_hours: Mapped[Optional[float]]
+#     overtime_2_0x_salary: Mapped[Optional[float]]
+#     travel_benefit_salary: Mapped[float]
+#     attendant_benefit_salary: Mapped[float]
+#     housing_benefit_salary: Mapped[float]
+#     phone_benefit_salary: Mapped[float]
+#     meal_benefit_salary: Mapped[float]
+#     gross_income: Mapped[float]
+#     employee_insurance: Mapped[Optional[float]]
+#     company_insurance: Mapped[Optional[float]]
+#     no_tax_salary: Mapped[float]
+#     dependant_people: Mapped[Optional[int]]
+#     tax_salary: Mapped[Optional[float]]
+#     tax: Mapped[Optional[float]]
+#     total_deduction: Mapped[Optional[float]]
+
+#     payroll_management: Mapped["PayrollPayrollManagement"] = relationship(
+#         "PayrollPayrollManagement", back_populates="payroll_management_details"
+#     )
+
+#     def __repr__(self) -> str:
+#         return f"Payroll details (payroll_management_id={self.payroll_management_id!r}, gross_income={self.gross_income!r}, total_deduction={self.total_deduction!r})"
+
+
+class PayrollDependentPerson(Base, TimeStampMixin):
+    __tablename__ = "dependent_persons"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
+    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+    date_of_birth: Mapped[date]  # required
+    gender: Mapped[Gender]  # required
+    nationality: Mapped[Optional[Nationality]]
+    ethnic: Mapped[Optional[str]]
+    religion: Mapped[Optional[str]] = mapped_column(String(30))
+    cccd: Mapped[str] = mapped_column(String(30), unique=True)  # required
+    cccd_date: Mapped[Optional[date]]
+    cccd_place: Mapped[Optional[str]] = mapped_column(String(255))
+    domicile: Mapped[Optional[str]] = mapped_column(String(255))
+    permanent_addr: Mapped[Optional[str]] = mapped_column(String(255))
+    temp_addr: Mapped[Optional[str]] = mapped_column(String(255))
+    phone: Mapped[Optional[str]] = mapped_column(String(30))
+    academic_level: Mapped[Optional[str]] = mapped_column(String(30))
+    bank_account: Mapped[Optional[str]] = mapped_column(String(30))
+    bank_holder_name: Mapped[Optional[str]] = mapped_column(String(30))
+    bank_name: Mapped[Optional[str]] = mapped_column(String(30))
+    mst: Mapped[str] = mapped_column(String(30), unique=True)  # required
+    kcb_number: Mapped[Optional[str]] = mapped_column(String(30))
+    hospital_info: Mapped[Optional[str]] = mapped_column(String(255))
+    note: Mapped[Optional[str]] = mapped_column(String(255))
+    email: Mapped[Optional[str]] = mapped_column(String(255))
+    created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    employee: Mapped["PayrollEmployee"] = relationship(
+        "PayrollEmployee", back_populates="dependent_persons"
+    )
+
+    def __repr__(self) -> str:
+        return (
+            f"Dependent person (name={self.name!r}, (employee_id={self.employee_id!r}))"
+        )

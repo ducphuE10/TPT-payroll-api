@@ -22,6 +22,12 @@ def get_contract_by_code(*, db_session, code: str) -> PayrollContract:
     )
 
 
+def retrieve_contract_by_code(*, db_session, contract_code: str):
+    return (
+        db_session.query(PayrollContract).filter(PayrollContract.code == contract_code)
+    ).first()
+
+
 def retrieve_contract_by_employee_id_and_period(
     *, db_session, employee_code: str, from_date: date, to_date: date
 ):
@@ -54,12 +60,19 @@ def create(*, db_session, create_data: dict) -> PayrollContract:
     return contract
 
 
+def create_with_benefits(*, db_session, create_data: dict) -> PayrollContract:
+    """Creates a new contract."""
+    contract = PayrollContract(**create_data)
+    contract.created_by = "admin"
+    db_session.add(contract)
+    return contract
+
+
 def update(*, db_session, id: int, update_data: dict):
     """Updates a contract with the given data."""
     db_session.query(PayrollContract).filter(PayrollContract.id == id).update(
         update_data, synchronize_session=False
     )
-    db_session.commit()
 
 
 def delete(*, db_session, id: int) -> None:

@@ -1,14 +1,15 @@
-from typing import List
+from typing import List, Optional
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
 
-from payroll.contract_benefit_assocs.schemas import CBAssocsCreate, CBAssocsRead
+from payroll.contract_benefit_assocs.schemas import CBAssocsCreate
 from payroll.database.core import DbSession
 from payroll.contracts import services as contract_services
 from payroll.contracts.schemas import (
     ContractRead,
     ContractCreate,
     ContractUpdate,
+    ContractWithBenefitRead,
     ContractsRead,
 )
 
@@ -35,18 +36,18 @@ def create(*, db_session: DbSession, contract_in: ContractCreate):
 
 
 # POST /schedules
-@contract_router.post("/both", response_model=CBAssocsRead)
+@contract_router.post("/both", response_model=ContractWithBenefitRead)
 def create_with_benefits(
     *,
     db_session: DbSession,
     contract_in: ContractCreate,
-    benefit_list_in: List[CBAssocsCreate],
+    benefits_list_in: Optional[List[CBAssocsCreate]] = None,
 ):
     """Creates a new schedule."""
-    return create_with_benefits(
+    return contract_services.create_contract_with_benefits(
         db_session=db_session,
         contract_in=contract_in,
-        benefit_list_in=benefit_list_in,
+        benefits_list_in=benefits_list_in,
     )
 
 

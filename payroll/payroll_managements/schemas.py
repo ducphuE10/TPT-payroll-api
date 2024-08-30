@@ -1,31 +1,42 @@
-from datetime import date, datetime
-from typing import List
+from datetime import datetime
+from typing import List, Optional
 
+from payroll.employees.schemas import EmployeeBase
 from payroll.utils.models import Pagination, PayrollBase
-
-# class PayrollPayroll(Base, TimeStampMixin):
-#     _tablename_ = "payrolls"
-#     id: Mapped[int] = mapped_column(primary_key=True)  # required
-#     employee_id: Mapped[int] = mapped_column(
-#         ForeignKey("employees.id")
-#     )  # required
-#     value: Mapped[float]
-#     month: Mapped[date]
-#     created_by: Mapped[str] = mapped_column(String(30))  # required
-#     employee: Mapped["PayrollEmployee"] = relationship(
-#         "PayrollEmployee", back_populates="payrolls"
-#     )
 
 
 class PayrollManagementBase(PayrollBase):
     employee_id: int  # required
-    value: float  # required
-    month: date  # required
+    contract_id: int
+    net_income: float  # required
+    month: int  # required
+    year: int
+    salary: float  # required
+    work_days: float  # required
+    work_days_salary: float
+    overtime_1_5x_hours: Optional[float] = None
+    overtime_1_5x_salary: Optional[float] = None
+    overtime_2_0x_hours: Optional[float] = None
+    overtime_2_0x_salary: Optional[float] = None
+    travel_benefit_salary: float
+    attendant_benefit_salary: float
+    housing_benefit_salary: float
+    phone_benefit_salary: float
+    meal_benefit_salary: float
+    gross_income: float
+    employee_insurance: Optional[float] = None
+    company_insurance: Optional[float] = None
+    no_tax_salary: float
+    dependant_people: Optional[int] = None
+    tax_salary: Optional[float] = None
+    tax: Optional[float] = None
+    total_deduction: Optional[float] = None
 
 
 class PayrollManagementRead(PayrollManagementBase):
     id: int
     created_at: datetime
+    employee: EmployeeBase
 
 
 class PayrollManagementsRead(PayrollBase):
@@ -33,14 +44,21 @@ class PayrollManagementsRead(PayrollBase):
     data: list[PayrollManagementRead] = []
 
 
-# class PayrollManagementUpdate(PayrollBase):
-#     name: Optional[str] = None
-#     description: Optional[str] = None
-
-
 class PayrollManagementCreate(PayrollBase):
     employee_id: int  # required
-    month: date  # required
+    month: int  # required
+    year: int
+
+
+class PayrollManagementDetail(PayrollManagementBase):
+    pass
+
+
+class PayrollManagementsCreate(PayrollBase):
+    apply_all: bool = False
+    list_emp: List[int]
+    month: int
+    year: int
 
 
 class PayrollManagementBPagination(Pagination):

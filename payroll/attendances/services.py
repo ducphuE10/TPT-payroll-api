@@ -32,6 +32,9 @@ from payroll.exception.error_message import ErrorMessages
 from payroll.schedule_details.repositories import (
     retrieve_schedule_details_by_schedule_id,
 )
+from payroll.schedules.services import (
+    check_exist_schedule_by_employee_id,
+)
 
 log = logging.getLogger(__name__)
 
@@ -159,13 +162,16 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
 
 
 def create_multi_attendances(
-    *, db_session, attendance_list_in: AttendancesCreate, apply_all: bool = False
+    *,
+    db_session,
+    attendance_list_in: AttendancesCreate,
+    # , apply_all: bool = False
 ):
     attendances = []
     count = 0
     list_id = []
 
-    if apply_all:
+    if attendance_list_in.apply_all:
         list_id = [
             employee.id
             for employee in retrieve_all_employees(db_session=db_session)["data"]
@@ -179,6 +185,13 @@ def create_multi_attendances(
             db_session=db_session, employee_id=employee_id
         ):
             raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+        if not check_exist_schedule_by_employee_id(
+            db_session=db_session, employee_id=employee_id
+        ):
+            raise AppException(
+                ErrorMessages.ResourceNotFound(), f"schedule of employee {employee_id}"
+            )
 
         current_date = attendance_list_in.from_date
         while current_date <= attendance_list_in.to_date:

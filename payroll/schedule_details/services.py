@@ -23,7 +23,7 @@ from payroll.schedule_details.schemas import (
 from payroll.schedules.repositories import retrieve_schedule_by_id
 from payroll.schedules.services import check_exist_schedule_by_id
 from payroll.shifts.services import check_exist_shift_by_id
-from payroll.utils.models import Day
+from payroll.utils.models import Day, UpdateStatus
 
 log = logging.getLogger(__name__)
 
@@ -206,26 +206,46 @@ def update_multi_schedule_details(
     """Creates multiple schedule_details"""
     try:
         for schedule_detail in schedule_detail_list_in:
-            if not check_exist_schedule_by_id(
-                db_session=db_session, schedule_id=schedule_detail.id
+            if (
+                not check_exist_schedule_detail_by_id(
+                    db_session=db_session, schedule_detail_id=schedule_detail.id
+                )
+                and schedule_detail.status == UpdateStatus.CREATE
             ):
                 schedule_detail_create = ScheduleDetailCreate(
-                    **schedule_detail.model_dump(), schedule_id=schedule_id
+                    **schedule_detail.model_dump(),
+                    schedule_id=schedule_id,
+                    exclude={"status"},
                 )
                 add_schedule_detail(
                     db_session=db_session, schedule_detail_in=schedule_detail_create
                 )
 
-            if not check_exist_shift_by_id(
-                db_session=db_session, shift_id=schedule_detail.shift_id
+            elif (
+                check_exist_shift_by_id(
+                    db_session=db_session, shift_id=schedule_detail.shift_id
+                )
+                and schedule_detail.status == UpdateStatus.UPDATE
             ):
-                raise AppException(ErrorMessages.ResourceNotFound(), "shift")
+                schedule_detail_update = ScheduleDetailUpdate(
+                    **schedule_detail.model_dump(), exclude={"status"}
+                )
+                schedule_detail = modify_schedule_detail(
+                    db_session=db_session,
+                    schedule_detail_id=schedule_detail.id,
+                    schedule_detail_in=schedule_detail_update,
+                )
 
-            schedule_detail = modify_schedule_detail(
-                db_session=db_session,
-                schedule_detail_id=schedule_detail.id,
-                schedule_detail_in=schedule_detail,
-            )
+            elif (
+                check_exist_shift_by_id(
+                    db_session=db_session, shift_id=schedule_detail.shift_id
+                )
+                and schedule_detail.status == UpdateStatus.DELETE
+            ):
+                schedule_detail = delete_schedule_detail(
+                    db_session=db_session,
+                    schedule_detail_id=schedule_detail.id,
+                )
 
         db_session.commit()
 

@@ -22,7 +22,7 @@ class ContractTypeRead(ContractTypeBase):
     id: int
     created_at: datetime
     tax_policy: TaxPolicyRead
-    insurance_policy: InsurancePolicyRead
+    insurance_policy: Optional[InsurancePolicyRead]
 
 
 class ContractTypesRead(PayrollBase):
@@ -31,7 +31,7 @@ class ContractTypesRead(PayrollBase):
 
 class ContractTypeCreate(ContractTypeBase):
     tax_policy_id: int  # required
-    insurance_policy_id: int  # required
+    insurance_policy_id: Optional[int]  # required
 
 
 class ContractTypePagination(Pagination):

@@ -1,9 +1,11 @@
 # from docx import Document
+from payroll.contract_benefit_assocs.schemas import CBAssocsUpdate
 from payroll.contracts.repositories import (
     get_contract_by_code,
     get_contract_by_id,
+    retrieve_contract_by_code,
 )
-from typing import List
+from typing import List, Optional
 from payroll.benefits.schemas import BenefitCreate
 from payroll.contracts.schemas import (
     ContractCreate,
@@ -35,35 +37,41 @@ def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:
     if contract_db:
         raise AppException(ErrorMessages.ResourceAlreadyExists())
     contract_repo.create(db_session=db_session, create_data=contract_in.model_dump())
-    db_session.commit()
+
     return contract
 
 
-def create_with_benefits(
-    *, db_session, contract_in: ContractCreate, benefits_list_in: List[BenefitCreate]
+def create_contract_with_benefits(
+    *,
+    db_session,
+    contract_in: ContractCreate,
+    benefits_list_in: Optional[List[BenefitCreate]] = None,
 ):
     """Creates a new contract with benefits."""
-    if bool(
-        get_contract_by_code(db_session=db_session, contract_code=contract_in.code)
-    ):
+    if bool(get_contract_by_code(db_session=db_session, code=contract_in.code)):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
-
+    # def create(*, db_session, create_data: dict)
     try:
         contract = create(db_session=db_session, contract_in=contract_in)
 
-        from payroll.contract_benefit_assocs.services import create_multi_cbassocs
-
-        contract_with_benefits = create_multi_cbassocs(
-            db_session=db_session,
-            contract_id=contract.id,
-            benefits_list_in=benefits_list_in,
+        contract = retrieve_contract_by_code(
+            db_session=db_session, contract_code=contract_in.code
         )
+        contract_with_benefits = None
+        if benefits_list_in:
+            from payroll.contract_benefit_assocs.services import create_multi_cbassocs
+
+            contract_with_benefits = create_multi_cbassocs(
+                db_session=db_session,
+                contract_id=contract.id,
+                cbassoc_list_in=benefits_list_in,
+            )
+            return {"contract_in": contract, "benefits_list_in": contract_with_benefits}
         db_session.commit()
     except AppException as e:
         db_session.rollback()
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
-
-    return contract_with_benefits
+    return {"contract_in": contract}
 
 
 def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
@@ -75,8 +83,43 @@ def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
 
     update_data = contract_in.model_dump(exclude_unset=True)
 
-    contract_repo.update(db_session=db_session, id=id, update_data=update_data)
+    try:
+        contract_repo.update(db_session=db_session, id=id, update_data=update_data)
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
     return ContractRead.from_orm(contract_db)
+
+
+def update_contract_with_benefits(
+    *,
+    db_session,
+    contract_id: int,
+    contract_in: Optional[ContractUpdate] = None,
+    cbassoc_list_in: Optional[List[CBAssocsUpdate]] = None,
+):
+    try:
+        if contract_in:
+            contract = update(
+                db_session=db_session, id=contract_id, contract_in=contract_in
+            )
+
+        if cbassoc_list_in:
+            from payroll.contract_benefit_assocs.services import update_multi_cbassocs
+
+            contract_with_benefits = update_multi_cbassocs(
+                db_session=db_session,
+                cbassoc_list_in=cbassoc_list_in,
+                contract_id=contract.id,
+            )
+        db_session.commit()
+    except AppException as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return contract_with_benefits
 
 
 def delete(*, db_session, id: int) -> None:

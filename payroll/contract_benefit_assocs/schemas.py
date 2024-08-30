@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import List, Optional
 
-from payroll.utils.models import Pagination, PayrollBase
+from pydantic import Field
+
+from payroll.utils.models import Pagination, PayrollBase, UpdateStatus
 
 
 class CBAssocBase(PayrollBase):
@@ -20,6 +22,12 @@ class CBAssocsRead(PayrollBase):
 
 
 class CBAssocUpdate(PayrollBase):
+    benefit_id: Optional[int]
+
+
+class CBAssocsUpdate(PayrollBase):
+    id: int = Field(..., Literal=True)
+    status: UpdateStatus
     benefit_id: Optional[int]
 
 
