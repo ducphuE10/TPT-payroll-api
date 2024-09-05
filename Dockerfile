@@ -17,17 +17,20 @@ RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; els
 
 ENV PYTHONPATH=/app
 
+COPY ./payroll /app/payroll
+
 # Copy the alembic.ini file
 COPY ./alembic.ini /app/
 
-# Copy the alembic folder, excluding the versions folder
+# Copy the alembic folder, excluding the versions folder content
 COPY ./alembic/env.py /app/alembic/
 COPY ./alembic/script.py.mako /app/alembic/
 COPY ./alembic/README /app/alembic/
 
-COPY ./start.sh /app/
+# Create the versions folder if it doesn't exist, without copying its contents
+RUN mkdir -p /app/alembic/versions
 
-COPY ./payroll /app/payroll
+COPY ./start.sh /app/
 
 EXPOSE 8000
 
