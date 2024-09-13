@@ -26,30 +26,29 @@ from payroll.utils.models import (
 )
 
 
-class PayrollContractType(Base, TimeStampMixin):
-    __tablename__ = "contracttypes"
-    id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
-    description: Mapped[Optional[str]] = mapped_column(String(255))
-    number_of_months: Mapped[int] = mapped_column()  # required
-    note: Mapped[Optional[str]] = mapped_column(String(255))
-    is_probation: Mapped[bool] = mapped_column()  # required
-    tax_policy_id: Mapped[int] = mapped_column(
-        ForeignKey("tax_policies.id")
-    )  # required
-    tax_policy: Mapped["TaxPolicy"] = relationship("TaxPolicy", backref="contracttypes")
-    insurance_policy_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("insurance_policies.id")
-    )  # required
-    insurance_policy: Mapped[Optional["InsurancePolicy"]] = relationship(
-        "InsurancePolicy", backref="contracttypes"
-    )
-    template: Mapped[Optional[str]] = mapped_column(String(255))
-    created_by: Mapped[str] = mapped_column(String(30))  # required
+# class PayrollContractType(Base, TimeStampMixin):
+#     __tablename__ = "contracttypes"
+#     id: Mapped[int] = mapped_column(primary_key=True)  # required
+#     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+#     name: Mapped[str] = mapped_column(String(30))  # required
+#     description: Mapped[Optional[str]] = mapped_column(String(255))
+#     number_of_months: Mapped[int] = mapped_column()  # required
+#     note: Mapped[Optional[str]] = mapped_column(String(255))
+#     is_probation: Mapped[bool] = mapped_column()  # required
+#     tax_policy_id: Mapped[int] = mapped_column(
+#         ForeignKey("tax_policies.id")
+#     )  # required
+#     tax_policy: Mapped["TaxPolicy"] = relationship("TaxPolicy", backref="contracttypes")
+#     insurance_policy_id: Mapped[Optional[int]] = mapped_column(
+#         ForeignKey("insurance_policies.id")
+#     )  # required
+#     insurance_policy: Mapped[Optional["InsurancePolicy"]] = relationship(
+#         "InsurancePolicy", backref="contracttypes"
+#     )
+#     created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    def __repr__(self) -> str:
-        return f"ContractType (name={self.name!r})"
+#     def __repr__(self) -> str:
+#         return f"ContractType (name={self.name!r})"
 
 
 class PayrollContract(Base, TimeStampMixin):
@@ -59,7 +58,7 @@ class PayrollContract(Base, TimeStampMixin):
     name: Mapped[str] = mapped_column(String(30))  # required
     status: Mapped[Status]  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    type_code: Mapped[str] = mapped_column(ForeignKey("contracttypes.code"))  # required
+    number_of_months: Mapped[int] = mapped_column()  # required
     ct_date: Mapped[date]  # required
     ct_code: Mapped[str] = mapped_column(String(30))  # required
     employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"))  # required
@@ -76,6 +75,7 @@ class PayrollContract(Base, TimeStampMixin):
     attachments: Mapped[Optional[str]] = mapped_column(String(255))
     salary: Mapped[float]  # required
     basic_salary: Mapped[float]  # required
+    template: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     benefits: Mapped[List["PayrollCBAssoc"]] = relationship(
@@ -393,6 +393,12 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
     contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"))
+    # tax_policy_id: Mapped[int] = mapped_column(
+    #     ForeignKey("tax_policies.id")
+    # )
+    insurance_policy_id: Mapped[Optional[int]] = mapped_column(
+        ForeignKey("insurance_policies.id")
+    )
     net_income: Mapped[float]
     month: Mapped[int]
     year: Mapped[int]
@@ -425,6 +431,10 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
     )
     contract: Mapped["PayrollContract"] = relationship(
         "PayrollContract", back_populates="payroll_managements"
+    )
+    # tax_policy: Mapped["TaxPolicy"] = relationship("TaxPolicy", backref="contracttypes")
+    insurance_policy: Mapped[Optional["InsurancePolicy"]] = relationship(
+        "InsurancePolicy", backref="contracttypes"
     )
 
     def __repr__(self) -> str:

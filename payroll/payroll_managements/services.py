@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from typing import Optional
 from payroll.attendances.repositories import (
     retrieve_attendance_by_id,
     retrieve_employee_attendances_by_month,
@@ -7,7 +8,6 @@ from payroll.benefits.repositories import retrieve_benefit_by_id
 from payroll.contract_benefit_assocs.repositories import (
     retrieve_cbassocs_by_contract_id,
 )
-from payroll.contract_types.repositories import get_contract_type_by_code
 from payroll.contracts.repositories import (
     retrieve_contract_by_employee_id_and_period,
 )
@@ -170,13 +170,19 @@ def get_all_payroll_management(*, db_session, month: int = None, year: int = Non
 
 
 def create_payroll_management(
-    *, db_session, payroll_management_in: PayrollManagementCreate
+    *,
+    db_session,
+    payroll_management_in: PayrollManagementCreate,
+    apply_insurance: bool = False,
+    insurance_id: Optional[int],
 ):
     payroll_management_create = payroll_handler(
         db_session=db_session,
         employee_id=payroll_management_in.employee_id,
         month=payroll_management_in.month,
         year=payroll_management_in.year,
+        apply_insurance=apply_insurance,
+        insurance_id=insurance_id,
     )
     try:
         payroll_management = add_payroll_management(
@@ -433,7 +439,15 @@ def benefit_salary_handler(
     return benefit_value / work_days_standard / work_hours_standard * work_hours_real
 
 
-def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
+def payroll_handler(
+    *,
+    db_session,
+    employee_id: int,
+    month: int,
+    year: int,
+    apply_insurance: bool = False,
+    insurance_id: Optional[int],
+):
     employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
     employee_code = retrieve_employee_by_id(
         db_session=db_session, employee_id=employee_id
@@ -575,17 +589,15 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
 
     # DEDUCTION HANDLER
 
-    contract_type = get_contract_type_by_code(
-        db_session=db_session, code=contract.type_code
-    )
+    # contract_type = get_contract_type_by_code(
+    #     db_session=db_session, code=contract.type_code
+    # )
 
     # INSURANCE HANDLER
-    insurance_policy = get_insurance_policy_by_id(
-        db_session=db_session, id=contract_type.insurance_policy_id
-    )
-    if insurance_policy:
-        employee_insurance = basic_salary * insurance_policy.employee_percentage / 100
-        company_insurance = basic_salary * insurance_policy.company_percentage / 100
+    if apply_insurance:
+        insurance = get_insurance_policy_by_id(db_session=db_session, id=insurance_id)
+        employee_insurance = basic_salary * insurance.employee_percentage / 100
+        company_insurance = basic_salary * insurance.company_percentage / 100
 
     # NO TAX HANDLER
     no_tax_salary = meal_benefit_salary + (  # TIEN AN

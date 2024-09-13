@@ -3,7 +3,7 @@ import logging
 from sqlalchemy import and_, or_
 
 from fastapi import HTTPException
-from payroll.models import PayrollContract, PayrollContractType
+from payroll.models import PayrollContract
 
 log = logging.getLogger(__name__)
 
@@ -81,12 +81,12 @@ def delete(*, db_session, id: int) -> None:
     db_session.commit()
 
 
-def get_contractType_template(*, db_session, code: str) -> PayrollContract:
+def get_template(*, db_session, code: str) -> PayrollContract:
     """Returns a contract template based on the given code."""
-    contract_type = db_session.query(PayrollContractType).filter_by(code=code).first()
-    if not contract_type or not contract_type.template:
+    template = db_session.query(PayrollContract).filter_by(code=code).first()
+    if not template:
         raise HTTPException(
             status_code=404, detail="Contract type or template not found"
         )
 
-    return contract_type.template
+    return template

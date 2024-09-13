@@ -6,7 +6,6 @@ from typing import List, Optional
 from payroll.auth.service import get_current_user
 from payroll.departments.controllers import department_router
 from payroll.positions.controllers import position_router
-from payroll.contract_types.controllers import contracttype_router
 from payroll.employees.controllers import employee_router
 from payroll.taxes.controllers import tax_router
 
@@ -56,9 +55,7 @@ router = APIRouter(prefix=settings.API_VERSION_PREFIX)
 router.include_router(department_router, prefix="/departments", tags=["departments"])
 router.include_router(position_router, prefix="/positions", tags=["positions"])
 router.include_router(employee_router, prefix="/employees", tags=["employees"])
-router.include_router(
-    contracttype_router, prefix="/contract-types", tags=["contract-types"]
-)
+
 router.include_router(tax_router, prefix="/taxes", tags=["taxes"])
 router.include_router(insurance_router, prefix="/insurances", tags=["insurances"])
 router.include_router(benefit_router, prefix="/benefits", tags=["benefits"])

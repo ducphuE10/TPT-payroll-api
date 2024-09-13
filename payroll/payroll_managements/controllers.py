@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter
 
 from payroll.payroll_managements.schemas import (
@@ -49,9 +50,18 @@ def retrieve_payroll_management(*, db_session: DbSession, payroll_management_id:
 
 
 @payroll_management_router.post("", response_model=PayrollManagementRead)
-def create(*, payroll_management_in: PayrollManagementCreate, db_session: DbSession):
+def create(
+    *,
+    payroll_management_in: PayrollManagementCreate,
+    db_session: DbSession,
+    apply_insurance: bool = False,
+    insurance_id: Optional[int],
+):
     return create_payroll_management(
-        db_session=db_session, payroll_management_in=payroll_management_in
+        db_session=db_session,
+        payroll_management_in=payroll_management_in,
+        apply_insurance=apply_insurance,
+        insurance_id=insurance_id,
     )
 
 
