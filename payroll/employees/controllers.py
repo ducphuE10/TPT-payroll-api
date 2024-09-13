@@ -54,7 +54,9 @@ def create(*, employee_in: EmployeeCreate, db_session: DbSession):
     return create_employee(db_session=db_session, employee_in=employee_in)
 
 
-@employee_router.put("/multi-apply", response_model=EmployeesScheduleUpdateRead)
+@employee_router.put(
+    "/multi-apply/{schedule_id}", response_model=EmployeesScheduleUpdateRead
+)
 def update_multi(
     *,
     db_session: DbSession,

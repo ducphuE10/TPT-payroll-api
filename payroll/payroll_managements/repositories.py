@@ -114,7 +114,7 @@ def retrieve_total_benefit_salary_by_period(
         db_session.query(
             func.sum(PayrollPayrollManagement.meal_benefit_salary)
             + func.sum(PayrollPayrollManagement.attendant_benefit_salary)
-            + func.sum(PayrollPayrollManagement.travel_benefit_salary)
+            + func.sum(PayrollPayrollManagement.transportation_benefit_salary)
             + func.sum(PayrollPayrollManagement.housing_benefit_salary)
             + func.sum(PayrollPayrollManagement.phone_benefit_salary)
         )

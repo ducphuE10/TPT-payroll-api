@@ -109,11 +109,11 @@ class Status(str, Enum):
     DELETED = "deleted"
 
 
-
 class UpdateStatus(str, Enum):
     CREATE = "create"
     UPDATE = "update"
     DELETE = "delete"
+
 
 class BenefitReplay(str, Enum):
     DAILY = "daily"
@@ -123,7 +123,8 @@ class BenefitReplay(str, Enum):
 
 class BenefitType(str, Enum):
     MEAL = "meal"
-    TRAVEL = "travel"
+    TRANSPORTATION = "transportation"
     HOUSING = "housing"
     PHONE = "phone"
     ATTENDANT = "attendant"
+    TOXIC = "toxic"

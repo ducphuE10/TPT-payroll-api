@@ -18,7 +18,7 @@ class PayrollManagementBase(PayrollBase):
     overtime_1_5x_salary: Optional[float] = None
     overtime_2_0x_hours: Optional[float] = None
     overtime_2_0x_salary: Optional[float] = None
-    travel_benefit_salary: float
+    transportation_benefit_salary: float
     attendant_benefit_salary: float
     housing_benefit_salary: float
     phone_benefit_salary: float

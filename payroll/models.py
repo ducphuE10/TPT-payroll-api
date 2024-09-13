@@ -403,9 +403,10 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
     overtime_1_5x_salary: Mapped[Optional[float]]
     overtime_2_0x_hours: Mapped[Optional[float]]
     overtime_2_0x_salary: Mapped[Optional[float]]
-    travel_benefit_salary: Mapped[float]
+    transportation_benefit_salary: Mapped[float]
     attendant_benefit_salary: Mapped[float]
     housing_benefit_salary: Mapped[float]
+    toxic_benefit_salary: Mapped[float]
     phone_benefit_salary: Mapped[float]
     meal_benefit_salary: Mapped[float]
     gross_income: Mapped[float]
@@ -428,41 +429,6 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
 
     def __repr__(self) -> str:
         return f"Payroll (employee_id={self.employee_id!r}, value={self.net_income!r}, month={self.month!r})"
-
-
-# class PayrollPayrollManagementDetail(Base, TimeStampMixin):
-#     __tablename__ = "payroll_management_details"
-#     id: Mapped[int] = mapped_column(primary_key=True)  # required
-#     payroll_management_id: Mapped[int] = mapped_column(
-#         ForeignKey("payroll_managements.id", ondelete="CASCADE"), unique=True
-#     )  # required
-#     salary: Mapped[float]
-#     work_days: Mapped[float]
-#     work_days_salary: Mapped[float]
-#     overtime_1_5x_hours: Mapped[Optional[float]]
-#     overtime_1_5x_salary: Mapped[Optional[float]]
-#     overtime_2_0x_hours: Mapped[Optional[float]]
-#     overtime_2_0x_salary: Mapped[Optional[float]]
-#     travel_benefit_salary: Mapped[float]
-#     attendant_benefit_salary: Mapped[float]
-#     housing_benefit_salary: Mapped[float]
-#     phone_benefit_salary: Mapped[float]
-#     meal_benefit_salary: Mapped[float]
-#     gross_income: Mapped[float]
-#     employee_insurance: Mapped[Optional[float]]
-#     company_insurance: Mapped[Optional[float]]
-#     no_tax_salary: Mapped[float]
-#     dependant_people: Mapped[Optional[int]]
-#     tax_salary: Mapped[Optional[float]]
-#     tax: Mapped[Optional[float]]
-#     total_deduction: Mapped[Optional[float]]
-
-#     payroll_management: Mapped["PayrollPayrollManagement"] = relationship(
-#         "PayrollPayrollManagement", back_populates="payroll_management_details"
-#     )
-
-#     def __repr__(self) -> str:
-#         return f"Payroll details (payroll_management_id={self.payroll_management_id!r}, gross_income={self.gross_income!r}, total_deduction={self.total_deduction!r})"
 
 
 class PayrollDependentPerson(Base, TimeStampMixin):

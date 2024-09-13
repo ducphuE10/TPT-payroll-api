@@ -510,17 +510,19 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
     benefit_salary = (
         attendant_benefit_salary
     ) = (
-        travel_benefit_salary
-    ) = phone_benefit_salary = housing_benefit_salary = meal_benefit_salary = 0
+        transportation_benefit_salary
+    ) = (
+        phone_benefit_salary
+    ) = housing_benefit_salary = meal_benefit_salary = toxic_benefit_salary = 0
 
     benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
     if f"{BenefitType.ATTENDANT}" in benefits:
         if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
             attendant_benefit_salary = benefits[f"{BenefitType.ATTENDANT}"]
 
-    if f"{BenefitType.TRAVEL}" in benefits:
-        travel_benefit_salary = benefit_salary_handler(
-            benefit_value=benefits[f"{BenefitType.TRAVEL}"],
+    if f"{BenefitType.TRANSPORTATION}" in benefits:
+        transportation_benefit_salary = benefit_salary_handler(
+            benefit_value=benefits[f"{BenefitType.TRANSPORTATION}"],
             work_days_standard=work_days_standard,
             work_hours_standard=work_hours_standard,
             work_hours_real=work_hours["adequate_hours"],
@@ -542,6 +544,14 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
             work_hours_real=work_hours["adequate_hours"],
         )
 
+    if f"{BenefitType.TOXIC}" in benefits:
+        toxic_benefit_salary = benefit_salary_handler(
+            benefit_value=benefits[f"{BenefitType.TOXIC}"],
+            work_days_standard=work_days_standard,
+            work_hours_standard=work_hours_standard,
+            work_hours_real=work_hours["adequate_hours"],
+        )
+
     if f"{BenefitType.MEAL}" in benefits:
         meal_benefit_salary = benefit_salary_handler(
             benefit_value=benefits[f"{BenefitType.MEAL}"],
@@ -551,10 +561,11 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
         )
 
     benefit_salary = (
-        travel_benefit_salary
+        transportation_benefit_salary
         + attendant_benefit_salary
         + phone_benefit_salary
         + housing_benefit_salary
+        + toxic_benefit_salary
         + meal_benefit_salary
     )
 
@@ -621,11 +632,12 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
         "overtime_1_5x_salary": overtime_1_5x_salary,
         "overtime_2_0x_hours": overtime_hours["overtime_2_0x"],
         "overtime_2_0x_salary": overtime_2_0x_salary,
-        "travel_benefit_salary": travel_benefit_salary,
+        "transportation_benefit_salary": transportation_benefit_salary,
         "attendant_benefit_salary": attendant_benefit_salary,
         "housing_benefit_salary": housing_benefit_salary,
         "phone_benefit_salary": phone_benefit_salary,
         "meal_benefit_salary": meal_benefit_salary,
+        "toxic_benefit_salary": toxic_benefit_salary,
         "gross_income": gross_income,
         "employee_insurance": employee_insurance,
         "company_insurance": company_insurance,

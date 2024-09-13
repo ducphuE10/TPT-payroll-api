@@ -116,5 +116,4 @@ class EmployeesScheduleUpdate(PayrollBase):
 
 
 class EmployeesScheduleUpdateRead(PayrollBase):
-    schedule_id: int
     data: EmployeesRead
