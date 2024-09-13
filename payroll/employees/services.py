@@ -184,7 +184,6 @@ def update_multi_employees_schedule(
     db_session,
     employee_list_in: EmployeesScheduleUpdate,
     schedule_id: int,
-    # apply_all: bool = False
 ):
     employees = []
     count = 0
