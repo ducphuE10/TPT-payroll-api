@@ -125,11 +125,6 @@ def validate_update_employee(
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
 
-    # if employee_in.code and check_exist_employee_by_code(
-    #     db_session=db_session, employee_code=employee_in.code
-    # ):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "employee")
-
     if employee_in.cccd and check_exist_employee_by_cccd(
         db_session=db_session,
         employee_cccd=employee_in.cccd,

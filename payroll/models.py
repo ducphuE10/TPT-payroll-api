@@ -186,7 +186,7 @@ class PayrollEmployee(Base, TimeStampMixin):
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="employee"
     )
-    dependent_persons: Mapped[List["PayrollDependentPerson"]] = relationship(
+    dependants: Mapped[List["PayrollDependentPerson"]] = relationship(
         "PayrollDependentPerson",
         back_populates="employee",
         cascade="all, delete-orphan",
@@ -432,7 +432,7 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
 
 
 class PayrollDependentPerson(Base, TimeStampMixin):
-    __tablename__ = "dependent_persons"
+    __tablename__ = "dependants"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
     name: Mapped[str] = mapped_column(String(30))  # required
@@ -461,7 +461,7 @@ class PayrollDependentPerson(Base, TimeStampMixin):
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     employee: Mapped["PayrollEmployee"] = relationship(
-        "PayrollEmployee", back_populates="dependent_persons"
+        "PayrollEmployee", back_populates="dependants"
     )
 
     def __repr__(self) -> str:

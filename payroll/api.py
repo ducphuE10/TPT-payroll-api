@@ -21,7 +21,7 @@ from payroll.benefits.controllers import benefit_router
 from payroll.contract_benefit_assocs.controllers import cbassoc_router
 from payroll.overtimes.controllers import overtime_router
 from payroll.payroll_managements.controllers import payroll_management_router
-from payroll.dependent_persons.controllers import dependent_person_router
+from payroll.dependants.controllers import dependant_router
 from payroll.dashboard.controllers import dashboard_router
 
 # from payroll.attendances_management.test3 import import_router
@@ -72,9 +72,7 @@ router.include_router(
 )
 # router.include_router(storage_router, prefix="/storage", tags=["storage"])
 router.include_router(overtime_router, prefix="/overtimes", tags=["overtimes"])
-router.include_router(
-    dependent_person_router, prefix="/dependent_persons", tags=["dependent_persons"]
-)
+router.include_router(dependant_router, prefix="/dependants", tags=["dependants"])
 router.include_router(
     payroll_management_router,
     prefix="/payroll_managements",

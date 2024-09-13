@@ -11,8 +11,8 @@ from payroll.contract_types.repositories import get_contract_type_by_code
 from payroll.contracts.repositories import (
     retrieve_contract_by_employee_id_and_period,
 )
-from payroll.dependent_persons.repositories import (
-    retrieve_all_dependent_persons_by_employee_id,
+from payroll.dependants.repositories import (
+    retrieve_all_dependants_by_employee_id,
 )
 from payroll.employees.repositories import (
     retrieve_all_employees,
@@ -598,7 +598,7 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
     )
 
     # NPT HANDLER
-    dependent_pers = retrieve_all_dependent_persons_by_employee_id(
+    dependent_pers = retrieve_all_dependants_by_employee_id(
         db_session=db_session, employee_id=employee_id
     )["count"]
 
