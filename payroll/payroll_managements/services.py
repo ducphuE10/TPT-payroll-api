@@ -205,9 +205,9 @@ def create_multi_payroll_managements(
             employee.id
             for employee in retrieve_all_employees(db_session=db_session)["data"]
         ]
-
     else:
         list_id = [id for id in payroll_management_list_in.list_emp]
+
     try:
         for employee_id in list_id:
             if not check_exist_employee_by_id(

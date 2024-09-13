@@ -106,5 +106,15 @@ class EmployeeImport(PayrollBase):
     position_code: Optional[str] = None
 
 
-class PositionPagination(Pagination):
+class EmployeePagination(Pagination):
     items: List[EmployeeRead] = []
+
+
+class EmployeesScheduleUpdate(PayrollBase):
+    apply_all: bool = False
+    list_emp: List[int]
+
+
+class EmployeesScheduleUpdateRead(PayrollBase):
+    schedule_id: int
+    data: EmployeesRead

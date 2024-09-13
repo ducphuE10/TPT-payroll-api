@@ -28,6 +28,8 @@ from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeImport,
     EmployeeUpdate,
+    EmployeesRead,
+    EmployeesScheduleUpdate,
 )
 from payroll.schedules.services import check_exist_schedule_by_id
 
@@ -175,6 +177,53 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
             db_session.rollback()
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
     return employee
+
+
+def update_multi_employees_schedule(
+    *,
+    db_session,
+    employee_list_in: EmployeesScheduleUpdate,
+    schedule_id: int,
+    # apply_all: bool = False
+):
+    employees = []
+    count = 0
+    list_id = []
+    if employee_list_in.apply_all:
+        list_id = [
+            employee.id
+            for employee in retrieve_all_employees(db_session=db_session)["data"]
+        ]
+    else:
+        list_id = [id for id in employee_list_in.list_emp]
+
+    try:
+        for employee_id in list_id:
+            if not check_exist_employee_by_id(
+                db_session=db_session, employee_id=employee_id
+            ):
+                raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+            try:
+                employee_in = EmployeeUpdate(schedule_id=schedule_id)
+                employee = modify_employee(
+                    db_session=db_session,
+                    employee_id=employee_id,
+                    employee_in=employee_in,
+                )
+
+                employees.append(employee)
+                count += 1
+
+            except Exception as e:
+                db_session.rollback()
+                raise AppException(ErrorMessages.ErrSM99999(), str(e))
+            db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+    employees_update = EmployeesRead(count=count, data=employees)
+
+    return {"schedule_id": schedule_id, "data": employees_update}
 
 
 # PUT /employees/{employee_id}

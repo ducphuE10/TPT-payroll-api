@@ -80,11 +80,6 @@ router.include_router(
     prefix="/payroll_managements",
     tags=["payroll_managements"],
 )
-router.include_router(
-    payroll_management_router,
-    prefix="/payroll_managements",
-    tags=["payroll_managements"],
-)
 router.include_router(dashboard_router, prefix="/dashboards", tags=["dashboards"])
 
 
