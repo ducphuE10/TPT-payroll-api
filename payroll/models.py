@@ -26,31 +26,6 @@ from payroll.utils.models import (
 )
 
 
-# class PayrollContractType(Base, TimeStampMixin):
-#     __tablename__ = "contracttypes"
-#     id: Mapped[int] = mapped_column(primary_key=True)  # required
-#     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-#     name: Mapped[str] = mapped_column(String(30))  # required
-#     description: Mapped[Optional[str]] = mapped_column(String(255))
-#     number_of_months: Mapped[int] = mapped_column()  # required
-#     note: Mapped[Optional[str]] = mapped_column(String(255))
-#     is_probation: Mapped[bool] = mapped_column()  # required
-#     tax_policy_id: Mapped[int] = mapped_column(
-#         ForeignKey("tax_policies.id")
-#     )  # required
-#     tax_policy: Mapped["TaxPolicy"] = relationship("TaxPolicy", backref="contracttypes")
-#     insurance_policy_id: Mapped[Optional[int]] = mapped_column(
-#         ForeignKey("insurance_policies.id")
-#     )  # required
-#     insurance_policy: Mapped[Optional["InsurancePolicy"]] = relationship(
-#         "InsurancePolicy", backref="contracttypes"
-#     )
-#     created_by: Mapped[str] = mapped_column(String(30))  # required
-
-#     def __repr__(self) -> str:
-#         return f"ContractType (name={self.name!r})"
-
-
 class PayrollContract(Base, TimeStampMixin):
     __tablename__ = "contracts"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
@@ -59,13 +34,10 @@ class PayrollContract(Base, TimeStampMixin):
     status: Mapped[Status]  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
     number_of_months: Mapped[int] = mapped_column()  # required
+    is_probation: Mapped[bool] = mapped_column()  # required
+    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"))  # required
     ct_date: Mapped[date]  # required
     ct_code: Mapped[str] = mapped_column(String(30))  # required
-    employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"))  # required
-    employee: Mapped["PayrollEmployee"] = relationship(
-        "PayrollEmployee",
-        backref="contracts",
-    )
     signed_date: Mapped[date]  # required
     start_date: Mapped[date]  # required
     end_date: Mapped[Optional[date]]  # required
@@ -78,6 +50,10 @@ class PayrollContract(Base, TimeStampMixin):
     template: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
+    employee: Mapped["PayrollEmployee"] = relationship(
+        "PayrollEmployee",
+        backref="contracts",
+    )
     benefits: Mapped[List["PayrollCBAssoc"]] = relationship(
         "PayrollCBAssoc", cascade="all, delete-orphan", back_populates="contract"
     )
