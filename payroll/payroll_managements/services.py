@@ -200,7 +200,8 @@ def create_multi_payroll_managements(
     *,
     db_session,
     payroll_management_list_in: PayrollManagementsCreate,
-    # apply_all: bool = False,
+    apply_insurance: bool = False,
+    insurance_id: Optional[int],
 ):
     payroll_managements = []
     count = 0
@@ -236,6 +237,8 @@ def create_multi_payroll_managements(
                     payroll_management = create_payroll_management(
                         db_session=db_session,
                         payroll_management_in=payroll_management_in,
+                        apply_insurance=apply_insurance,
+                        insurance_id=insurance_id,
                     )
                     payroll_managements.append(payroll_management)
                     count += 1

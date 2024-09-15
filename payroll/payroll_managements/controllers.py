@@ -52,8 +52,8 @@ def retrieve_payroll_management(*, db_session: DbSession, payroll_management_id:
 @payroll_management_router.post("", response_model=PayrollManagementRead)
 def create(
     *,
-    payroll_management_in: PayrollManagementCreate,
     db_session: DbSession,
+    payroll_management_in: PayrollManagementCreate,
     apply_insurance: bool = False,
     insurance_id: Optional[int],
 ):
@@ -67,12 +67,18 @@ def create(
 
 @payroll_management_router.post("/bulk", response_model=PayrollManagementsRead)
 def create_multi(
-    *, db_session: DbSession, payroll_management_list_in: PayrollManagementsCreate
+    *,
+    db_session: DbSession,
+    payroll_management_list_in: PayrollManagementsCreate,
+    apply_insurance: bool = False,
+    insurance_id: Optional[int],
 ):
     """Creates a new attendance."""
     return create_multi_payroll_managements(
         db_session=db_session,
         payroll_management_list_in=payroll_management_list_in,
+        apply_insurance=apply_insurance,
+        insurance_id=insurance_id,
     )
 
 
