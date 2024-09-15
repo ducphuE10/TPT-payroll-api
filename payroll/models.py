@@ -138,9 +138,6 @@ class PayrollEmployee(Base, TimeStampMixin):
         "PayrollSchedule",
         backref="schedules",
     )
-    overtime_schedule_id: Mapped[Optional[int]] = mapped_column(
-        ForeignKey("overtime_schedules.id")
-    )
 
     email: Mapped[Optional[str]] = mapped_column(String(255))
     cv: Mapped[Optional[bytes]] = mapped_column(LargeBinary)
