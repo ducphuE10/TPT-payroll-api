@@ -21,6 +21,7 @@ from payroll.attendances.schemas import (
     TimeAttendanceHandlerBase,
     WorkhoursAttendanceHandlerBase,
 )
+from payroll.contracts.services import get_active_contract
 from payroll.employees.repositories import (
     retrieve_all_employees,
     retrieve_employee_by_code,
@@ -165,7 +166,6 @@ def create_multi_attendances(
     *,
     db_session,
     attendance_list_in: AttendancesCreate,
-    # , apply_all: bool = False
 ):
     attendances = []
     count = 0
@@ -231,9 +231,6 @@ def create_multi_attendances(
                             **attendance_in.model_dump()
                         )
 
-                        # attendance = add_attendance(
-                        #     db_session=db_session, attendance_in=attendance_handler
-                        # )
                         attendance = attendance_handler(
                             db_session=db_session,
                             attendance_in=attendance_in,
@@ -302,15 +299,20 @@ def attendance_handler(
     *,
     db_session,
     attendance_in: WorkhoursAttendanceHandlerBase | TimeAttendanceHandlerBase,
-    # update_on_exists: bool = False,
 ):
     """Handles attendance based on standard work field or specific times."""
     employee = retrieve_employee_by_id(
         db_session=db_session, employee_id=attendance_in.employee_id
     )
-    # schedule = retrieve_schedule_by_id(
-    #     db_session=db_session, schedule_id=employee.schedule_id
-    # )
+    active_contract = get_active_contract(
+        db_session=db_session,
+        employee_code=employee.code,
+        current_date=attendance_in.day_attendance,
+    )
+
+    if not active_contract:
+        return
+
     schedule_details = retrieve_schedule_details_by_schedule_id(
         db_session=db_session, schedule_id=employee.schedule_id
     )

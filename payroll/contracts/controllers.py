@@ -1,3 +1,4 @@
+from datetime import date
 from typing import List, Optional
 from fastapi import APIRouter
 from fastapi.responses import StreamingResponse
@@ -23,6 +24,13 @@ def all(
     db_session: DbSession,
 ):
     return contract_services.get_all(db_session=db_session)
+
+
+@contract_router.get("/{employee_code}", response_model=ContractRead)
+def retrieve_active(*, db_session: DbSession, employee_code: str, current_date: date):
+    return contract_services.get_active_contract(
+        db_session=db_session, employee_code=employee_code, current_date=current_date
+    )
 
 
 @contract_router.get("/{id}", response_model=ContractRead)
