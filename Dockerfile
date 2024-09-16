@@ -28,10 +28,10 @@ COPY ./alembic/script.py.mako /app/alembic/
 COPY ./alembic/README /app/alembic/
 
 # For local database
-COPY ./alembic/versions/* /app/alembic/versions/
+# COPY ./alembic/versions/* /app/alembic/versions/
 
 # Create the versions folder if it doesn't exist, without copying its contents
-# RUN mkdir -p /app/alembic/versions
+RUN mkdir -p /app/alembic/versions
 
 COPY ./start.sh /app/
 
