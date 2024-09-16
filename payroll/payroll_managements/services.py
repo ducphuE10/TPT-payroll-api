@@ -173,16 +173,14 @@ def create_payroll_management(
     *,
     db_session,
     payroll_management_in: PayrollManagementCreate,
-    apply_insurance: bool = False,
-    insurance_id: Optional[int],
 ):
     payroll_management_create = payroll_handler(
         db_session=db_session,
         employee_id=payroll_management_in.employee_id,
         month=payroll_management_in.month,
         year=payroll_management_in.year,
-        apply_insurance=apply_insurance,
-        insurance_id=insurance_id,
+        apply_insurance=payroll_management_in.apply_insurance,
+        insurance_id=payroll_management_in.insurance_id,
     )
     try:
         payroll_management = add_payroll_management(
@@ -200,8 +198,6 @@ def create_multi_payroll_managements(
     *,
     db_session,
     payroll_management_list_in: PayrollManagementsCreate,
-    apply_insurance: bool = False,
-    insurance_id: Optional[int],
 ):
     payroll_managements = []
     count = 0
@@ -237,8 +233,6 @@ def create_multi_payroll_managements(
                     payroll_management = create_payroll_management(
                         db_session=db_session,
                         payroll_management_in=payroll_management_in,
-                        apply_insurance=apply_insurance,
-                        insurance_id=insurance_id,
                     )
                     payroll_managements.append(payroll_management)
                     count += 1

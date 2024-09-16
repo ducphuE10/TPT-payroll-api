@@ -59,6 +59,8 @@ class PayrollManagementsCreate(PayrollBase):
     list_emp: List[int]
     month: int
     year: int
+    apply_insurance: bool = False
+    insurance_id: Optional[int]
 
 
 class PayrollManagementBPagination(Pagination):

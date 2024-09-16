@@ -70,15 +70,11 @@ def create_multi(
     *,
     db_session: DbSession,
     payroll_management_list_in: PayrollManagementsCreate,
-    apply_insurance: bool = False,
-    insurance_id: Optional[int],
 ):
     """Creates a new attendance."""
     return create_multi_payroll_managements(
         db_session=db_session,
         payroll_management_list_in=payroll_management_list_in,
-        apply_insurance=apply_insurance,
-        insurance_id=insurance_id,
     )
 
 
