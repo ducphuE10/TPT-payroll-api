@@ -18,7 +18,7 @@ class PayrollManagementBase(PayrollBase):
     overtime_1_5x_salary: Optional[float] = None
     overtime_2_0x_hours: Optional[float] = None
     overtime_2_0x_salary: Optional[float] = None
-    travel_benefit_salary: float
+    transportation_benefit_salary: float
     attendant_benefit_salary: float
     housing_benefit_salary: float
     phone_benefit_salary: float
@@ -48,6 +48,8 @@ class PayrollManagementCreate(PayrollBase):
     employee_id: int  # required
     month: int  # required
     year: int
+    apply_insurance: bool = False
+    insurance_id: Optional[int] = None
 
 
 class PayrollManagementDetail(PayrollManagementBase):
@@ -59,6 +61,8 @@ class PayrollManagementsCreate(PayrollBase):
     list_emp: List[int]
     month: int
     year: int
+    apply_insurance: bool = False
+    insurance_id: Optional[int] = None
 
 
 class PayrollManagementBPagination(Pagination):

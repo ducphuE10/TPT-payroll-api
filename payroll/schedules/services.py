@@ -1,5 +1,8 @@
 from typing import List, Optional
-from payroll.employees.repositories import retrieve_schedule_by_employee_id
+from payroll.employees.repositories import (
+    retrieve_schedule_by_employee_id,
+)
+
 from payroll.schedule_details.repositories import (
     retrieve_schedule_details_by_schedule_id,
 )
@@ -16,7 +19,10 @@ from payroll.schedules.repositories import (
     retrieve_schedule_by_code,
     retrieve_schedule_by_id,
 )
-from payroll.schedules.schemas import ScheduleCreate, ScheduleUpdate
+from payroll.schedules.schemas import (
+    ScheduleCreate,
+    ScheduleUpdate,
+)
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollSchedule

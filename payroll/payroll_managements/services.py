@@ -1,4 +1,5 @@
 from datetime import date, datetime, timedelta
+from typing import Optional
 from payroll.attendances.repositories import (
     retrieve_attendance_by_id,
     retrieve_employee_attendances_by_month,
@@ -7,12 +8,11 @@ from payroll.benefits.repositories import retrieve_benefit_by_id
 from payroll.contract_benefit_assocs.repositories import (
     retrieve_cbassocs_by_contract_id,
 )
-from payroll.contract_types.repositories import get_contract_type_by_code
 from payroll.contracts.repositories import (
     retrieve_contract_by_employee_id_and_period,
 )
-from payroll.dependent_persons.repositories import (
-    retrieve_all_dependent_persons_by_employee_id,
+from payroll.dependants.repositories import (
+    retrieve_all_dependants_by_employee_id,
 )
 from payroll.employees.repositories import (
     retrieve_all_employees,
@@ -170,13 +170,17 @@ def get_all_payroll_management(*, db_session, month: int = None, year: int = Non
 
 
 def create_payroll_management(
-    *, db_session, payroll_management_in: PayrollManagementCreate
+    *,
+    db_session,
+    payroll_management_in: PayrollManagementCreate,
 ):
     payroll_management_create = payroll_handler(
         db_session=db_session,
         employee_id=payroll_management_in.employee_id,
         month=payroll_management_in.month,
         year=payroll_management_in.year,
+        apply_insurance=payroll_management_in.apply_insurance,
+        insurance_id=payroll_management_in.insurance_id,
     )
     try:
         payroll_management = add_payroll_management(
@@ -194,7 +198,6 @@ def create_multi_payroll_managements(
     *,
     db_session,
     payroll_management_list_in: PayrollManagementsCreate,
-    # apply_all: bool = False,
 ):
     payroll_managements = []
     count = 0
@@ -205,9 +208,9 @@ def create_multi_payroll_managements(
             employee.id
             for employee in retrieve_all_employees(db_session=db_session)["data"]
         ]
-
     else:
         list_id = [id for id in payroll_management_list_in.list_emp]
+
     try:
         for employee_id in list_id:
             if not check_exist_employee_by_id(
@@ -225,6 +228,8 @@ def create_multi_payroll_managements(
                         employee_id=employee_id,
                         month=payroll_management_list_in.month,
                         year=payroll_management_list_in.year,
+                        apply_insurance=payroll_management_list_in.apply_insurance,
+                        insurance_id=payroll_management_list_in.insurance_id,
                     )
 
                     payroll_management = create_payroll_management(
@@ -433,7 +438,15 @@ def benefit_salary_handler(
     return benefit_value / work_days_standard / work_hours_standard * work_hours_real
 
 
-def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
+def payroll_handler(
+    *,
+    db_session,
+    employee_id: int,
+    month: int,
+    year: int,
+    apply_insurance: bool = False,
+    insurance_id: Optional[int],
+):
     employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
     employee_code = retrieve_employee_by_id(
         db_session=db_session, employee_id=employee_id
@@ -510,17 +523,19 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
     benefit_salary = (
         attendant_benefit_salary
     ) = (
-        travel_benefit_salary
-    ) = phone_benefit_salary = housing_benefit_salary = meal_benefit_salary = 0
+        transportation_benefit_salary
+    ) = (
+        phone_benefit_salary
+    ) = housing_benefit_salary = meal_benefit_salary = toxic_benefit_salary = 0
 
     benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
     if f"{BenefitType.ATTENDANT}" in benefits:
         if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
             attendant_benefit_salary = benefits[f"{BenefitType.ATTENDANT}"]
 
-    if f"{BenefitType.TRAVEL}" in benefits:
-        travel_benefit_salary = benefit_salary_handler(
-            benefit_value=benefits[f"{BenefitType.TRAVEL}"],
+    if f"{BenefitType.TRANSPORTATION}" in benefits:
+        transportation_benefit_salary = benefit_salary_handler(
+            benefit_value=benefits[f"{BenefitType.TRANSPORTATION}"],
             work_days_standard=work_days_standard,
             work_hours_standard=work_hours_standard,
             work_hours_real=work_hours["adequate_hours"],
@@ -542,6 +557,14 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
             work_hours_real=work_hours["adequate_hours"],
         )
 
+    if f"{BenefitType.TOXIC}" in benefits:
+        toxic_benefit_salary = benefit_salary_handler(
+            benefit_value=benefits[f"{BenefitType.TOXIC}"],
+            work_days_standard=work_days_standard,
+            work_hours_standard=work_hours_standard,
+            work_hours_real=work_hours["adequate_hours"],
+        )
+
     if f"{BenefitType.MEAL}" in benefits:
         meal_benefit_salary = benefit_salary_handler(
             benefit_value=benefits[f"{BenefitType.MEAL}"],
@@ -551,10 +574,11 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
         )
 
     benefit_salary = (
-        travel_benefit_salary
+        transportation_benefit_salary
         + attendant_benefit_salary
         + phone_benefit_salary
         + housing_benefit_salary
+        + toxic_benefit_salary
         + meal_benefit_salary
     )
 
@@ -564,20 +588,15 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
 
     # DEDUCTION HANDLER
 
-    contract_type = get_contract_type_by_code(
-        db_session=db_session, code=contract.type_code
-    )
-
     # INSURANCE HANDLER
-    insurance_policy = get_insurance_policy_by_id(
-        db_session=db_session, id=contract_type.insurance_policy_id
-    )
-    if insurance_policy:
-        employee_insurance = basic_salary * insurance_policy.employee_percentage / 100
-        company_insurance = basic_salary * insurance_policy.company_percentage / 100
+    employee_insurance = company_insurance = 0
+    if apply_insurance:
+        insurance = get_insurance_policy_by_id(db_session=db_session, id=insurance_id)
+        employee_insurance = basic_salary * insurance.employee_percentage / 100
+        company_insurance = basic_salary * insurance.company_percentage / 100
 
     # NO TAX HANDLER
-    no_tax_salary = meal_benefit_salary + (  # TIEN AN
+    no_tax_salary = meal_benefit_salary + (
         overtime_1_5x_salary
         + overtime_2_0x_salary
         - basic_salary
@@ -587,7 +606,7 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
     )
 
     # NPT HANDLER
-    dependent_pers = retrieve_all_dependent_persons_by_employee_id(
+    dependent_pers = retrieve_all_dependants_by_employee_id(
         db_session=db_session, employee_id=employee_id
     )["count"]
 
@@ -621,11 +640,12 @@ def payroll_handler(*, db_session, employee_id: int, month: int, year: int):
         "overtime_1_5x_salary": overtime_1_5x_salary,
         "overtime_2_0x_hours": overtime_hours["overtime_2_0x"],
         "overtime_2_0x_salary": overtime_2_0x_salary,
-        "travel_benefit_salary": travel_benefit_salary,
+        "transportation_benefit_salary": transportation_benefit_salary,
         "attendant_benefit_salary": attendant_benefit_salary,
         "housing_benefit_salary": housing_benefit_salary,
         "phone_benefit_salary": phone_benefit_salary,
         "meal_benefit_salary": meal_benefit_salary,
+        "toxic_benefit_salary": toxic_benefit_salary,
         "gross_income": gross_income,
         "employee_insurance": employee_insurance,
         "company_insurance": company_insurance,

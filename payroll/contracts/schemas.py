@@ -12,8 +12,9 @@ class ContractBase(PayrollBase):
     name: str  # required
     status: Status  # required
     description: Optional[str] = None
+    number_of_months: int  # required
+    is_probation: bool
     employee_code: str  # required
-    type_code: str  # required
     ct_date: date  # required
     ct_code: str  # required
     signed_date: date  # required
@@ -25,6 +26,7 @@ class ContractBase(PayrollBase):
     attachments: Optional[str] = None
     salary: float  # required
     basic_salary: float  # required
+    template: Optional[str] = None
 
 
 class ContractRead(ContractBase):
@@ -46,12 +48,13 @@ class ContractCreate(ContractBase):
     created_by: Optional[str] = None
 
 
-class ContractUpdate(ContractBase):
+class ContractUpdate(PayrollBase):
     name: Optional[str] = None
     status: Optional[Status] = None
     description: Optional[str] = None
+    number_of_months: Optional[str] = None
+    is_probation: Optional[str] = None
     employee_code: Optional[str] = None
-    type_code: Optional[str] = None
     ct_date: Optional[date] = None
     ct_code: Optional[str] = None
     signed_date: Optional[date] = None
@@ -63,6 +66,7 @@ class ContractUpdate(ContractBase):
     attachments: Optional[str] = None
     salary: Optional[float] = None
     basic_salary: Optional[float] = None
+    template: Optional[str] = None
 
 
 class ContractPagination(Pagination):

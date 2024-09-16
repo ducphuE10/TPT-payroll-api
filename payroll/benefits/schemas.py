@@ -11,7 +11,7 @@ class BenefitBase(PayrollBase):
     type: BenefitType
     count_salary: bool
     value: float
-    description: Optional[str]
+    description: Optional[str] = None
 
 
 class BenefitRead(BenefitBase):
@@ -37,7 +37,7 @@ class BenefitCreate(PayrollBase):
     type: BenefitType  # required
     count_salary: bool = False
     value: float
-    description: Optional[str]
+    description: Optional[str] = None
 
 
 class BenefitPagination(Pagination):

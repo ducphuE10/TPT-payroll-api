@@ -33,7 +33,6 @@ class EmployeeBase(PayrollBase):
     department_id: int  # required
     position_id: int  # required
     schedule_id: Optional[int] = None
-    overtime_schedule_id: Optional[int] = None
     email: Optional[str] = None
     cv: Optional[bytes] = None
 
@@ -81,7 +80,6 @@ class EmployeeUpdate(PayrollBase):
     department_id: Optional[int] = None
     position_id: Optional[int] = None
     schedule_id: Optional[int] = None
-    overtime_schedule_id: Optional[int] = None
     email: Optional[str] = None
     cv: Optional[bytes] = None
 
@@ -106,5 +104,14 @@ class EmployeeImport(PayrollBase):
     position_code: Optional[str] = None
 
 
-class PositionPagination(Pagination):
+class EmployeePagination(Pagination):
     items: List[EmployeeRead] = []
+
+
+class EmployeesScheduleUpdate(PayrollBase):
+    apply_all: bool = False
+    list_emp: List[int]
+
+
+class EmployeesScheduleUpdateRead(PayrollBase):
+    data: EmployeesRead

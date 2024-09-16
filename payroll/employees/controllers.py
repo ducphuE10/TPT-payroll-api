@@ -7,6 +7,8 @@ from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeesRead,
     EmployeeUpdate,
+    EmployeesScheduleUpdate,
+    EmployeesScheduleUpdateRead,
 )
 from payroll.database.core import DbSession
 from payroll.employees.services import (
@@ -16,6 +18,7 @@ from payroll.employees.services import (
     get_employee_by_id,
     update_employee,
     search_employee_by_name,
+    update_multi_employees_schedule,
     uploadXLSX,
 )
 
@@ -49,6 +52,23 @@ def retrieve_employee_attendances(*, db_session: DbSession, employee_id: int):
 def create(*, employee_in: EmployeeCreate, db_session: DbSession):
     """Creates a new employee."""
     return create_employee(db_session=db_session, employee_in=employee_in)
+
+
+@employee_router.put(
+    "/multi-apply/{schedule_id}", response_model=EmployeesScheduleUpdateRead
+)
+def update_multi(
+    *,
+    db_session: DbSession,
+    employee_list_in: EmployeesScheduleUpdate,
+    schedule_id: int,
+):
+    """Creates a new attendance."""
+    return update_multi_employees_schedule(
+        db_session=db_session,
+        employee_list_in=employee_list_in,
+        schedule_id=schedule_id,
+    )
 
 
 # PUT /employees/{employee_id}
