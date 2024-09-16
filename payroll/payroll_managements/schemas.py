@@ -48,6 +48,8 @@ class PayrollManagementCreate(PayrollBase):
     employee_id: int  # required
     month: int  # required
     year: int
+    apply_insurance: bool = False
+    insurance_id: Optional[int] = None
 
 
 class PayrollManagementDetail(PayrollManagementBase):
@@ -60,7 +62,7 @@ class PayrollManagementsCreate(PayrollBase):
     month: int
     year: int
     apply_insurance: bool = False
-    insurance_id: Optional[int]
+    insurance_id: Optional[int] = None
 
 
 class PayrollManagementBPagination(Pagination):

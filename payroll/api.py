@@ -7,7 +7,6 @@ from payroll.auth.service import get_current_user
 from payroll.departments.controllers import department_router
 from payroll.positions.controllers import position_router
 from payroll.employees.controllers import employee_router
-from payroll.taxes.controllers import tax_router
 
 # from payroll.storage.controllers import storage_router
 from payroll.insurances.controllers import insurance_router
@@ -52,11 +51,13 @@ router = APIRouter(prefix=settings.API_VERSION_PREFIX)
 
 # api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
 # authenticated_api_router.include_router(user_router, prefix="/users", tags=["users"])
+
 router.include_router(department_router, prefix="/departments", tags=["departments"])
 router.include_router(position_router, prefix="/positions", tags=["positions"])
 router.include_router(employee_router, prefix="/employees", tags=["employees"])
 
-router.include_router(tax_router, prefix="/taxes", tags=["taxes"])
+# router.include_router(tax_router, prefix="/taxes", tags=["taxes"])
+
 router.include_router(insurance_router, prefix="/insurances", tags=["insurances"])
 router.include_router(benefit_router, prefix="/benefits", tags=["benefits"])
 router.include_router(contract_router, prefix="/contracts", tags=["contracts"])
