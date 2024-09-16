@@ -1,4 +1,3 @@
-from typing import Optional
 from fastapi import APIRouter
 
 from payroll.payroll_managements.schemas import (
@@ -54,14 +53,10 @@ def create(
     *,
     db_session: DbSession,
     payroll_management_in: PayrollManagementCreate,
-    apply_insurance: bool = False,
-    insurance_id: Optional[int],
 ):
     return create_payroll_management(
         db_session=db_session,
         payroll_management_in=payroll_management_in,
-        apply_insurance=apply_insurance,
-        insurance_id=insurance_id,
     )
 
 

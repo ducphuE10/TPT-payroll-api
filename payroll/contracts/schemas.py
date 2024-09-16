@@ -48,7 +48,7 @@ class ContractCreate(ContractBase):
     created_by: Optional[str] = None
 
 
-class ContractUpdate(ContractBase):
+class ContractUpdate(PayrollBase):
     name: Optional[str] = None
     status: Optional[Status] = None
     description: Optional[str] = None

@@ -228,6 +228,8 @@ def create_multi_payroll_managements(
                         employee_id=employee_id,
                         month=payroll_management_list_in.month,
                         year=payroll_management_list_in.year,
+                        apply_insurance=payroll_management_list_in.apply_insurance,
+                        insurance_id=payroll_management_list_in.insurance_id,
                     )
 
                     payroll_management = create_payroll_management(
@@ -586,11 +588,8 @@ def payroll_handler(
 
     # DEDUCTION HANDLER
 
-    # contract_type = get_contract_type_by_code(
-    #     db_session=db_session, code=contract.type_code
-    # )
-
     # INSURANCE HANDLER
+    employee_insurance = company_insurance = 0
     if apply_insurance:
         insurance = get_insurance_policy_by_id(db_session=db_session, id=insurance_id)
         employee_insurance = basic_salary * insurance.employee_percentage / 100
