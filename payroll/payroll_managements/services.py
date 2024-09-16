@@ -596,7 +596,7 @@ def payroll_handler(
         company_insurance = basic_salary * insurance.company_percentage / 100
 
     # NO TAX HANDLER
-    no_tax_salary = meal_benefit_salary + (  # TIEN AN
+    no_tax_salary = meal_benefit_salary + (
         overtime_1_5x_salary
         + overtime_2_0x_salary
         - basic_salary
