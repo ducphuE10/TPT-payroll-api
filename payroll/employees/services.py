@@ -21,7 +21,7 @@ from payroll.employees.repositories import (
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollEmployee
-from payroll.employees.constant import IMPORT_EMPLOYEES_EXCEL_MAP, DTYPES_MAP
+from payroll.employees.constant import IMPORT_EMPLOYEES_EXCEL_MAP
 from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeImport,
@@ -284,7 +284,9 @@ def create_employee_by_xlsx(
     employee = PayrollEmployee(
         **employee_in.model_dump(exclude={"department_code", "position_code"})
     )
-    employee_db = retrieve_employee_by_code(db_session=db_session, code=employee.code)
+    employee_db = retrieve_employee_by_code(
+        db_session=db_session, employee_code=employee.code
+    )
     if employee_db:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -292,14 +294,15 @@ def create_employee_by_xlsx(
         )
     if employee_in.department_code:
         department = get_department_by_code(
-            db_session=db_session, code=employee_in.department_code
+            db_session=db_session, department_code=employee_in.department_code
         )
         employee.department_id = department.id
     if employee_in.position_code:
         position = get_position_by_code(
-            db_session=db_session, code=employee_in.position_code
+            db_session=db_session, position_code=employee_in.position_code
         )
         employee.position_id = position.id
+    employee.created_by = "admin"
     db_session.add(employee)
     db_session.commit()
     return employee
@@ -336,7 +339,7 @@ def upsert_employee(
 ) -> PayrollEmployee:
     """Creates or updates an employee based on the code."""
     employee_db = retrieve_employee_by_code(
-        db_session=db_session, code=employee_in.code
+        db_session=db_session, employee_code=employee_in.code
     )
     if employee_db:
         if not update_on_exists:
@@ -361,50 +364,18 @@ def uploadXLSX(
 
     df = pd.DataFrame(
         _data,
-        columns=[
-            "Code",
-            "Tên",
-            "Ngày sinh",
-            "Giới tính",
-            "Quốc tịch",
-            "Dân tộc",
-            "Tôn giáo",
-            "CCCD",
-            "Ngày cấp CCCD",
-            "Nơi cấp CCCD",
-            "Hộ khẩu thường trú",
-            "Địa chỉ thường trú",
-            "Địa chỉ tạm trú",
-            "Số điện thoại",
-            "Trình độ học vấn",
-            "Số tài khoản",
-            "Tên chủ tài khoản",
-            "Tên ngân hàng",
-            "Mã số thuế",
-            "Số sổ BHXH",
-            "Thông tin bảo hiểm y tế",
-            "Ngày vào làm",
-            "Ghi chú",
-            "Mã Phòng ban",
-            "Mã Chức vụ",
-            "Email",
-            "CV",
-        ],
+        columns=list(IMPORT_EMPLOYEES_EXCEL_MAP.values()),
     )
 
     # rename columns
     df.dropna(subset=["Code"], inplace=True)
+
     df = df.rename(columns={v: k for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
-    df = df.astype(DTYPES_MAP)
     # convert date columns to datetime
-    try:
-        df["date_of_birth"] = pd.to_datetime(df["date_of_birth"], errors="coerce")
-        df["cccd_date"] = pd.to_datetime(df["cccd_date"], errors="coerce")
-    except (ValueError, TypeError) as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail={"errors": [{"msg": str(e)}]},
-        )
+
+    date_columns = ["date_of_birth", "cccd_date"]
+    for col in date_columns:
+        df[col] = pd.to_datetime(df[col], errors="coerce")
 
     # Validate all rows before inserting
     employees_data = []
@@ -413,11 +384,18 @@ def uploadXLSX(
     for index, row in df.iterrows():
         try:
             if pd.isna(row["code"]):
-                log.warn(f"Skipping row {index + 2} due to NaN in 'Code'")
+                log.warn(f"Skipping row {index + 2} due to missing 'Code'")
                 continue
+
             employee_data = row.to_dict()
+
+            for key, value in employee_data.items():
+                if pd.isna(value):
+                    employee_data[key] = None
+
             employee = EmployeeImport.model_validate(employee_data)
             employees_data.append(employee)
+
         except ValidationError as e:
             errors.append(
                 {"row": index + 2, "errors": e.errors()}
