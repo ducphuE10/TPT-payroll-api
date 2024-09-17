@@ -26,16 +26,16 @@ def all(
     return contract_services.get_all(db_session=db_session)
 
 
-@contract_router.get("/{employee_code}", response_model=ContractRead)
+@contract_router.get("/{id}", response_model=ContractRead)
+def retrieve(*, db_session: DbSession, id: int):
+    return contract_services.get_one_by_id(db_session=db_session, id=id)
+
+
+@contract_router.get("/{employee_code}/active-contract", response_model=ContractRead)
 def retrieve_active(*, db_session: DbSession, employee_code: str, current_date: date):
     return contract_services.get_active_contract(
         db_session=db_session, employee_code=employee_code, current_date=current_date
     )
-
-
-@contract_router.get("/{id}", response_model=ContractRead)
-def retrieve(*, db_session: DbSession, id: int):
-    return contract_services.get_one_by_id(db_session=db_session, id=id)
 
 
 @contract_router.post("")
