@@ -26,6 +26,7 @@ class BenefitsRead(PayrollBase):
 
 class BenefitUpdate(PayrollBase):
     name: Optional[str] = None
+    type: Optional[BenefitType] = None
     count_salary: Optional[bool] = None
     value: Optional[float] = None
     description: Optional[str] = None
