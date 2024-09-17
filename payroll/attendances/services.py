@@ -11,8 +11,8 @@ from payroll.attendances.repositories import (
     retrieve_all_attendances,
     retrieve_attendance_by_employee_and_day,
     retrieve_attendance_by_id,
-    retrieve_attendances_by_month,
     retrieve_employee_attendances,
+    retrieve_multi_attendances_by_month,
 )
 from payroll.attendances.schemas import (
     AttendanceCreate,
@@ -37,9 +37,8 @@ from payroll.schedules.services import (
     check_exist_schedule_by_employee_id,
 )
 
-log = logging.getLogger(__name__)
-
 # create, get, update, delete
+log = logging.getLogger(__name__)
 
 
 def check_exist_attendance_by_id(*, db_session, attendance_id: int):
@@ -123,9 +122,9 @@ def get_employee_attendances(*, db_session, employee_id: int):
 
 
 # GET /attendances/period?m=month&y=year
-def get_attendances_by_month(*, db_session, month: int, year: int):
+def get_multi_attendances_by_month(*, db_session, month: int, year: int):
     """Returns all attendances for a given month and year."""
-    list_attendances = retrieve_attendances_by_month(
+    list_attendances = retrieve_multi_attendances_by_month(
         db_session=db_session, month=month, year=year
     )
 
@@ -162,6 +161,7 @@ def create_attendance(*, db_session, attendance_in: AttendanceCreate):
     return attendance
 
 
+# POST /attendances/bulk
 def create_multi_attendances(
     *,
     db_session,
@@ -377,11 +377,11 @@ def attendance_handler(
         )
 
 
+# POST /attendances/import-excel
 def upload_excel(
     *,
     db_session,
     file: UploadFile = File(...),
-    # update_on_exists: bool = False
 ):
     file_path = BytesIO(file.file.read())
     df = pd.read_excel(file_path, skiprows=2)
@@ -440,5 +440,4 @@ def upload_excel(
         attendance_handler(
             db_session=db_session,
             attendance_in=attendance,
-            # update_on_exists=update_on_exists,
         )
