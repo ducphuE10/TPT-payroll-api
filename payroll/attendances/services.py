@@ -171,6 +171,9 @@ def create_multi_attendances(
     count = 0
     list_id = []
 
+    if attendance_list_in.to_date > date.today():
+        attendance_list_in.to_date = date.today()
+
     if attendance_list_in.apply_all:
         list_id = [
             employee.id

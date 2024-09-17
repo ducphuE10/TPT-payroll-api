@@ -570,7 +570,8 @@ def payroll_handler(
             benefit_value=benefits[f"{BenefitType.MEAL}"],
             work_days_standard=work_days_standard,
             work_hours_standard=work_hours_standard,
-            work_hours_real=work_hours["adequate_hours"],
+            work_hours_real=work_hours["adequate_hours"]
+            + overtime_hours["overtime_2_0x"],
         )
 
     benefit_salary = (
