@@ -14,10 +14,8 @@ from payroll.employees.repositories import (
     modify_employee,
     remove_employee,
     retrieve_all_employees,
-    retrieve_employee_by_cccd,
     retrieve_employee_by_code,
     retrieve_employee_by_id,
-    retrieve_employee_by_mst,
     search_employees_by_partial_name,
 )
 from payroll.exception.app_exception import AppException
@@ -32,6 +30,10 @@ from payroll.employees.schemas import (
     EmployeesScheduleUpdate,
 )
 from payroll.schedules.services import check_exist_schedule_by_id
+from payroll.utils.functions import (
+    check_exist_person_by_cccd,
+    check_exist_person_by_mst,
+)
 
 log = logging.getLogger(__name__)
 
@@ -50,30 +52,30 @@ def check_exist_employee_by_code(*, db_session, employee_code: str):
     )
 
 
-def check_exist_employee_by_cccd(
-    *, db_session, employee_cccd: str, exclude_employee_id: int = None
-):
-    """Check if employee exists in the database."""
-    return bool(
-        retrieve_employee_by_cccd(
-            db_session=db_session,
-            employee_cccd=employee_cccd,
-            exclude_employee_id=exclude_employee_id,
-        )
-    )
+# def check_exist_employee_by_cccd(
+#     *, db_session, employee_cccd: str, exclude_employee_id: int = None
+# ):
+#     """Check if employee exists in the database."""
+#     return bool(
+#         retrieve_employee_by_cccd(
+#             db_session=db_session,
+#             employee_cccd=employee_cccd,
+#             exclude_employee_id=exclude_employee_id,
+#         )
+#     )
 
 
-def check_exist_employee_by_mst(
-    *, db_session, employee_mst: str, exclude_employee_id: int = None
-):
-    """Check if employee exists in the database."""
-    return bool(
-        retrieve_employee_by_mst(
-            db_session=db_session,
-            employee_mst=employee_mst,
-            exclude_employee_id=exclude_employee_id,
-        )
-    )
+# def check_exist_employee_by_mst(
+#     *, db_session, employee_mst: str, exclude_employee_id: int = None
+# ):
+#     """Check if employee exists in the database."""
+#     return bool(
+#         retrieve_employee_by_mst(
+#             db_session=db_session,
+#             employee_mst=employee_mst,
+#             exclude_employee_id=exclude_employee_id,
+#         )
+#     )
 
 
 def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
@@ -96,14 +98,18 @@ def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "employee")
 
-    if check_exist_employee_by_cccd(
-        db_session=db_session, employee_cccd=employee_in.cccd
-    ):
+    # if check_exist_employee_by_cccd(
+    #     db_session=db_session, employee_cccd=employee_in.cccd
+    # ):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
+
+    # if check_exist_employee_by_mst(db_session=db_session, employee_mst=employee_in.mst):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
+    if check_exist_person_by_cccd(db_session=db_session, cccd=employee_in.cccd):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
 
-    if check_exist_employee_by_mst(db_session=db_session, employee_mst=employee_in.mst):
+    if check_exist_person_by_mst(db_session=db_session, mst=employee_in.mst):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
-
     return True
 
 
@@ -125,20 +131,32 @@ def validate_update_employee(
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
 
-    if employee_in.cccd and check_exist_employee_by_cccd(
+    # if employee_in.cccd and check_exist_employee_by_cccd(
+    #     db_session=db_session,
+    #     employee_cccd=employee_in.cccd,
+    #     exclude_employee_id=employee_id,
+    # ):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
+
+    # if employee_in.mst and check_exist_employee_by_mst(
+    #     db_session=db_session,
+    #     employee_mst=employee_in.mst,
+    #     exclude_employee_id=employee_id,
+    # ):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
+    if employee_in.cccd and check_exist_person_by_cccd(
         db_session=db_session,
-        employee_cccd=employee_in.cccd,
-        exclude_employee_id=employee_id,
+        cccd=employee_in.cccd,
+        exclude_id=employee_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
 
-    if employee_in.mst and check_exist_employee_by_mst(
+    if employee_in.mst and check_exist_person_by_mst(
         db_session=db_session,
-        employee_mst=employee_in.mst,
-        exclude_employee_id=employee_id,
+        mst=employee_in.mst,
+        exclude_id=employee_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
-
     return True
 
 
@@ -382,7 +400,6 @@ def uploadXLSX(
     try:
         df["date_of_birth"] = pd.to_datetime(df["date_of_birth"], errors="coerce")
         df["cccd_date"] = pd.to_datetime(df["cccd_date"], errors="coerce")
-        df["start_work"] = pd.to_datetime(df["start_work"], errors="coerce")
     except (ValueError, TypeError) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,

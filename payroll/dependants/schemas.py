@@ -3,7 +3,7 @@ from typing import List, Optional
 from payroll.utils.models import Gender, Nationality, Pagination, PayrollBase
 
 
-class DependentPersonBase(PayrollBase):
+class DependantBase(PayrollBase):
     code: str  # required
     name: str  # required
     employee_id: int
@@ -30,21 +30,21 @@ class DependentPersonBase(PayrollBase):
     email: Optional[str] = None
 
 
-class DependentPersonRead(DependentPersonBase):
+class DependantRead(DependantBase):
     id: int
     created_at: datetime
 
 
-class DependentPersonsRead(PayrollBase):
+class DependantsRead(PayrollBase):
     count: int
-    data: list[DependentPersonRead] = []
+    data: list[DependantRead] = []
 
 
-class DependentPersonCreate(DependentPersonBase):
+class DependantCreate(DependantBase):
     pass
 
 
-class DependentPersonUpdate(PayrollBase):
+class DependantUpdate(PayrollBase):
     name: Optional[str] = None
     date_of_birth: Optional[date] = None
     gender: Optional[Gender] = None
@@ -69,5 +69,5 @@ class DependentPersonUpdate(PayrollBase):
     email: Optional[str] = None
 
 
-class DependentPersonPagination(Pagination):
-    items: List[DependentPersonRead] = []
+class DependantPagination(Pagination):
+    items: List[DependantRead] = []

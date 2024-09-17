@@ -5,19 +5,21 @@ from payroll.dependants.repositories import (
     modify_dependant,
     remove_dependant,
     retrieve_all_dependants,
-    retrieve_dependant_by_cccd,
     retrieve_dependant_by_code,
     retrieve_dependant_by_id,
-    retrieve_dependant_by_mst,
     search_dependants_by_partial_name,
     retrieve_all_dependants_by_employee_id,
 )
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
-from payroll.models import PayrollDependentPerson
+from payroll.models import PayrollDependant
 from payroll.dependants.schemas import (
-    DependentPersonCreate,
-    DependentPersonUpdate,
+    DependantCreate,
+    DependantUpdate,
+)
+from payroll.utils.functions import (
+    check_exist_person_by_cccd,
+    check_exist_person_by_mst,
 )
 
 log = logging.getLogger(__name__)
@@ -39,68 +41,84 @@ def check_exist_dependant_by_code(*, db_session, dependant_code: str):
     )
 
 
-def check_exist_dependant_by_cccd(
-    *, db_session, dependant_cccd: str, exclude_dependant_id: int = None
-):
-    """Check if dependant exists in the database."""
-    return bool(
-        retrieve_dependant_by_cccd(
-            db_session=db_session,
-            dependant_cccd=dependant_cccd,
-            exclude_dependant_id=exclude_dependant_id,
-        )
-    )
+# def check_exist_dependant_by_cccd(
+#     *, db_session, dependant_cccd: str, exclude_dependant_id: int = None
+# ):
+#     """Check if dependant exists in the database."""
+#     return bool(
+#         retrieve_dependant_by_cccd(
+#             db_session=db_session,
+#             dependant_cccd=dependant_cccd,
+#             exclude_dependant_id=exclude_dependant_id,
+#         )
+#     )
 
 
-def check_exist_dependant_by_mst(
-    *, db_session, dependant_mst: str, exclude_dependant_id: int = None
-):
-    """Check if dependant exists in the database."""
-    return bool(
-        retrieve_dependant_by_mst(
-            db_session=db_session,
-            dependant_mst=dependant_mst,
-            exclude_dependant_id=exclude_dependant_id,
-        )
-    )
+# def check_exist_dependant_by_mst(
+#     *, db_session, dependant_mst: str, exclude_dependant_id: int = None
+# ):
+#     """Check if dependant exists in the database."""
+#     return bool(
+#         retrieve_dependant_by_mst(
+#             db_session=db_session,
+#             dependant_mst=dependant_mst,
+#             exclude_dependant_id=exclude_dependant_id,
+#         )
+#     )
 
 
-def validate_create_dependant(*, db_session, dependant_in: DependentPersonCreate):
+def validate_create_dependant(*, db_session, dependant_in: DependantCreate):
     if check_exist_dependant_by_code(
         db_session=db_session, dependant_code=dependant_in.code
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "dependent person")
 
-    if check_exist_dependant_by_cccd(
-        db_session=db_session, dependant_cccd=dependant_in.cccd
-    ):
+    # if check_exist_dependant_by_cccd(
+    #     db_session=db_session, dependant_cccd=dependant_in.cccd
+    # ):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
+
+    # if check_exist_dependant_by_mst(
+    #     db_session=db_session, dependant_mst=dependant_in.mst
+    # ):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
+    if check_exist_person_by_cccd(db_session=db_session, cccd=dependant_in.cccd):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
 
-    if check_exist_dependant_by_mst(
-        db_session=db_session, dependant_mst=dependant_in.mst
-    ):
+    if check_exist_person_by_mst(db_session=db_session, mst=dependant_in.mst):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
-
     return True
 
 
 def validate_update_dependant(
-    *, db_session, dependant_id: int, dependant_in: DependentPersonUpdate
+    *, db_session, dependant_id: int, dependant_in: DependantUpdate
 ):
-    if dependant_in.cccd and check_exist_dependant_by_cccd(
+    # if dependant_in.cccd and check_exist_dependant_by_cccd(
+    #     db_session=db_session,
+    #     dependant_cccd=dependant_in.cccd,
+    #     exclude_dependant_id=dependant_id,
+    # ):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
+
+    # if dependant_in.mst and check_exist_dependant_by_mst(
+    #     db_session=db_session,
+    #     dependant_mst=dependant_in.mst,
+    #     exclude_dependant_id=dependant_id,
+    # ):
+    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
+    if dependant_in.cccd and check_exist_person_by_cccd(
         db_session=db_session,
-        dependant_cccd=dependant_in.cccd,
-        exclude_dependant_id=dependant_id,
+        cccd=dependant_in.cccd,
+        exclude_id=dependant_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
 
-    if dependant_in.mst and check_exist_dependant_by_mst(
+    if dependant_in.mst and check_exist_person_by_mst(
         db_session=db_session,
-        dependant_mst=dependant_in.mst,
-        exclude_dependant_id=dependant_id,
+        mst=dependant_in.mst,
+        exclude_id=dependant_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
-
     return True
 
 
@@ -137,7 +155,7 @@ def get_all_dependants_by_employee_id(*, db_session, employee_id: int):
 
 
 # POST /dependants
-def create_dependant(*, db_session, dependant_in: DependentPersonCreate):
+def create_dependant(*, db_session, dependant_in: DependantCreate):
     """Creates a new dependant."""
     if validate_create_dependant(db_session=db_session, dependant_in=dependant_in):
         try:
@@ -151,9 +169,7 @@ def create_dependant(*, db_session, dependant_in: DependentPersonCreate):
 
 
 # PUT /dependants/{dependant_id}
-def update_dependant(
-    *, db_session, dependant_id: int, dependant_in: DependentPersonUpdate
-):
+def update_dependant(*, db_session, dependant_id: int, dependant_in: DependantUpdate):
     """Updates a dependant with the given data."""
     if not check_exist_dependant_by_id(
         db_session=db_session, dependant_id=dependant_id
@@ -197,6 +213,6 @@ def delete_dependant(*, db_session, dependant_id: int):
     return removed_dependant
 
 
-def search_dependant_by_name(*, db_session, name: str) -> PayrollDependentPerson:
+def search_dependant_by_name(*, db_session, name: str) -> PayrollDependant:
     dependants = search_dependants_by_partial_name(db_session=db_session, name=name)
     return dependants

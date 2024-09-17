@@ -28,7 +28,6 @@ class EmployeeBase(PayrollBase):
     mst: str  # required
     kcb_number: Optional[str] = None
     hospital_info: Optional[str] = None
-    start_work: Optional[date] = None
     note: Optional[str] = None
     department_id: int  # required
     position_id: int  # required
@@ -75,7 +74,6 @@ class EmployeeUpdate(PayrollBase):
     mst: Optional[str] = None
     kcb_number: Optional[str] = None
     hospital_info: Optional[str] = None
-    start_work: Optional[date] = None
     note: Optional[str] = None
     department_id: Optional[int] = None
     position_id: Optional[int] = None

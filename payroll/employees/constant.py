@@ -20,7 +20,6 @@ IMPORT_EMPLOYEES_EXCEL_MAP = {
     "mst": "Mã số thuế",
     "kcb_number": "Số sổ BHXH",
     "hospital_info": "Thông tin bảo hiểm y tế",
-    "start_work": "Ngày vào làm",
     "note": "Ghi chú",
     "department_code": "Mã Phòng ban",
     "position_code": "Mã Chức vụ",
@@ -51,7 +50,6 @@ DTYPES_MAP = {
     "mst": str,
     "kcb_number": str,
     "hospital_info": str,
-    "start_work": str,  # Dates are usually read as strings initially
     "note": str,
     "department_code": str,
     "position_code": str,

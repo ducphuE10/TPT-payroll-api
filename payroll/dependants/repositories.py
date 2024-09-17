@@ -3,70 +3,66 @@ import logging
 from sqlalchemy import func
 
 from payroll.dependants.schemas import (
-    DependentPersonCreate,
-    DependentPersonUpdate,
+    DependantCreate,
+    DependantUpdate,
 )
-from payroll.models import PayrollDependentPerson
+from payroll.models import PayrollDependant
 
 # add, retrieve, modify, remove
 log = logging.getLogger(__name__)
 
 
 # GET /dependants/{dependant_id}
-def retrieve_dependant_by_id(
-    *, db_session, dependant_id: int
-) -> PayrollDependentPerson:
+def retrieve_dependant_by_id(*, db_session, dependant_id: int) -> PayrollDependant:
     """Returns a dependant based on the given id."""
     return (
-        db_session.query(PayrollDependentPerson)
-        .filter(PayrollDependentPerson.id == dependant_id)
+        db_session.query(PayrollDependant)
+        .filter(PayrollDependant.id == dependant_id)
         .first()
     )
 
 
-def retrieve_dependant_by_code(
-    *, db_session, dependant_code: str
-) -> PayrollDependentPerson:
+def retrieve_dependant_by_code(*, db_session, dependant_code: str) -> PayrollDependant:
     """Returns a dependant based on the given code."""
     return (
-        db_session.query(PayrollDependentPerson)
-        .filter(PayrollDependentPerson.code == dependant_code)
+        db_session.query(PayrollDependant)
+        .filter(PayrollDependant.code == dependant_code)
         .first()
     )
 
 
 def retrieve_dependant_by_cccd(
     *, db_session, dependant_cccd: str, exclude_dependant_id: int = None
-) -> PayrollDependentPerson:
+) -> PayrollDependant:
     """Returns a dependant based on the given code."""
-    query = db_session.query(PayrollDependentPerson).filter(
-        PayrollDependentPerson.cccd == dependant_cccd
+    query = db_session.query(PayrollDependant).filter(
+        PayrollDependant.cccd == dependant_cccd
     )
     if exclude_dependant_id:
-        query = query.filter(PayrollDependentPerson.id != exclude_dependant_id)
+        query = query.filter(PayrollDependant.id != exclude_dependant_id)
 
     return query.first()
 
 
 def retrieve_dependant_by_mst(
     *, db_session, dependant_mst: str, exclude_dependant_id: int = None
-) -> PayrollDependentPerson:
+) -> PayrollDependant:
     """Returns a dependant based on the given code."""
-    query = db_session.query(PayrollDependentPerson).filter(
-        PayrollDependentPerson.mst == dependant_mst
+    query = db_session.query(PayrollDependant).filter(
+        PayrollDependant.mst == dependant_mst
     )
     if exclude_dependant_id:
-        query = query.filter(PayrollDependentPerson.id != exclude_dependant_id)
+        query = query.filter(PayrollDependant.id != exclude_dependant_id)
 
     return query.first()
 
 
 def retrieve_all_dependants_by_employee_id(
     *, db_session, employee_id: int
-) -> PayrollDependentPerson:
+) -> PayrollDependant:
     """Returns a dependant based on the given code."""
-    query = db_session.query(PayrollDependentPerson).filter(
-        PayrollDependentPerson.employee_id == employee_id
+    query = db_session.query(PayrollDependant).filter(
+        PayrollDependant.employee_id == employee_id
     )
     count = query.count()
     dependants = query.all()
@@ -75,9 +71,9 @@ def retrieve_all_dependants_by_employee_id(
 
 
 # GET /dependants
-def retrieve_all_dependants(*, db_session) -> PayrollDependentPerson:
+def retrieve_all_dependants(*, db_session) -> PayrollDependant:
     """Returns all dependants."""
-    query = db_session.query(PayrollDependentPerson)
+    query = db_session.query(PayrollDependant)
     count = query.count()
     dependants = query.all()
 
@@ -86,8 +82,8 @@ def retrieve_all_dependants(*, db_session) -> PayrollDependentPerson:
 
 def search_dependants_by_partial_name(*, db_session, name: str):
     """Searches for dependants based on a partial name match (case-insensitive)."""
-    query = db_session.query(PayrollDependentPerson).filter(
-        func.lower(PayrollDependentPerson.name).like(f"%{name.lower()}%")
+    query = db_session.query(PayrollDependant).filter(
+        func.lower(PayrollDependant.name).like(f"%{name.lower()}%")
     )
     count = query.count()
     dependants = query.all()
@@ -96,11 +92,9 @@ def search_dependants_by_partial_name(*, db_session, name: str):
 
 
 # POST /dependants
-def add_dependant(
-    *, db_session, dependant_in: DependentPersonCreate
-) -> PayrollDependentPerson:
+def add_dependant(*, db_session, dependant_in: DependantCreate) -> PayrollDependant:
     """Creates a new dependant."""
-    dependant = PayrollDependentPerson(**dependant_in.model_dump())
+    dependant = PayrollDependant(**dependant_in.model_dump())
     dependant.created_by = "admin"
     db_session.add(dependant)
 
@@ -109,12 +103,12 @@ def add_dependant(
 
 # PUT /dependants/{dependant_id}
 def modify_dependant(
-    *, db_session, dependant_id: int, dependant_in: DependentPersonUpdate
-) -> PayrollDependentPerson:
+    *, db_session, dependant_id: int, dependant_in: DependantUpdate
+) -> PayrollDependant:
     """Updates a dependant with the given data."""
     update_data = dependant_in.model_dump(exclude_unset=True)
-    query = db_session.query(PayrollDependentPerson).filter(
-        PayrollDependentPerson.id == dependant_id
+    query = db_session.query(PayrollDependant).filter(
+        PayrollDependant.id == dependant_id
     )
     query.update(update_data, synchronize_session=False)
     updated_dependant = query.first()
@@ -125,8 +119,8 @@ def modify_dependant(
 # DELETE /dependants/{dependant_id}
 def remove_dependant(*, db_session, dependant_id: int):
     """Deletes a dependant based on the given id."""
-    query = db_session.query(PayrollDependentPerson).filter(
-        PayrollDependentPerson.id == dependant_id
+    query = db_session.query(PayrollDependant).filter(
+        PayrollDependant.id == dependant_id
     )
     deleted_dependant = query.first()
     query.delete()
