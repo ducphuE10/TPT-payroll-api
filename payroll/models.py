@@ -341,25 +341,6 @@ class PayrollOvertime(Base, TimeStampMixin):
         return f"Overtime (employee_id={self.employee_id!r}, overtime_hours={self.overtime_hours!r}, day_overtime={self.day_overtime!r})"
 
 
-class PayrollOvertimeSchedule(Base, TimeStampMixin):
-    __tablename__ = "overtime_schedules"
-    id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
-    mon: Mapped[float]
-    tue: Mapped[float]
-    wed: Mapped[float]
-    thu: Mapped[float]
-    fri: Mapped[float]
-    sat: Mapped[float]
-    sun: Mapped[float]
-
-    created_by: Mapped[str] = mapped_column(String(30))  # required
-
-    def __repr__(self) -> str:
-        return f"Overtime schedule (name={self.name!r}, code={self.code!r})"
-
-
 class PayrollPayrollManagement(Base, TimeStampMixin):
     __tablename__ = "payroll_managements"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
