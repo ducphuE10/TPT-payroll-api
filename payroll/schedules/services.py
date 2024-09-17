@@ -128,11 +128,11 @@ def create_schedule_with_details(
         ):
             raise AppException(ErrorMessages.ResourceAlreadyExists(), "schedule")
         if not validate_shift_per_day(shift_per_day=schedule_in.shift_per_day):
-            AppException(ErrorMessages.InvalidInput(), "shifts per day")
+            raise AppException(ErrorMessages.InvalidInput(), "shifts per day")
 
-        schedule = add_schedule(db_session=db_session, schedule_in=schedule_in)
+        add_schedule(db_session=db_session, schedule_in=schedule_in)
 
-        schedule = retrieve_schedule_by_code(
+        added_schedule = retrieve_schedule_by_code(
             db_session=db_session, schedule_code=schedule_in.code
         )
 
@@ -141,7 +141,7 @@ def create_schedule_with_details(
         schedule_with_details = create_multi_schedule_details(
             db_session=db_session,
             schedule_detail_list_in=schedule_detail_list_in,
-            schedule_id=schedule.id,
+            schedule_id=added_schedule.id,
         )
         db_session.commit()
     except AppException as e:
@@ -184,6 +184,7 @@ def update_schedule_with_details(
                 db_session=db_session, schedule_id=schedule_id, schedule_in=schedule_in
             )
 
+        schedule_with_details = ModuleNotFoundError
         if schedule_detail_list_in:
             from payroll.schedule_details.services import update_multi_schedule_details
 

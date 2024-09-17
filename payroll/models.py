@@ -121,7 +121,6 @@ class PayrollEmployee(Base, TimeStampMixin):
     mst: Mapped[str] = mapped_column(String(30), unique=True)  # required
     kcb_number: Mapped[Optional[str]] = mapped_column(String(30))
     hospital_info: Mapped[Optional[str]] = mapped_column(String(255))
-    start_work: Mapped[Optional[date]]
     note: Mapped[Optional[str]] = mapped_column(String(255))
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
     department: Mapped["PayrollDepartment"] = relationship(
@@ -159,8 +158,8 @@ class PayrollEmployee(Base, TimeStampMixin):
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="employee"
     )
-    dependants: Mapped[List["PayrollDependentPerson"]] = relationship(
-        "PayrollDependentPerson",
+    dependants: Mapped[List["PayrollDependant"]] = relationship(
+        "PayrollDependant",
         back_populates="employee",
         cascade="all, delete-orphan",
     )
@@ -414,7 +413,7 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
         return f"Payroll (employee_id={self.employee_id!r}, value={self.net_income!r}, month={self.month!r})"
 
 
-class PayrollDependentPerson(Base, TimeStampMixin):
+class PayrollDependant(Base, TimeStampMixin):
     __tablename__ = "dependants"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(10), unique=True)  # required

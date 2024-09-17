@@ -7,6 +7,15 @@ import logging
 from typing import Annotated
 from fastapi.security import APIKeyHeader
 
+from payroll.dependants.repositories import (
+    retrieve_dependant_by_cccd,
+    retrieve_dependant_by_mst,
+)
+from payroll.employees.repositories import (
+    retrieve_employee_by_cccd,
+    retrieve_employee_by_mst,
+)
+
 logger = logging.getLogger(__name__)
 
 
@@ -47,3 +56,41 @@ def get_error_message_dict():
             "ERR_WORK_LEAVE_STATE": "Invalid work or leave state.",
         },
     }
+
+
+def check_exist_person_by_cccd(
+    *,
+    db_session,
+    cccd: str,
+    exclude_id: int = None,
+):
+    employee = retrieve_employee_by_cccd(
+        db_session=db_session,
+        employee_cccd=cccd,
+        exclude_employee_id=exclude_id,
+    )
+    dependant = retrieve_dependant_by_cccd(
+        db_session=db_session,
+        dependant_cccd=cccd,
+        exclude_dependant_id=exclude_id,
+    )
+    return bool(employee or dependant)
+
+
+def check_exist_person_by_mst(
+    *,
+    db_session,
+    mst: str,
+    exclude_id: int = None,
+):
+    employee = retrieve_employee_by_mst(
+        db_session=db_session,
+        employee_mst=mst,
+        exclude_employee_id=exclude_id,
+    )
+    dependant = retrieve_dependant_by_mst(
+        db_session=db_session,
+        dependant_mst=mst,
+        exclude_dependant_id=exclude_id,
+    )
+    return bool(employee or dependant)

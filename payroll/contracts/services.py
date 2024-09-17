@@ -1,8 +1,10 @@
 # from docx import Document
+from datetime import date
 from payroll.contract_benefit_assocs.schemas import CBAssocsUpdate
 from payroll.contracts.repositories import (
     get_contract_by_code,
     get_contract_by_id,
+    retrieve_active_contract,
     retrieve_contract_by_code,
 )
 from typing import List, Optional
@@ -28,6 +30,19 @@ def get_one_by_id(*, db_session, id: int) -> ContractRead:
         raise AppException(ErrorMessages.ResourceNotFound())
 
     return ContractRead.from_orm(contract)
+
+
+def get_active_contract(
+    *,
+    db_session,
+    employee_code: str,
+    current_date: date,
+) -> Optional[PayrollContract]:
+    active_contract = retrieve_active_contract(
+        db_session=db_session, employee_code=employee_code, current_date=current_date
+    )
+
+    return active_contract
 
 
 def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:

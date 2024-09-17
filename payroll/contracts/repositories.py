@@ -28,6 +28,24 @@ def retrieve_contract_by_code(*, db_session, contract_code: str):
     ).first()
 
 
+def retrieve_active_contract(*, db_session, employee_code: str, current_date: date):
+    return (
+        db_session.query(PayrollContract)
+        .filter(
+            and_(
+                PayrollContract.employee_code == employee_code,
+                PayrollContract.start_date <= current_date,
+                (PayrollContract.end_date >= current_date)
+                | (PayrollContract.end_date.is_(None)),
+                PayrollContract.is_current == True,  # noqa
+                PayrollContract.status
+                == "ACTIVE",  # Assuming 'ACTIVE' is a valid status
+            )
+        )
+        .first()
+    )
+
+
 def retrieve_contract_by_employee_id_and_period(
     *, db_session, employee_code: str, from_date: date, to_date: date
 ):
