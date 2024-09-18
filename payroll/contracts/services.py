@@ -1,19 +1,24 @@
 # from docx import Document
 from datetime import date
-from payroll.contract_benefit_assocs.schemas import CBAssocsUpdate
+
+# from payroll.contract_benefit_assocs.schemas import CBAssocsUpdate
 from payroll.contracts.repositories import (
     get_contract_by_code,
     get_contract_by_id,
-    retrieve_active_contract,
-    retrieve_contract_by_code,
+    # retrieve_active_contract,
+    retrieve_active_contracts,
+    retrieve_employee_active_contract,
 )
-from typing import List, Optional
-from payroll.benefits.schemas import BenefitCreate
+from typing import Optional
+
+# from payroll.benefits.schemas import BenefitCreate
 from payroll.contracts.schemas import (
+    BenefitsRead,
     ContractCreate,
     ContractRead,
     ContractUpdate,
     ContractsRead,
+    BenefitRead,
 )
 from payroll.exception import AppException, ErrorMessages
 from payroll.models import PayrollContract
@@ -32,17 +37,47 @@ def get_one_by_id(*, db_session, id: int) -> ContractRead:
     return ContractRead.from_orm(contract)
 
 
-def get_active_contract(
+def get_employee_active_contract(
     *,
     db_session,
     employee_code: str,
     current_date: date,
 ) -> Optional[PayrollContract]:
-    active_contract = retrieve_active_contract(
+    active_contract = retrieve_employee_active_contract(
         db_session=db_session, employee_code=employee_code, current_date=current_date
     )
 
+    if not active_contract:
+        raise AppException(ErrorMessages.ResourceNotFound(), "contract")
+
     return active_contract
+
+
+def get_active_benefits(
+    *,
+    db_session,
+    current_date: date,
+) -> Optional[PayrollContract]:
+    active_contracts = retrieve_active_contracts(
+        db_session=db_session, current_date=current_date
+    )
+    print("active_contracts", active_contracts)
+    count = 0
+    benefit_list = []
+    for contract in active_contracts:
+        benefit = BenefitRead(
+            id=contract.id,
+            meal_benefit=contract.meal_benefit,
+            transportation_benefit=contract.transportation_benefit,
+            housing_benefit=contract.housing_benefit,
+            toxic_benefit=contract.toxic_benefit,
+            phone_benefit=contract.phone_benefit,
+            attendant_benefit=contract.attendant_benefit,
+            employee=contract.employee,
+        )
+        count += 1
+        benefit_list.append(benefit)
+    return BenefitsRead(count=count, data=benefit_list)
 
 
 def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:
@@ -56,37 +91,37 @@ def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:
     return contract
 
 
-def create_contract_with_benefits(
-    *,
-    db_session,
-    contract_in: ContractCreate,
-    benefits_list_in: Optional[List[BenefitCreate]] = None,
-):
-    """Creates a new contract with benefits."""
-    if bool(get_contract_by_code(db_session=db_session, code=contract_in.code)):
-        raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
-    # def create(*, db_session, create_data: dict)
-    try:
-        contract = create(db_session=db_session, contract_in=contract_in)
+# def create_contract_with_benefits(
+#     *,
+#     db_session,
+#     contract_in: ContractCreate,
+#     benefits_list_in: Optional[List[BenefitCreate]] = None,
+# ):
+#     """Creates a new contract with benefits."""
+#     if bool(get_contract_by_code(db_session=db_session, code=contract_in.code)):
+#         raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
+#     # def create(*, db_session, create_data: dict)
+#     try:
+#         contract = create(db_session=db_session, contract_in=contract_in)
 
-        contract = retrieve_contract_by_code(
-            db_session=db_session, contract_code=contract_in.code
-        )
-        contract_with_benefits = None
-        if benefits_list_in:
-            from payroll.contract_benefit_assocs.services import create_multi_cbassocs
+#         contract = retrieve_contract_by_code(
+#             db_session=db_session, contract_code=contract_in.code
+#         )
+#         contract_with_benefits = None
+#         if benefits_list_in:
+#             from payroll.contract_benefit_assocs.services import create_multi_cbassocs
 
-            contract_with_benefits = create_multi_cbassocs(
-                db_session=db_session,
-                contract_id=contract.id,
-                cbassoc_list_in=benefits_list_in,
-            )
-            return {"contract_in": contract, "benefits_list_in": contract_with_benefits}
-        db_session.commit()
-    except AppException as e:
-        db_session.rollback()
-        raise AppException(ErrorMessages.ErrSM99999(), str(e))
-    return {"contract_in": contract}
+#             contract_with_benefits = create_multi_cbassocs(
+#                 db_session=db_session,
+#                 contract_id=contract.id,
+#                 cbassoc_list_in=benefits_list_in,
+#             )
+#             return {"contract_in": contract, "benefits_list_in": contract_with_benefits}
+#         db_session.commit()
+#     except AppException as e:
+#         db_session.rollback()
+#         raise AppException(ErrorMessages.ErrSM99999(), str(e))
+#     return {"contract_in": contract}
 
 
 def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
@@ -108,33 +143,33 @@ def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
     return ContractRead.from_orm(contract_db)
 
 
-def update_contract_with_benefits(
-    *,
-    db_session,
-    contract_id: int,
-    contract_in: Optional[ContractUpdate] = None,
-    cbassoc_list_in: Optional[List[CBAssocsUpdate]] = None,
-):
-    try:
-        if contract_in:
-            contract = update(
-                db_session=db_session, id=contract_id, contract_in=contract_in
-            )
+# def update_contract_with_benefits(
+#     *,
+#     db_session,
+#     contract_id: int,
+#     contract_in: Optional[ContractUpdate] = None,
+#     cbassoc_list_in: Optional[List[CBAssocsUpdate]] = None,
+# ):
+#     try:
+#         if contract_in:
+#             contract = update(
+#                 db_session=db_session, id=contract_id, contract_in=contract_in
+#             )
 
-        if cbassoc_list_in:
-            from payroll.contract_benefit_assocs.services import update_multi_cbassocs
+#         if cbassoc_list_in:
+#             from payroll.contract_benefit_assocs.services import update_multi_cbassocs
 
-            contract_with_benefits = update_multi_cbassocs(
-                db_session=db_session,
-                cbassoc_list_in=cbassoc_list_in,
-                contract_id=contract.id,
-            )
-        db_session.commit()
-    except AppException as e:
-        db_session.rollback()
-        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+#             contract_with_benefits = update_multi_cbassocs(
+#                 db_session=db_session,
+#                 cbassoc_list_in=cbassoc_list_in,
+#                 contract_id=contract.id,
+#             )
+#         db_session.commit()
+#     except AppException as e:
+#         db_session.rollback()
+#         raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
-    return contract_with_benefits
+#     return contract_with_benefits
 
 
 def delete(*, db_session, id: int) -> None:

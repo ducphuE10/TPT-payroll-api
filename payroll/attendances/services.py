@@ -21,7 +21,9 @@ from payroll.attendances.schemas import (
     TimeAttendanceHandlerBase,
     WorkhoursAttendanceHandlerBase,
 )
-from payroll.contracts.services import get_active_contract
+
+# from payroll.contracts.services import get_active_contract
+from payroll.contracts.services import get_employee_active_contract
 from payroll.employees.repositories import (
     retrieve_all_employees,
     retrieve_employee_by_code,
@@ -307,7 +309,7 @@ def attendance_handler(
     employee = retrieve_employee_by_id(
         db_session=db_session, employee_id=attendance_in.employee_id
     )
-    active_contract = get_active_contract(
+    active_contract = get_employee_active_contract(
         db_session=db_session,
         employee_code=employee.code,
         current_date=attendance_in.day_attendance,

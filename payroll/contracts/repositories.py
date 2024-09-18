@@ -4,6 +4,7 @@ from sqlalchemy import and_, or_
 
 from fastapi import HTTPException
 from payroll.models import PayrollContract
+from payroll.utils.models import Status
 
 log = logging.getLogger(__name__)
 
@@ -28,7 +29,9 @@ def retrieve_contract_by_code(*, db_session, contract_code: str):
     ).first()
 
 
-def retrieve_active_contract(*, db_session, employee_code: str, current_date: date):
+def retrieve_employee_active_contract(
+    *, db_session, employee_code: str, current_date: date
+):
     return (
         db_session.query(PayrollContract)
         .filter(
@@ -43,6 +46,22 @@ def retrieve_active_contract(*, db_session, employee_code: str, current_date: da
             )
         )
         .first()
+    )
+
+
+def retrieve_active_contracts(*, db_session, current_date: date):
+    return (
+        db_session.query(PayrollContract)
+        .filter(
+            and_(
+                PayrollContract.start_date <= current_date,
+                (PayrollContract.end_date >= current_date)
+                | (PayrollContract.end_date.is_(None)),
+                PayrollContract.is_current == True,  # noqa
+                PayrollContract.status == Status.ACTIVE,  # Assuming Status is an Enum
+            )
+        )
+        .all()  # Changed from .first() to .all()
     )
 
 

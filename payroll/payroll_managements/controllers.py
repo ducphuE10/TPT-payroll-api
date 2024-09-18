@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from payroll.payroll_managements.schemas import (
+    PayrollManagementBase,
     PayrollManagementRead,
     PayrollManagementCreate,
     PayrollManagementsCreate,
@@ -75,7 +76,7 @@ def create_multi(
 
 # DELETE /payroll_managements/{payroll_management_id}
 @payroll_management_router.delete(
-    "/{payroll_management_id}", response_model=PayrollManagementRead
+    "/{payroll_management_id}", response_model=PayrollManagementBase
 )
 def delete(*, db_session: DbSession, payroll_management_id: int):
     """Delete a payroll_management by id."""

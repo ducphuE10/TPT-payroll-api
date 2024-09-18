@@ -1,7 +1,7 @@
 from datetime import datetime, date
 from typing import List, Optional
 
-from payroll.contract_benefit_assocs.schemas import CBAssocsRead
+# from payroll.contract_benefit_assocs.schemas import CBAssocsRead
 from payroll.employees.schemas import EmployeeBase
 from payroll.utils.models import PaymentMethod, Status
 from payroll.utils.models import Pagination, PayrollBase
@@ -26,6 +26,12 @@ class ContractBase(PayrollBase):
     attachments: Optional[str] = None
     salary: float  # required
     basic_salary: float  # required
+    meal_benefit: float
+    transportation_benefit: float
+    housing_benefit: float
+    toxic_benefit: float
+    phone_benefit: float
+    attendant_benefit: float
     template: Optional[str] = None
 
 
@@ -35,9 +41,9 @@ class ContractRead(ContractBase):
     employee: EmployeeBase
 
 
-class ContractWithBenefitRead(PayrollBase):
-    contract_in: ContractBase
-    benefits_list_in: Optional[CBAssocsRead] = None
+# class ContractWithBenefitRead(PayrollBase):
+#     contract_in: ContractBase
+#     benefits_list_in: Optional[CBAssocsRead] = None
 
 
 class ContractsRead(PayrollBase):
@@ -66,7 +72,29 @@ class ContractUpdate(PayrollBase):
     attachments: Optional[str] = None
     salary: Optional[float] = None
     basic_salary: Optional[float] = None
+    meal_benefit: Optional[float] = None
+    transportation_benefit: Optional[float] = None
+    housing_benefit: Optional[float] = None
+    toxic_benefit: Optional[float] = None
+    phone_benefit: Optional[float] = None
+    attendant_benefit: Optional[float] = None
     template: Optional[str] = None
+
+
+class BenefitRead(PayrollBase):
+    id: int
+    meal_benefit: float
+    transportation_benefit: float
+    housing_benefit: float
+    toxic_benefit: float
+    phone_benefit: float
+    attendant_benefit: float
+    employee: EmployeeBase
+
+
+class BenefitsRead(PayrollBase):
+    count: int
+    data: list[BenefitRead] = []
 
 
 class ContractPagination(Pagination):
