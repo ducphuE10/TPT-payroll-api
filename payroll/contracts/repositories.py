@@ -9,24 +9,22 @@ from payroll.utils.models import Status
 log = logging.getLogger(__name__)
 
 
-def get_contract_by_id(*, db_session, id: int) -> PayrollContract:
+def retrieve_contract_by_id(*, db_session, contract_id: int) -> PayrollContract:
     """Returns a contract based on the given id."""
-
-    return db_session.query(PayrollContract).filter(PayrollContract.id == id).first()
-
-
-def get_contract_by_code(*, db_session, code: str) -> PayrollContract:
-    """Returns a contract based on the given code."""
-
     return (
-        db_session.query(PayrollContract).filter(PayrollContract.code == code).first()
+        db_session.query(PayrollContract)
+        .filter(PayrollContract.id == contract_id)
+        .first()
     )
 
 
-def retrieve_contract_by_code(*, db_session, contract_code: str):
+def retrieve_contract_by_code(*, db_session, contract_code: str) -> PayrollContract:
+    """Returns a contract based on the given code."""
     return (
-        db_session.query(PayrollContract).filter(PayrollContract.code == contract_code)
-    ).first()
+        db_session.query(PayrollContract)
+        .filter(PayrollContract.code == contract_code)
+        .first()
+    )
 
 
 def retrieve_employee_active_contract(
@@ -41,8 +39,7 @@ def retrieve_employee_active_contract(
                 (PayrollContract.end_date >= current_date)
                 | (PayrollContract.end_date.is_(None)),
                 PayrollContract.is_current == True,  # noqa
-                PayrollContract.status
-                == "ACTIVE",  # Assuming 'ACTIVE' is a valid status
+                PayrollContract.status == "ACTIVE",
             )
         )
         .first()
@@ -58,14 +55,14 @@ def retrieve_active_contracts(*, db_session, current_date: date):
                 (PayrollContract.end_date >= current_date)
                 | (PayrollContract.end_date.is_(None)),
                 PayrollContract.is_current == True,  # noqa
-                PayrollContract.status == Status.ACTIVE,  # Assuming Status is an Enum
+                PayrollContract.status == Status.ACTIVE,
             )
         )
-        .all()  # Changed from .first() to .all()
+        .all()
     )
 
 
-def retrieve_contract_by_employee_id_and_period(
+def retrieve_contract_by_employee_and_period(
     *, db_session, employee_code: str, from_date: date, to_date: date
 ):
     return (
@@ -84,41 +81,34 @@ def retrieve_contract_by_employee_id_and_period(
     )
 
 
-def get_all(*, db_session):
-    """Returns all tax policies."""
-    return db_session.query(PayrollContract).all()
+def retrieve_all_contracts(*, db_session):
+    contracts = db_session.query(PayrollContract).all()
+
+    return {"data": contracts}
 
 
-def create(*, db_session, create_data: dict) -> PayrollContract:
+def add_contract(*, db_session, create_data: dict) -> PayrollContract:
     """Creates a new contract."""
     contract = PayrollContract(**create_data)
     contract.created_by = "admin"
     db_session.add(contract)
+
     return contract
 
 
-def create_with_benefits(*, db_session, create_data: dict) -> PayrollContract:
-    """Creates a new contract."""
-    contract = PayrollContract(**create_data)
-    contract.created_by = "admin"
-    db_session.add(contract)
-    return contract
-
-
-def update(*, db_session, id: int, update_data: dict):
+def modify_contract(*, db_session, id: int, update_data: dict):
     """Updates a contract with the given data."""
     db_session.query(PayrollContract).filter(PayrollContract.id == id).update(
         update_data, synchronize_session=False
     )
 
 
-def delete(*, db_session, id: int) -> None:
+def remove_contract(*, db_session, id: int) -> None:
     """Deletes a contract based on the given id."""
     db_session.query(PayrollContract).filter(PayrollContract.id == id).delete()
-    db_session.commit()
 
 
-def get_template(*, db_session, code: str) -> PayrollContract:
+def get_contract_template(*, db_session, code: str) -> PayrollContract:
     """Returns a contract template based on the given code."""
     template = db_session.query(PayrollContract).filter_by(code=code).first()
     if not template:

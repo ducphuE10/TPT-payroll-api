@@ -10,7 +10,7 @@ from payroll.attendances.repositories import (
 #     retrieve_cbassocs_by_contract_id,
 # )
 from payroll.contracts.repositories import (
-    retrieve_contract_by_employee_id_and_period,
+    retrieve_contract_by_employee_and_period,
 )
 from payroll.dependants.repositories import (
     retrieve_all_dependants_by_employee_id,
@@ -87,7 +87,7 @@ def check_available_employee_create_payroll(
         return False
     first_day, last_day = get_month_boundaries(month=month, year=year)
 
-    contract = retrieve_contract_by_employee_id_and_period(
+    contract = retrieve_contract_by_employee_and_period(
         db_session=db_session,
         employee_code=employee_code,
         from_date=first_day,
@@ -459,7 +459,7 @@ def payroll_handler(
 
     first_day, last_day = get_month_boundaries(month=month, year=year)
 
-    contract = retrieve_contract_by_employee_id_and_period(
+    contract = retrieve_contract_by_employee_and_period(
         db_session=db_session,
         employee_code=employee_code,
         from_date=first_day,

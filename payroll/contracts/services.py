@@ -1,23 +1,19 @@
 # from docx import Document
 from datetime import date
+from typing import Optional
 
-# from payroll.contract_benefit_assocs.schemas import CBAssocsUpdate
 from payroll.contracts.repositories import (
-    get_contract_by_code,
-    get_contract_by_id,
-    # retrieve_active_contract,
+    retrieve_all_contracts,
+    retrieve_contract_by_code,
+    retrieve_contract_by_id,
     retrieve_active_contracts,
     retrieve_employee_active_contract,
 )
-from typing import Optional
-
-# from payroll.benefits.schemas import BenefitCreate
 from payroll.contracts.schemas import (
     BenefitsRead,
     ContractCreate,
     ContractRead,
     ContractUpdate,
-    ContractsRead,
     BenefitRead,
 )
 from payroll.exception import AppException, ErrorMessages
@@ -27,14 +23,14 @@ from payroll.contracts import repositories as contract_repo
 # from payroll.storage.services import read_file_from_minio
 
 
-def get_one_by_id(*, db_session, id: int) -> ContractRead:
+def get_contract_by_id(*, db_session, id: int) -> ContractRead:
     """Returns a contract based on the given id."""
-    contract = get_contract_by_id(db_session=db_session, id=id)
+    contract = retrieve_contract_by_id(db_session=db_session, contract_id=id)
 
     if not contract:
         raise AppException(ErrorMessages.ResourceNotFound())
 
-    return ContractRead.from_orm(contract)
+    return ContractRead.model_validate(contract)
 
 
 def get_employee_active_contract(
@@ -53,7 +49,7 @@ def get_employee_active_contract(
     return active_contract
 
 
-def get_active_benefits(
+def get_active_contract_benefits(
     *,
     db_session,
     current_date: date,
@@ -61,7 +57,6 @@ def get_active_benefits(
     active_contracts = retrieve_active_contracts(
         db_session=db_session, current_date=current_date
     )
-    print("active_contracts", active_contracts)
     count = 0
     benefit_list = []
     for contract in active_contracts:
@@ -80,13 +75,26 @@ def get_active_benefits(
     return BenefitsRead(count=count, data=benefit_list)
 
 
-def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:
+def get_all_contracts(*, db_session):
+    list_contracts = retrieve_all_contracts(db_session=db_session)
+    if not list_contracts:
+        raise AppException(ErrorMessages.ResourceNotFound(), "contract")
+
+    return list_contracts
+
+
+def create_contract(*, db_session, contract_in: ContractCreate) -> PayrollContract:
     """Creates a new contract."""
     contract = PayrollContract(**contract_in.model_dump())
-    contract_db = get_contract_by_code(db_session=db_session, code=contract.code)
+    contract_db = retrieve_contract_by_code(
+        db_session=db_session, contract_code=contract.code
+    )
     if contract_db:
         raise AppException(ErrorMessages.ResourceAlreadyExists())
-    contract_repo.create(db_session=db_session, create_data=contract_in.model_dump())
+    contract_repo.add_contract(
+        db_session=db_session, create_data=contract_in.model_dump()
+    )
+    db_session.commit()
 
     return contract
 
@@ -124,9 +132,11 @@ def create(*, db_session, contract_in: ContractCreate) -> PayrollContract:
 #     return {"contract_in": contract}
 
 
-def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
+def update_contract(
+    *, db_session, id: int, contract_in: ContractUpdate
+) -> ContractRead:
     """Updates a contract with the given data."""
-    contract_db = get_contract_by_id(db_session=db_session, id=id)
+    contract_db = retrieve_contract_by_id(db_session=db_session, id=id)
 
     if not contract_db:
         raise AppException(ErrorMessages.ResourceNotFound())
@@ -134,13 +144,15 @@ def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
     update_data = contract_in.model_dump(exclude_unset=True)
 
     try:
-        contract_repo.update(db_session=db_session, id=id, update_data=update_data)
+        contract_repo.modify_contract(
+            db_session=db_session, id=id, update_data=update_data
+        )
         db_session.commit()
     except AppException as e:
         db_session.rollback()
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
-    return ContractRead.from_orm(contract_db)
+    return ContractRead.model_validate(contract_db)
 
 
 # def update_contract_with_benefits(
@@ -172,18 +184,14 @@ def update(*, db_session, id: int, contract_in: ContractUpdate) -> ContractRead:
 #     return contract_with_benefits
 
 
-def delete(*, db_session, id: int) -> None:
+def delete_contract(*, db_session, id: int) -> None:
     """Deletes a contract based on the given id."""
-    contract = get_contract_by_id(db_session=db_session, id=id)
+    contract = retrieve_contract_by_id(db_session=db_session, contract_id=id)
     if not contract:
         raise AppException(ErrorMessages.ResourceNotFound())
-    contract_repo.delete(db_session=db_session, id=id)
 
-
-def get_all(*, db_session) -> ContractsRead:
-    """Returns all contracts."""
-    data = contract_repo.get_all(db_session=db_session)
-    return ContractsRead(data=data)
+    contract_repo.remove_contract(db_session=db_session, id=id)
+    db_session.commit()
 
 
 # def generate_contract_docx(*, db_session, id: int) -> io.BytesIO:
