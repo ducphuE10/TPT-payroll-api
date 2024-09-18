@@ -13,8 +13,6 @@ from sqlalchemy.orm import relationship
 
 from payroll.database.core import Base
 from payroll.utils.models import (
-    BenefitReplay,
-    BenefitType,
     Day,
     Gender,
     InsuranceType,
@@ -47,6 +45,12 @@ class PayrollContract(Base, TimeStampMixin):
     attachments: Mapped[Optional[str]] = mapped_column(String(255))
     salary: Mapped[float]  # required
     basic_salary: Mapped[float]  # required
+    meal_benefit: Mapped[float]
+    transportation_benefit: Mapped[float]
+    housing_benefit: Mapped[float]
+    toxic_benefit: Mapped[float]
+    phone_benefit: Mapped[float]
+    attendant_benefit: Mapped[float]
     template: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
@@ -54,9 +58,9 @@ class PayrollContract(Base, TimeStampMixin):
         "PayrollEmployee",
         backref="contracts",
     )
-    benefits: Mapped[List["PayrollCBAssoc"]] = relationship(
-        "PayrollCBAssoc", cascade="all, delete-orphan", back_populates="contract"
-    )
+    # benefits: Mapped[List["PayrollCBAssoc"]] = relationship(
+    #     "PayrollCBAssoc", cascade="all, delete-orphan", back_populates="contract"
+    # )
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="contract"
     )
@@ -283,39 +287,39 @@ class PayrollSchedule(Base, TimeStampMixin):
         return f"Schedule (name={self.name!r}, code={self.code!r})"
 
 
-class PayrollBenefit(Base, TimeStampMixin):
-    __tablename__ = "benefits"
-    id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
-    replay: Mapped[BenefitReplay] = mapped_column(default=BenefitReplay.DAILY)
-    type: Mapped[BenefitType]
-    count_salary: Mapped[bool]
-    value: Mapped[float]
-    description: Mapped[Optional[str]]
-    created_by: Mapped[str] = mapped_column(String(30))  # required
+# class PayrollBenefit(Base, TimeStampMixin):
+#     __tablename__ = "benefits"
+#     id: Mapped[int] = mapped_column(primary_key=True)  # required
+#     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+#     name: Mapped[str] = mapped_column(String(30))  # required
+#     replay: Mapped[BenefitReplay] = mapped_column(default=BenefitReplay.DAILY)
+#     type: Mapped[BenefitType]
+#     count_salary: Mapped[bool]
+#     value: Mapped[float]
+#     description: Mapped[Optional[str]]
+#     created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    def __repr__(self) -> str:
-        return f"Benefit (name={self.name!r}, code={self.code!r})"
+#     def __repr__(self) -> str:
+#         return f"Benefit (name={self.name!r}, code={self.code!r})"
 
 
-class PayrollCBAssoc(Base, TimeStampMixin):
-    __tablename__ = "contract_benefit_association"
-    id: Mapped[int] = mapped_column(primary_key=True)  # required
-    contract_id: Mapped[int] = mapped_column(
-        ForeignKey("contracts.id", ondelete="CASCADE")
-    )
-    benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"))
-    created_by: Mapped[str] = mapped_column(String(30))  # required
+# class PayrollCBAssoc(Base, TimeStampMixin):
+#     __tablename__ = "contract_benefit_association"
+#     id: Mapped[int] = mapped_column(primary_key=True)  # required
+#     contract_id: Mapped[int] = mapped_column(
+#         ForeignKey("contracts.id", ondelete="CASCADE")
+#     )
+#     benefit_id: Mapped[int] = mapped_column(ForeignKey("benefits.id"))
+#     created_by: Mapped[str] = mapped_column(String(30))  # required
 
-    benefit: Mapped["PayrollBenefit"] = relationship()
-    contract: Mapped["PayrollContract"] = relationship(
-        "PayrollContract",
-        back_populates="benefits",
-    )
+#     benefit: Mapped["PayrollBenefit"] = relationship()
+#     contract: Mapped["PayrollContract"] = relationship(
+#         "PayrollContract",
+#         back_populates="benefits",
+#     )
 
-    def __repr__(self) -> str:
-        return f"CBAssoc (contract_id={self.contract_id!r}, benefit_id={self.benefit_id!r})"
+#     def __repr__(self) -> str:
+#         return f"CBAssoc (contract_id={self.contract_id!r}, benefit_id={self.benefit_id!r})"
 
 
 class PayrollOvertime(Base, TimeStampMixin):

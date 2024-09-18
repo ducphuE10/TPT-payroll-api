@@ -4,10 +4,11 @@ from payroll.attendances.repositories import (
     retrieve_attendance_by_id,
     retrieve_employee_attendances_by_month,
 )
-from payroll.benefits.repositories import retrieve_benefit_by_id
-from payroll.contract_benefit_assocs.repositories import (
-    retrieve_cbassocs_by_contract_id,
-)
+
+# from payroll.benefits.repositories import retrieve_benefit_by_id
+# from payroll.contract_benefit_assocs.repositories import (
+#     retrieve_cbassocs_by_contract_id,
+# )
 from payroll.contracts.repositories import (
     retrieve_contract_by_employee_id_and_period,
 )
@@ -48,7 +49,7 @@ from payroll.schedule_details.repositories import (
     retrieve_schedule_details_by_schedule_id,
 )
 from payroll.shifts.repositories import retrieve_shift_by_id
-from payroll.utils.models import Day, BenefitType
+from payroll.utils.models import Day
 
 
 def check_exist_payroll_management_by_id(*, db_session, payroll_management_id: int):
@@ -266,7 +267,6 @@ def delete_payroll_management(*, db_session, payroll_management_id: int):
     except Exception as e:
         db_session.rollback()
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
-
     return payroll_management
 
 
@@ -414,18 +414,18 @@ def tax_handler(income: float):
     return round(tax, 0)
 
 
-def benefit_handler(*, db_session, contract_id):
-    cbassocs = retrieve_cbassocs_by_contract_id(
-        db_session=db_session, contract_id=contract_id
-    )["data"]
-    benefit_list = {}
-    for cbassoc in cbassocs:
-        benefit = retrieve_benefit_by_id(
-            db_session=db_session, benefit_id=cbassoc.benefit_id
-        )
-        benefit_list[f"{benefit.type}"] = benefit.value
+# def benefit_handler(*, db_session, contract_id):
+#     cbassocs = retrieve_cbassocs_by_contract_id(
+#         db_session=db_session, contract_id=contract_id
+#     )["data"]
+#     benefit_list = {}
+#     for cbassoc in cbassocs:
+#         benefit = retrieve_benefit_by_id(
+#             db_session=db_session, benefit_id=cbassoc.benefit_id
+#         )
+#         benefit_list[f"{benefit.type}"] = benefit.value
 
-    return benefit_list
+#     return benefit_list
 
 
 def benefit_salary_handler(
@@ -528,51 +528,45 @@ def payroll_handler(
         phone_benefit_salary
     ) = housing_benefit_salary = meal_benefit_salary = toxic_benefit_salary = 0
 
-    benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
-    if f"{BenefitType.ATTENDANT}" in benefits:
-        if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
-            attendant_benefit_salary = benefits[f"{BenefitType.ATTENDANT}"]
+    # benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
+    # if f"{BenefitType.ATTENDANT}" in benefits:
+    if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
+        attendant_benefit_salary = contract.attendant_benefit
 
-    if f"{BenefitType.TRANSPORTATION}" in benefits:
-        transportation_benefit_salary = benefit_salary_handler(
-            benefit_value=benefits[f"{BenefitType.TRANSPORTATION}"],
-            work_days_standard=work_days_standard,
-            work_hours_standard=work_hours_standard,
-            work_hours_real=work_hours["adequate_hours"],
-        )
+    transportation_benefit_salary = benefit_salary_handler(
+        benefit_value=contract.transportation_benefit,
+        work_days_standard=work_days_standard,
+        work_hours_standard=work_hours_standard,
+        work_hours_real=work_hours["adequate_hours"],
+    )
 
-    if f"{BenefitType.PHONE}" in benefits:
-        phone_benefit_salary = benefit_salary_handler(
-            benefit_value=benefits[f"{BenefitType.PHONE}"],
-            work_days_standard=work_days_standard,
-            work_hours_standard=work_hours_standard,
-            work_hours_real=work_hours["adequate_hours"],
-        )
+    phone_benefit_salary = benefit_salary_handler(
+        benefit_value=contract.phone_benefit,
+        work_days_standard=work_days_standard,
+        work_hours_standard=work_hours_standard,
+        work_hours_real=work_hours["adequate_hours"],
+    )
 
-    if f"{BenefitType.HOUSING}" in benefits:
-        housing_benefit_salary = benefit_salary_handler(
-            benefit_value=benefits[f"{BenefitType.HOUSING}"],
-            work_days_standard=work_days_standard,
-            work_hours_standard=work_hours_standard,
-            work_hours_real=work_hours["adequate_hours"],
-        )
+    housing_benefit_salary = benefit_salary_handler(
+        benefit_value=contract.housing_benefit,
+        work_days_standard=work_days_standard,
+        work_hours_standard=work_hours_standard,
+        work_hours_real=work_hours["adequate_hours"],
+    )
 
-    if f"{BenefitType.TOXIC}" in benefits:
-        toxic_benefit_salary = benefit_salary_handler(
-            benefit_value=benefits[f"{BenefitType.TOXIC}"],
-            work_days_standard=work_days_standard,
-            work_hours_standard=work_hours_standard,
-            work_hours_real=work_hours["adequate_hours"],
-        )
+    toxic_benefit_salary = benefit_salary_handler(
+        benefit_value=contract.toxic_benefit,
+        work_days_standard=work_days_standard,
+        work_hours_standard=work_hours_standard,
+        work_hours_real=work_hours["adequate_hours"],
+    )
 
-    if f"{BenefitType.MEAL}" in benefits:
-        meal_benefit_salary = benefit_salary_handler(
-            benefit_value=benefits[f"{BenefitType.MEAL}"],
-            work_days_standard=work_days_standard,
-            work_hours_standard=work_hours_standard,
-            work_hours_real=work_hours["adequate_hours"]
-            + overtime_hours["overtime_2_0x"],
-        )
+    meal_benefit_salary = benefit_salary_handler(
+        benefit_value=contract.meal_benefit,
+        work_days_standard=work_days_standard,
+        work_hours_standard=work_hours_standard,
+        work_hours_real=work_hours["adequate_hours"] + overtime_hours["overtime_2_0x"],
+    )
 
     benefit_salary = (
         transportation_benefit_salary
