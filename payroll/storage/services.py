@@ -1,45 +1,34 @@
-import base64
-import io
+import os
 from typing import Optional
-import boto3
-from io import BytesIO
 import uuid
-
+import base64
+from io import BytesIO
 from payroll.storage.schema import FileData
 
-MINIO_URL = "http://localhost:9000"
-MINIO_ACCESS_KEY = "minioadmin"
-MINIO_SECRET_KEY = "minioadmin"
-MINIO_BUCKET_NAME = "mybucket"
-
-# Initialize MinIO (S3-compatible) client
-s3_client = boto3.client(
-    "s3",
-    endpoint_url=MINIO_URL,
-    aws_access_key_id=MINIO_ACCESS_KEY,
-    aws_secret_access_key=MINIO_SECRET_KEY,
-)
-
-# Ensure the bucket exists (create it if it doesn't)
-try:
-    s3_client.head_bucket(Bucket=MINIO_BUCKET_NAME)
-except Exception:
-    s3_client.create_bucket(Bucket=MINIO_BUCKET_NAME)
+BASE_DIR = "/var/www/uploads"
 
 
-def upload_file_to_minio(
+# Ensure the base directory exists (create it if it doesn't)
+if not os.path.exists(BASE_DIR):
+    os.makedirs(BASE_DIR)
+
+
+def upload_file_to_local_server(
     file_content: bytes, filename: str, content_type: str
 ) -> FileData:
     try:
+        # Generate a unique file ID and define the full path to store the file
         file_id = str(uuid.uuid4())
-        file_key = f"uploads/{file_id}/{filename}"
+        file_path = os.path.join(BASE_DIR, f"{file_id}_{filename}")
 
         if isinstance(file_content, str):
             raise ValueError("file_content should be a bytes-like object, not a string")
 
-        # Upload the file to MinIO
-        file_in_memory = BytesIO(file_content)
-        s3_client.upload_fileobj(file_in_memory, MINIO_BUCKET_NAME, file_key)
+        # Save the file to the local file system
+        with open(file_path, "wb") as f:
+            f.write(file_content)
+
+        # Encode the file content in base64 (optional, for returning it)
         file_content_base64 = base64.b64encode(file_content).decode("utf-8")
 
         return FileData(
@@ -47,7 +36,7 @@ def upload_file_to_minio(
             content_type=content_type,
             file=file_content_base64,
             message="File upload successful.",
-            path=file_key,
+            path=file_path,
         )
     except Exception as e:
         return {
@@ -57,14 +46,20 @@ def upload_file_to_minio(
         }
 
 
-def read_file_from_minio(file_key: str) -> Optional[io.BytesIO]:
+def read_file_from_local_server(file_path: str) -> Optional[BytesIO]:
     try:
-        # Download the file from MinIO
-        file_in_memory = BytesIO()
-        s3_client.download_fileobj(MINIO_BUCKET_NAME, file_key, file_in_memory)
-        file_in_memory.seek(0)
+        # Read the file from the local file system
+        if not os.path.exists(file_path):
+            raise FileNotFoundError("File does not exist.")
 
+        file_in_memory = BytesIO()
+
+        with open(file_path, "rb") as f:
+            file_in_memory.write(f.read())
+
+        file_in_memory.seek(0)  # Reset the stream's position
         return file_in_memory
+
     except Exception as e:
-        print(f"Error downloading file: {str(e)}")
+        print(f"Error reading file: {str(e)}")
         return None
