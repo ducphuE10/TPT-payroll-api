@@ -139,7 +139,7 @@ def get_total_benefit_salary(*, db_session, month: int, year: int):
 
 
 def metrics_handler(*, db_session, month: int, year: int):
-    if get_number_payroll_documents(db_session=db_session, month=month, year=year):
+    if get_number_payroll_documents(db_session=db_session, month=month, year=year) != 0:
         return {
             "total_payroll_documents": get_number_payroll_documents(
                 db_session=db_session, month=month, year=year
