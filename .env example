@@ -8,8 +8,10 @@ POSTGRES_PASSWORD=postgres
 SUPERUSER=admin@admin.com
 SUPERUSER_PASSWORD=tpt@123
 
-MINIO_SERVER=localhost
-MINIO_PORT=9000
+# MINIO_URL=http://localhost:9000
+# MINIO_ACCESS_KEY=payrollminio
+# MINIO_SECRET_KEY=payrollminio
+# MINIO_BUCKET_NAME=payroll
 
 API_VERSION_PREFIX=/api/v1
 API_VERSION=0.1.0

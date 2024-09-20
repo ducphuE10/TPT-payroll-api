@@ -20,7 +20,7 @@ async def upload(file: UploadFile = File(...)):
     file_content = await file.read()
 
     # Pass the binary content to your storage service
-    result = storage_services.upload_file_to_minio(
+    result = storage_services.upload_file_to_local_server(
         file_content, file.filename, file.content_type
     )
 
