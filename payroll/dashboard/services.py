@@ -8,28 +8,41 @@ from payroll.payroll_managements.repositories import retrieve_number_of_payroll
 
 
 def get_number_payroll_documents(*, db_session, month: int, year: int):
-    return retrieve_number_of_payroll(db_session=db_session, month=month, year=year)
+    return round(
+        retrieve_number_of_payroll(db_session=db_session, month=month, year=year), -3
+    )
 
 
 def get_total_payroll_gross_income(*, db_session, month: int, year: int):
-    return retrieve_total_gross_income_by_period(
-        db_session=db_session, month=month, year=year
+    return round(
+        retrieve_total_gross_income_by_period(
+            db_session=db_session, month=month, year=year
+        ),
+        -3,
     )
 
 
 def get_total_payroll_tax(*, db_session, month: int, year: int):
-    return retrieve_total_tax_by_period(db_session=db_session, month=month, year=year)
+    return round(
+        retrieve_total_tax_by_period(db_session=db_session, month=month, year=year), -3
+    )
 
 
 def get_total_payroll_overtime_salary(*, db_session, month: int, year: int):
-    return retrieve_total_overtime_salary_by_period(
-        db_session=db_session, month=month, year=year
+    return round(
+        retrieve_total_overtime_salary_by_period(
+            db_session=db_session, month=month, year=year
+        ),
+        -3,
     )
 
 
 def get_total_benefit_salary(*, db_session, month: int, year: int):
-    return retrieve_total_benefit_salary_by_period(
-        db_session=db_session, month=month, year=year
+    return round(
+        retrieve_total_benefit_salary_by_period(
+            db_session=db_session, month=month, year=year
+        ),
+        -3,
     )
 
 
