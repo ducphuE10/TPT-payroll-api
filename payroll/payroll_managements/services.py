@@ -101,7 +101,7 @@ def check_available_employee_create_payroll(
 
 def get_number_payroll_documents(*, db_session, month: int, year: int):
     return round(
-        retrieve_number_of_payroll(db_session=db_session, month=month, year=year), -3
+        retrieve_number_of_payroll(db_session=db_session, month=month, year=year)
     )
 
 
