@@ -59,7 +59,7 @@ class ContractUpdate(PayrollBase):
     status: Optional[Status] = None
     description: Optional[str] = None
     number_of_months: Optional[str] = None
-    is_probation: Optional[str] = None
+    is_probation: Optional[bool] = None
     employee_code: Optional[str] = None
     ct_date: Optional[date] = None
     ct_code: Optional[str] = None
