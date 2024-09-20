@@ -96,9 +96,9 @@ def add_contract(*, db_session, create_data: dict) -> PayrollContract:
     return contract
 
 
-def modify_contract(*, db_session, id: int, update_data: dict):
+def modify_contract(*, db_session, contract_id: int, update_data: dict):
     """Updates a contract with the given data."""
-    db_session.query(PayrollContract).filter(PayrollContract.id == id).update(
+    db_session.query(PayrollContract).filter(PayrollContract.id == contract_id).update(
         update_data, synchronize_session=False
     )
 

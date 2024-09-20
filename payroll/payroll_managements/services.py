@@ -488,6 +488,8 @@ def payroll_handler(
         from_date=first_day,
         to_date=last_day,
     )
+    if not contract:
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
 
     if check_exist_payroll_management_by_information(
         db_session=db_session,
@@ -521,7 +523,6 @@ def payroll_handler(
         / work_hours_standard
         * work_hours["adequate_hours"]
     )
-
     # OVERTIME HOURS SALARY
     overtime_hours = overtime_hours_handler(
         db_session=db_session, employee_id=employee_id, month=month, year=year
@@ -610,6 +611,8 @@ def payroll_handler(
     employee_insurance = company_insurance = 0
     if apply_insurance:
         insurance = get_insurance_policy_by_id(db_session=db_session, id=insurance_id)
+        if not insurance:
+            raise AppException(ErrorMessages.ResourceNotFound, "insurance")
         employee_insurance = basic_salary * insurance.employee_percentage / 100
         company_insurance = basic_salary * insurance.company_percentage / 100
 
@@ -652,7 +655,7 @@ def payroll_handler(
         "month": month,
         "year": year,
         "salary": basic_salary,
-        "work_days": work_days_standard,
+        "work_days": round(work_hours["adequate_hours"] / 8, 1),
         "work_days_salary": work_days_salary,
         "overtime_1_5x_hours": overtime_hours["overtime_1_5x"],
         "overtime_1_5x_salary": overtime_1_5x_salary,

@@ -73,8 +73,10 @@ def create(*, db_session: DbSession, contract_in: ContractCreate):
 
 
 @contract_router.put("/{id}")
-def update(*, db_session: DbSession, id: int, contract_in: ContractUpdate):
-    return update_contract(db_session=db_session, id=id, contract_in=contract_in)
+def update(*, db_session: DbSession, contract_id: int, contract_in: ContractUpdate):
+    return update_contract(
+        db_session=db_session, contract_id=contract_id, contract_in=contract_in
+    )
 
 
 @contract_router.delete("/{id}")
