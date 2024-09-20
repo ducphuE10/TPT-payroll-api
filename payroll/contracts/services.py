@@ -133,10 +133,12 @@ def create_contract(*, db_session, contract_in: ContractCreate) -> PayrollContra
 
 
 def update_contract(
-    *, db_session, id: int, contract_in: ContractUpdate
+    *, db_session, contract_id: int, contract_in: ContractUpdate
 ) -> ContractRead:
     """Updates a contract with the given data."""
-    contract_db = retrieve_contract_by_id(db_session=db_session, id=id)
+    contract_db = retrieve_contract_by_id(
+        db_session=db_session, contract_id=contract_id
+    )
 
     if not contract_db:
         raise AppException(ErrorMessages.ResourceNotFound())
@@ -145,7 +147,7 @@ def update_contract(
 
     try:
         contract_repo.modify_contract(
-            db_session=db_session, id=id, update_data=update_data
+            db_session=db_session, contract_id=contract_id, update_data=update_data
         )
         db_session.commit()
     except AppException as e:
