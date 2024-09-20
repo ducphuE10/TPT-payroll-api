@@ -47,20 +47,30 @@ def get_total_benefit_salary(*, db_session, month: int, year: int):
 
 
 def dashboard_handler(*, db_session, month: int, year: int):
-    return {
-        "total_payroll_documents": get_number_payroll_documents(
-            db_session=db_session, month=month, year=year
-        ),
-        "total_gross_income": get_total_payroll_gross_income(
-            db_session=db_session, month=month, year=year
-        ),
-        "total_tax": get_total_payroll_tax(
-            db_session=db_session, month=month, year=year
-        ),
-        "total_overtime_salary": get_total_payroll_overtime_salary(
-            db_session=db_session, month=month, year=year
-        ),
-        "total_benefit_salary": get_total_benefit_salary(
-            db_session=db_session, month=month, year=year
-        ),
-    }
+    if get_number_payroll_documents(db_session=db_session, month=month, year=year):
+        return {
+            "total_payroll_documents": get_number_payroll_documents(
+                db_session=db_session, month=month, year=year
+            ),
+            "total_gross_income": get_total_payroll_gross_income(
+                db_session=db_session, month=month, year=year
+            ),
+            "total_tax": get_total_payroll_tax(
+                db_session=db_session, month=month, year=year
+            ),
+            "total_overtime_salary": get_total_payroll_overtime_salary(
+                db_session=db_session, month=month, year=year
+            ),
+            "total_benefit_salary": get_total_benefit_salary(
+                db_session=db_session, month=month, year=year
+            ),
+        }
+    else:
+        return
+        {
+            "total_payroll_documents": 0,
+            "total_gross_income": 0,
+            "total_tax": 0,
+            "total_overtime_salary": 0,
+            "total_benefit_salary": 0,
+        }
