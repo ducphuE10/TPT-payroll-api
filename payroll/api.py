@@ -21,7 +21,6 @@ from payroll.schedule_details.controllers import schedule_detail_router
 from payroll.overtimes.controllers import overtime_router
 from payroll.payroll_managements.controllers import payroll_management_router
 from payroll.dependants.controllers import dependant_router
-from payroll.dashboard.controllers import dashboard_router
 
 # from payroll.attendances_management.test3 import import_router
 from payroll.config import settings
@@ -77,7 +76,6 @@ router.include_router(
     prefix="/payroll_managements",
     tags=["payroll_managements"],
 )
-router.include_router(dashboard_router, prefix="/dashboards", tags=["dashboards"])
 
 
 api_router.include_router(
