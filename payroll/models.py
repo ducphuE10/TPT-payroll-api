@@ -73,20 +73,20 @@ class PayrollAddendum(Base, TimeStampMixin):
     name: Mapped[str] = mapped_column(String(30))  # required
     status: Mapped[Status]  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    contract_id: Mapped[str] = mapped_column(ForeignKey("contracts.code"))  # required
+    contract_id: Mapped[str] = mapped_column(ForeignKey("contracts.id"))  # required
     addendum_date: Mapped[date]  # required
     signed_date: Mapped[date]  # required
     start_date: Mapped[date]  # required
     payment_method: Mapped[PaymentMethod]  # required
     new_position_id: Mapped[int] = None
-    new_salary: Optional[Mapped[float]] = None  # required
-    new_basic_salary: Optional[Mapped[float]] = None  # required
-    new_meal_benefit: Optional[Mapped[float]] = None
-    new_transportation_benefit: Optional[Mapped[float]] = None
-    new_housing_benefit: Optional[Mapped[float]] = None
-    new_toxic_benefit: Optional[Mapped[float]] = None
-    new_phone_benefit: Optional[Mapped[float]] = None
-    new_attendant_benefit: Optional[Mapped[float]] = None
+    new_salary: Mapped[Optional[float]] = None  # required
+    new_basic_salary: Mapped[Optional[float]] = None  # required
+    new_meal_benefit: Mapped[Optional[float]] = None
+    new_transportation_benefit: Mapped[Optional[float]] = None
+    new_housing_benefit: Mapped[Optional[float]] = None
+    new_toxic_benefit: Mapped[Optional[float]] = None
+    new_phone_benefit: Mapped[Optional[float]] = None
+    new_attendant_benefit: Mapped[Optional[float]] = None
     template: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
