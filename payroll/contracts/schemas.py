@@ -75,20 +75,20 @@ class ContractUpdate(PayrollBase):
     template: Optional[str] = None
 
 
-# class BenefitRead(PayrollBase):
-#     id: int
-#     meal_benefit: float
-#     transportation_benefit: float
-#     housing_benefit: float
-#     toxic_benefit: float
-#     phone_benefit: float
-#     attendant_benefit: float
-#     employee: EmployeeBase
+class BenefitRead(PayrollBase):
+    id: int
+    meal_benefit: float
+    transportation_benefit: float
+    housing_benefit: float
+    toxic_benefit: float
+    phone_benefit: float
+    attendant_benefit: float
+    employee: EmployeeBase
 
 
-# class BenefitsRead(PayrollBase):
-#     count: int
-#     data: list[BenefitRead] = []
+class BenefitsRead(PayrollBase):
+    count: int
+    data: list[BenefitRead] = []
 
 
 class ContractPagination(Pagination):
