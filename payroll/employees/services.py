@@ -21,7 +21,7 @@ from payroll.employees.repositories import (
 from payroll.exception.app_exception import AppException
 from payroll.exception.error_message import ErrorMessages
 from payroll.models import PayrollEmployee
-from payroll.employees.constant import IMPORT_EMPLOYEES_EXCEL_MAP
+from payroll.employees.constant import DTYPES_MAP, IMPORT_EMPLOYEES_EXCEL_MAP
 from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeImport,
@@ -360,16 +360,8 @@ def uploadXLSX(
     *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
 ):
     data = BytesIO(file.file.read())
-    string_columns = [
-        "code",
-        "cccd",
-        "mst",
-        "phone",
-    ]  # Add any other columns that should be strings
-    dtype_dict = {col: str for col in string_columns}
 
-    _data = pd.read_excel(data, dtype=dtype_dict)
-
+    _data = pd.read_excel(data)
     df = pd.DataFrame(
         _data,
         columns=list(IMPORT_EMPLOYEES_EXCEL_MAP.values()),
@@ -380,6 +372,7 @@ def uploadXLSX(
 
     df = df.rename(columns={v: k for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
     # convert date columns to datetime
+    df = df.astype(DTYPES_MAP)
 
     date_columns = ["date_of_birth", "cccd_date"]
     for col in date_columns:
@@ -396,13 +389,16 @@ def uploadXLSX(
                 continue
 
             employee_data = row.to_dict()
-
+            print(employee_data)
             for key, value in employee_data.items():
-                if pd.isna(value):
+                if value == "nan" or value is pd.NaT:
                     employee_data[key] = None
+
+            print("employee_data", employee_data)
 
             employee = EmployeeImport.model_validate(employee_data)
             employees_data.append(employee)
+            print(employee)
 
         except ValidationError as e:
             errors.append(
@@ -416,7 +412,7 @@ def uploadXLSX(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"errors": errors},
         )
-
+    print("AAAAAA")
     # Insert all valid records into the database
     for employee_data in employees_data:
         upsert_employee(

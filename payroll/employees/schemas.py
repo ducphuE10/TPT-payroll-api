@@ -83,14 +83,14 @@ class EmployeeUpdate(PayrollBase):
 
 
 class EmployeeImport(PayrollBase):
-    code: str = None
-    name: Optional[str] = None
-    date_of_birth: Optional[date] = None
-    gender: Optional[Gender] = None
+    code: str
+    name: str
+    date_of_birth: date
+    gender: Gender
     nationality: Optional[Nationality] = None
     ethnic: Optional[str] = None
     religion: Optional[str] = None
-    cccd: Optional[str] = None
+    cccd: str
     cccd_date: Optional[date] = None
     cccd_place: Optional[str] = None
     domicile: Optional[str] = None
@@ -101,12 +101,12 @@ class EmployeeImport(PayrollBase):
     bank_account: Optional[str] = None
     bank_holder_name: Optional[str] = None
     bank_name: Optional[str] = None
-    mst: Optional[str] = None
+    mst: str
     kcb_number: Optional[str] = None
     hospital_info: Optional[str] = None
     note: Optional[str] = None
-    department_code: Optional[str] = None
-    position_code: Optional[str] = None
+    department_code: str
+    position_code: str
     email: Optional[str] = None
     cv: Optional[bytes] = None
 
