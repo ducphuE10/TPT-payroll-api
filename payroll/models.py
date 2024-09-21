@@ -34,13 +34,10 @@ class PayrollContract(Base, TimeStampMixin):
     number_of_months: Mapped[int] = mapped_column()  # required
     is_probation: Mapped[bool] = mapped_column()  # required
     employee_code: Mapped[str] = mapped_column(ForeignKey("employees.code"))  # required
-    ct_date: Mapped[date]  # required
-    ct_code: Mapped[str] = mapped_column(String(30))  # required
+    contract_date: Mapped[date]  # required
     signed_date: Mapped[date]  # required
     start_date: Mapped[date]  # required
     end_date: Mapped[Optional[date]]  # required
-    is_current: Mapped[bool]  # required
-    active_from: Mapped[date]  # required
     payment_method: Mapped[PaymentMethod]  # required
     attachments: Mapped[Optional[str]] = mapped_column(String(255))
     salary: Mapped[float]  # required
@@ -58,15 +55,48 @@ class PayrollContract(Base, TimeStampMixin):
         "PayrollEmployee",
         backref="contracts",
     )
-    # benefits: Mapped[List["PayrollCBAssoc"]] = relationship(
-    #     "PayrollCBAssoc", cascade="all, delete-orphan", back_populates="contract"
-    # )
+    addendums: Mapped[List["PayrollAddendum"]] = relationship(
+        "PayrollAddendum", cascade="all, delete-orphan", back_populates="contract"
+    )
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="contract"
     )
 
     def __repr__(self) -> str:
         return f"Contract (name={self.name!r})"
+
+
+class PayrollAddendum(Base, TimeStampMixin):
+    __tablename__ = "addendums"
+    id: Mapped[int] = mapped_column(primary_key=True)  # required
+    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(30))  # required
+    status: Mapped[Status]  # required
+    description: Mapped[Optional[str]] = mapped_column(String(255))
+    contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"))  # required
+    addendum_date: Mapped[date]  # required
+    signed_date: Mapped[date]  # required
+    start_date: Mapped[date]  # required
+    payment_method: Mapped[PaymentMethod]  # required
+    new_position_id: Mapped[int] = None
+    new_salary: Mapped[Optional[float]] = None  # required
+    new_basic_salary: Mapped[Optional[float]] = None  # required
+    new_meal_benefit: Mapped[Optional[float]] = None
+    new_transportation_benefit: Mapped[Optional[float]] = None
+    new_housing_benefit: Mapped[Optional[float]] = None
+    new_toxic_benefit: Mapped[Optional[float]] = None
+    new_phone_benefit: Mapped[Optional[float]] = None
+    new_attendant_benefit: Mapped[Optional[float]] = None
+    template: Mapped[Optional[str]] = mapped_column(String(255))
+    created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    contract: Mapped["PayrollContract"] = relationship(
+        "PayrollContract",
+        back_populates="addendums",
+    )
+
+    def __repr__(self) -> str:
+        return f"Addendum (name={self.name!r})"
 
 
 class PayrollDepartment(Base, TimeStampMixin):

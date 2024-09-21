@@ -15,13 +15,10 @@ class ContractBase(PayrollBase):
     number_of_months: int  # required
     is_probation: bool
     employee_code: str  # required
-    ct_date: date  # required
-    ct_code: str  # required
+    contract_date: date  # required
     signed_date: date  # required
     start_date: date  # required
     end_date: Optional[date]  # required
-    is_current: bool  # required
-    active_from: date  # required
     payment_method: PaymentMethod  # required
     attachments: Optional[str] = None
     salary: float  # required
@@ -61,13 +58,10 @@ class ContractUpdate(PayrollBase):
     number_of_months: Optional[str] = None
     is_probation: Optional[bool] = None
     employee_code: Optional[str] = None
-    ct_date: Optional[date] = None
-    ct_code: Optional[str] = None
+    contract_date: Optional[date] = None
     signed_date: Optional[date] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
-    is_current: Optional[bool] = None
-    active_from: Optional[date] = None
     payment_method: Optional[PaymentMethod] = None
     attachments: Optional[str] = None
     salary: Optional[float] = None

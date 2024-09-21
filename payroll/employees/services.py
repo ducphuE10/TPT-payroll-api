@@ -360,7 +360,15 @@ def uploadXLSX(
     *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
 ):
     data = BytesIO(file.file.read())
-    _data = pd.read_excel(data)
+    string_columns = [
+        "code",
+        "cccd",
+        "mst",
+        "phone",
+    ]  # Add any other columns that should be strings
+    dtype_dict = {col: str for col in string_columns}
+
+    _data = pd.read_excel(data, dtype=dtype_dict)
 
     df = pd.DataFrame(
         _data,
