@@ -73,7 +73,7 @@ class PayrollAddendum(Base, TimeStampMixin):
     name: Mapped[str] = mapped_column(String(30))  # required
     status: Mapped[Status]  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    contract_id: Mapped[str] = mapped_column(ForeignKey("employees.code"))  # required
+    contract_id: Mapped[str] = mapped_column(ForeignKey("contracts.code"))  # required
     addendum_date: Mapped[date]  # required
     signed_date: Mapped[date]  # required
     start_date: Mapped[date]  # required
