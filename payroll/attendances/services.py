@@ -389,7 +389,7 @@ def upload_excel(
     file: UploadFile = File(...),
 ):
     file_path = BytesIO(file.file.read())
-    df = pd.read_excel(file_path, skiprows=2)
+    df = pd.read_excel(file_path, skiprows=3)
     data = []
     for _, row in df.iterrows():
         employee_code = row["Mã nhân viên"]

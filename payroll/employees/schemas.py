@@ -53,6 +53,14 @@ class EmployeeCreate(EmployeeBase):
     pass
 
 
+class EmployeeDelete(PayrollBase):
+    id: int
+    code: str
+    name: str
+    department: str
+    position: str
+
+
 class EmployeeUpdate(PayrollBase):
     name: Optional[str] = None
     date_of_birth: Optional[date] = None

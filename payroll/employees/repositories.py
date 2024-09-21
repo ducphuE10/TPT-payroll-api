@@ -4,6 +4,7 @@ from sqlalchemy import func
 
 from payroll.employees.schemas import (
     EmployeeCreate,
+    EmployeeDelete,
     EmployeeUpdate,
 )
 from payroll.models import PayrollEmployee, PayrollSchedule
@@ -137,6 +138,13 @@ def remove_employee(*, db_session, employee_id: int):
     """Deletes a employee based on the given id."""
     query = db_session.query(PayrollEmployee).filter(PayrollEmployee.id == employee_id)
     deleted_employee = query.first()
+    deleted_employee = EmployeeDelete(
+        id=deleted_employee.id,
+        code=deleted_employee.name,
+        name=deleted_employee.name,
+        department=deleted_employee.department.name,
+        position=deleted_employee.position.name,
+    )
     query.delete()
 
     return deleted_employee

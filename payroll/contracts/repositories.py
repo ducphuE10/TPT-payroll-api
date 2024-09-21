@@ -38,7 +38,6 @@ def retrieve_employee_active_contract(
                 PayrollContract.start_date <= current_date,
                 (PayrollContract.end_date >= current_date)
                 | (PayrollContract.end_date.is_(None)),
-                PayrollContract.is_current == True,  # noqa
                 PayrollContract.status == "ACTIVE",
             )
         )
@@ -54,7 +53,6 @@ def retrieve_active_contracts(*, db_session, current_date: date):
                 PayrollContract.start_date <= current_date,
                 (PayrollContract.end_date >= current_date)
                 | (PayrollContract.end_date.is_(None)),
-                PayrollContract.is_current == True,  # noqa
                 PayrollContract.status == Status.ACTIVE,
             )
         )
