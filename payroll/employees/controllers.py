@@ -3,6 +3,7 @@ from fastapi import APIRouter, File, Form, UploadFile
 from payroll.attendances.services import get_employee_attendances
 from payroll.attendances.schemas import AttendancesRead
 from payroll.employees.schemas import (
+    EmployeeDelete,
     EmployeeRead,
     EmployeeCreate,
     EmployeesRead,
@@ -81,7 +82,7 @@ def update(*, db_session: DbSession, employee_id: int, employee_in: EmployeeUpda
 
 
 # DELETE /employees/{employee_id}
-@employee_router.delete("/{employee_id}", response_model=EmployeeRead)
+@employee_router.delete("/{employee_id}", response_model=EmployeeDelete)
 def delete(*, db_session: DbSession, employee_id: int):
     """Deletes a employee based on the given id."""
     return delete_employee(db_session=db_session, employee_id=employee_id)
