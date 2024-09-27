@@ -128,3 +128,18 @@ class BenefitType(str, Enum):
     PHONE = "phone"
     ATTENDANT = "attendant"
     TOXIC = "toxic"
+
+
+class IDDocType(str, Enum):
+    CMND = "cmnd"
+    CCCD = "cccd"
+    GIAYKHAISINH = "giaykhaisinh"
+    HOCHIEU = "hochieu"
+    OTHER = "other"
+
+
+class DependantRelationship(str, Enum):
+    CHILD = "child"
+    PARENT = "parent"
+    COUPLE = "couple"
+    OTHER = "other"

@@ -14,7 +14,9 @@ from sqlalchemy.orm import relationship
 from payroll.database.core import Base
 from payroll.utils.models import (
     Day,
+    DependantRelationship,
     Gender,
+    IDDocType,
     InsuranceType,
     Nationality,
     TaxType,
@@ -27,8 +29,8 @@ from payroll.utils.models import (
 class PayrollContract(Base, TimeStampMixin):
     __tablename__ = "contracts"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     status: Mapped[Status]  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
     number_of_months: Mapped[int] = mapped_column()  # required
@@ -69,8 +71,8 @@ class PayrollContract(Base, TimeStampMixin):
 class PayrollAddendum(Base, TimeStampMixin):
     __tablename__ = "addendums"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     status: Mapped[Status]  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
     contract_id: Mapped[int] = mapped_column(ForeignKey("contracts.id"))  # required
@@ -102,8 +104,8 @@ class PayrollAddendum(Base, TimeStampMixin):
 class PayrollDepartment(Base, TimeStampMixin):
     __tablename__ = "departments"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
@@ -118,8 +120,8 @@ class PayrollDepartment(Base, TimeStampMixin):
 class PayrollPosition(Base, TimeStampMixin):
     __tablename__ = "positions"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
@@ -134,8 +136,8 @@ class PayrollPosition(Base, TimeStampMixin):
 class PayrollEmployee(Base, TimeStampMixin):
     __tablename__ = "employees"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     date_of_birth: Mapped[date]  # required
     gender: Mapped[Gender]  # required
     nationality: Mapped[Optional[Nationality]]
@@ -205,8 +207,8 @@ class PayrollEmployee(Base, TimeStampMixin):
 class TaxPolicy(Base, TimeStampMixin):
     __tablename__ = "tax_policies"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     tax_type: Mapped[TaxType]
     description: Mapped[Optional[str]] = mapped_column(String(255))
     percentage: Mapped[Optional[float]] = mapped_column(Float)
@@ -220,8 +222,8 @@ class TaxPolicy(Base, TimeStampMixin):
 class InsurancePolicy(Base, TimeStampMixin):
     __tablename__ = "insurance_policies"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     based_on: Mapped[InsuranceType]
     company_percentage: Mapped[float] = mapped_column(Float)  # required
     employee_percentage: Mapped[float] = mapped_column(Float)  # required
@@ -286,8 +288,8 @@ class PayrollScheduleDetail(Base, TimeStampMixin):
 class PayrollShift(Base, TimeStampMixin):
     __tablename__ = "shifts"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     standard_work_hours: Mapped[float]  # required
     checkin: Mapped[Optional[time]] = mapped_column(Time)
     earliest_checkin: Mapped[Optional[time]] = mapped_column(Time)
@@ -304,8 +306,8 @@ class PayrollShift(Base, TimeStampMixin):
 class PayrollSchedule(Base, TimeStampMixin):
     __tablename__ = "schedules"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     shift_per_day: Mapped[int]
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
@@ -320,8 +322,8 @@ class PayrollSchedule(Base, TimeStampMixin):
 # class PayrollBenefit(Base, TimeStampMixin):
 #     __tablename__ = "benefits"
 #     id: Mapped[int] = mapped_column(primary_key=True)  # required
-#     code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-#     name: Mapped[str] = mapped_column(String(30))  # required
+#     code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+#     name: Mapped[str] = mapped_column(String(50))  # required
 #     replay: Mapped[BenefitReplay] = mapped_column(default=BenefitReplay.DAILY)
 #     type: Mapped[BenefitType]
 #     count_salary: Mapped[bool]
@@ -431,30 +433,18 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
 class PayrollDependant(Base, TimeStampMixin):
     __tablename__ = "dependants"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    code: Mapped[str] = mapped_column(String(10), unique=True)  # required
-    name: Mapped[str] = mapped_column(String(30))  # required
+    code: Mapped[str] = mapped_column(String(20), unique=True)  # required
+    name: Mapped[str] = mapped_column(String(50))  # required
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
     date_of_birth: Mapped[date]  # required
-    gender: Mapped[Gender]  # required
-    nationality: Mapped[Optional[Nationality]]
-    ethnic: Mapped[Optional[str]]
-    religion: Mapped[Optional[str]] = mapped_column(String(30))
-    cccd: Mapped[str] = mapped_column(String(30), unique=True)  # required
-    cccd_date: Mapped[Optional[date]]
-    cccd_place: Mapped[Optional[str]] = mapped_column(String(255))
-    domicile: Mapped[Optional[str]] = mapped_column(String(255))
-    permanent_addr: Mapped[Optional[str]] = mapped_column(String(255))
-    temp_addr: Mapped[Optional[str]] = mapped_column(String(255))
     phone: Mapped[Optional[str]] = mapped_column(String(30))
-    academic_level: Mapped[Optional[str]] = mapped_column(String(30))
-    bank_account: Mapped[Optional[str]] = mapped_column(String(30))
-    bank_holder_name: Mapped[Optional[str]] = mapped_column(String(30))
-    bank_name: Mapped[Optional[str]] = mapped_column(String(30))
     mst: Mapped[str] = mapped_column(String(30), unique=True)  # required
-    kcb_number: Mapped[Optional[str]] = mapped_column(String(30))
-    hospital_info: Mapped[Optional[str]] = mapped_column(String(255))
+    id_doc_type: Mapped[IDDocType]
+    doc_number: Mapped[str] = mapped_column(String(30))
+    relationship: Mapped[DependantRelationship]
+    deduction_from: Mapped[date]
+    deduction_to: Mapped[date]
     note: Mapped[Optional[str]] = mapped_column(String(255))
-    email: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     employee: Mapped["PayrollEmployee"] = relationship(
@@ -462,6 +452,4 @@ class PayrollDependant(Base, TimeStampMixin):
     )
 
     def __repr__(self) -> str:
-        return (
-            f"Dependent person (name={self.name!r}, (employee_id={self.employee_id!r}))"
-        )
+        return f"Dependant (name={self.name!r}, (employee_id={self.employee_id!r}))"

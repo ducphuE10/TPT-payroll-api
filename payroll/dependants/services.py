@@ -18,7 +18,6 @@ from payroll.dependants.schemas import (
     DependantUpdate,
 )
 from payroll.utils.functions import (
-    check_exist_person_by_cccd,
     check_exist_person_by_mst,
 )
 
@@ -41,49 +40,11 @@ def check_exist_dependant_by_code(*, db_session, dependant_code: str):
     )
 
 
-# def check_exist_dependant_by_cccd(
-#     *, db_session, dependant_cccd: str, exclude_dependant_id: int = None
-# ):
-#     """Check if dependant exists in the database."""
-#     return bool(
-#         retrieve_dependant_by_cccd(
-#             db_session=db_session,
-#             dependant_cccd=dependant_cccd,
-#             exclude_dependant_id=exclude_dependant_id,
-#         )
-#     )
-
-
-# def check_exist_dependant_by_mst(
-#     *, db_session, dependant_mst: str, exclude_dependant_id: int = None
-# ):
-#     """Check if dependant exists in the database."""
-#     return bool(
-#         retrieve_dependant_by_mst(
-#             db_session=db_session,
-#             dependant_mst=dependant_mst,
-#             exclude_dependant_id=exclude_dependant_id,
-#         )
-#     )
-
-
 def validate_create_dependant(*, db_session, dependant_in: DependantCreate):
     if check_exist_dependant_by_code(
         db_session=db_session, dependant_code=dependant_in.code
     ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists(), "dependent person")
-
-    # if check_exist_dependant_by_cccd(
-    #     db_session=db_session, dependant_cccd=dependant_in.cccd
-    # ):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
-
-    # if check_exist_dependant_by_mst(
-    #     db_session=db_session, dependant_mst=dependant_in.mst
-    # ):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
-    if check_exist_person_by_cccd(db_session=db_session, cccd=dependant_in.cccd):
-        raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
+        raise AppException(ErrorMessages.ResourceAlreadyExists(), "dependant")
 
     if check_exist_person_by_mst(db_session=db_session, mst=dependant_in.mst):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
@@ -93,26 +54,6 @@ def validate_create_dependant(*, db_session, dependant_in: DependantCreate):
 def validate_update_dependant(
     *, db_session, dependant_id: int, dependant_in: DependantUpdate
 ):
-    # if dependant_in.cccd and check_exist_dependant_by_cccd(
-    #     db_session=db_session,
-    #     dependant_cccd=dependant_in.cccd,
-    #     exclude_dependant_id=dependant_id,
-    # ):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
-
-    # if dependant_in.mst and check_exist_dependant_by_mst(
-    #     db_session=db_session,
-    #     dependant_mst=dependant_in.mst,
-    #     exclude_dependant_id=dependant_id,
-    # ):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
-    if dependant_in.cccd and check_exist_person_by_cccd(
-        db_session=db_session,
-        cccd=dependant_in.cccd,
-        exclude_id=dependant_id,
-    ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
-
     if dependant_in.mst and check_exist_person_by_mst(
         db_session=db_session,
         mst=dependant_in.mst,
@@ -128,7 +69,7 @@ def get_dependant_by_id(*, db_session, dependant_id: int):
     if not check_exist_dependant_by_id(
         db_session=db_session, dependant_id=dependant_id
     ):
-        raise AppException(ErrorMessages.ResourceNotFound(), "dependent person")
+        raise AppException(ErrorMessages.ResourceNotFound(), "dependant")
 
     return retrieve_dependant_by_id(db_session=db_session, dependant_id=dependant_id)
 
@@ -138,7 +79,7 @@ def get_all_dependants(*, db_session):
     """Returns all dependants."""
     list_dependants = retrieve_all_dependants(db_session=db_session)
     if not list_dependants["count"]:
-        raise AppException(ErrorMessages.ResourceNotFound(), "dependent person")
+        raise AppException(ErrorMessages.ResourceNotFound(), "dependant")
 
     return list_dependants
 
@@ -149,7 +90,7 @@ def get_all_dependants_by_employee_id(*, db_session, employee_id: int):
         db_session=db_session, employee_id=employee_id
     )
     if not list_dependants["count"]:
-        raise AppException(ErrorMessages.ResourceNotFound(), "dependent person")
+        raise AppException(ErrorMessages.ResourceNotFound(), "dependant")
 
     return list_dependants
 
@@ -174,7 +115,7 @@ def update_dependant(*, db_session, dependant_id: int, dependant_in: DependantUp
     if not check_exist_dependant_by_id(
         db_session=db_session, dependant_id=dependant_id
     ):
-        raise AppException(ErrorMessages.ResourceNotFound(), "dependent person")
+        raise AppException(ErrorMessages.ResourceNotFound(), "dependant")
 
     if validate_update_dependant(
         db_session=db_session, dependant_id=dependant_id, dependant_in=dependant_in
@@ -199,7 +140,7 @@ def delete_dependant(*, db_session, dependant_id: int):
     if not check_exist_dependant_by_id(
         db_session=db_session, dependant_id=dependant_id
     ):
-        raise AppException(ErrorMessages.ResourceNotFound(), "dependent person")
+        raise AppException(ErrorMessages.ResourceNotFound(), "dependant")
 
     try:
         removed_dependant = remove_dependant(

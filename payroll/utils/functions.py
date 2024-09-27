@@ -8,7 +8,7 @@ from typing import Annotated
 from fastapi.security import APIKeyHeader
 
 from payroll.dependants.repositories import (
-    retrieve_dependant_by_cccd,
+    # retrieve_dependant_by_cccd,
     retrieve_dependant_by_mst,
 )
 from payroll.employees.repositories import (
@@ -69,12 +69,8 @@ def check_exist_person_by_cccd(
         employee_cccd=cccd,
         exclude_employee_id=exclude_id,
     )
-    dependant = retrieve_dependant_by_cccd(
-        db_session=db_session,
-        dependant_cccd=cccd,
-        exclude_dependant_id=exclude_id,
-    )
-    return bool(employee or dependant)
+
+    return bool(employee)
 
 
 def check_exist_person_by_mst(

@@ -31,17 +31,17 @@ def retrieve_dependant_by_code(*, db_session, dependant_code: str) -> PayrollDep
     )
 
 
-def retrieve_dependant_by_cccd(
-    *, db_session, dependant_cccd: str, exclude_dependant_id: int = None
-) -> PayrollDependant:
-    """Returns a dependant based on the given code."""
-    query = db_session.query(PayrollDependant).filter(
-        PayrollDependant.cccd == dependant_cccd
-    )
-    if exclude_dependant_id:
-        query = query.filter(PayrollDependant.id != exclude_dependant_id)
+# def retrieve_dependant_by_cccd(
+#     *, db_session, dependant_cccd: str, exclude_dependant_id: int = None
+# ) -> PayrollDependant:
+#     """Returns a dependant based on the given code."""
+#     query = db_session.query(PayrollDependant).filter(
+#         PayrollDependant.cccd == dependant_cccd
+#     )
+#     if exclude_dependant_id:
+#         query = query.filter(PayrollDependant.id != exclude_dependant_id)
 
-    return query.first()
+#     return query.first()
 
 
 def retrieve_dependant_by_mst(
