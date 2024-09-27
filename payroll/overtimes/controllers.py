@@ -6,6 +6,7 @@ from payroll.overtimes.schemas import (
     OvertimeRead,
     OvertimeCreate,
     OvertimesCreate,
+    OvertimesDelete,
     OvertimesRead,
     OvertimeUpdate,
 )
@@ -13,6 +14,7 @@ from payroll.database.core import DbSession
 from payroll.overtimes.services import (
     create_multi_overtimes,
     create_overtime,
+    delete_multi_overtimes,
     delete_overtime,
     get_all_overtimes,
     get_overtime_by_id,
@@ -71,6 +73,15 @@ def update(*, db_session: DbSession, overtime_id: int, overtime_in: OvertimeUpda
     """Updates a overtime with the given data."""
     return update_overtime(
         db_session=db_session, overtime_id=overtime_id, overtime_in=overtime_in
+    )
+
+
+@overtime_router.delete("/bulk")
+def delete_multi(*, db_session: DbSession, overtime_list_in: OvertimesDelete):
+    """Deletes multiple overtimes."""
+    return delete_multi_overtimes(
+        db_session=db_session,
+        overtime_list_in=overtime_list_in,
     )
 
 

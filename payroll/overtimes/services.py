@@ -8,6 +8,7 @@ from payroll.overtimes.repositories import (
     add_overtime,
     modify_overtime,
     remove_overtime,
+    remove_overtimes,
     retrieve_all_overtimes,
     retrieve_overtime_by_employee_and_day,
     retrieve_overtime_by_id,
@@ -18,6 +19,7 @@ from payroll.overtimes.schemas import (
     OvertimeCreate,
     OvertimeUpdate,
     OvertimesCreate,
+    OvertimesDelete,
 )
 from payroll.employees.repositories import (
     retrieve_all_employees,
@@ -240,6 +242,50 @@ def update_overtime(*, db_session, overtime_id: int, overtime_in: OvertimeUpdate
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return overtime
+
+
+def delete_multi_overtimes(
+    *,
+    db_session,
+    overtime_list_in: OvertimesDelete,
+):
+    list_id = []
+
+    if overtime_list_in.to_date > date.today():
+        overtime_list_in.to_date = date.today()
+
+    if overtime_list_in.apply_all:
+        list_id = [
+            employee.id
+            for employee in retrieve_all_employees(db_session=db_session)["data"]
+        ]
+
+    else:
+        list_id = [id for id in overtime_list_in.list_emp]
+
+    for employee_id in list_id:
+        if not check_exist_employee_by_id(
+            db_session=db_session, employee_id=employee_id
+        ):
+            raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+        current_date = overtime_list_in.from_date
+        while current_date <= overtime_list_in.to_date:
+            try:
+                remove_overtimes(
+                    db_session=db_session,
+                    employee_id=employee_id,
+                    from_date=overtime_list_in.from_date,
+                    to_date=overtime_list_in.to_date,
+                )
+                db_session.commit()
+            except Exception as e:
+                db_session.rollback()
+                raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            current_date += timedelta(days=1)
+
+    return {"message": "Deleted successfully"}
 
 
 # DELETE /overtimes/{overtime_id}

@@ -36,6 +36,13 @@ class OvertimesCreate(PayrollBase):
     overtime_hours: float
 
 
+class OvertimesDelete(PayrollBase):
+    apply_all: bool = False
+    list_emp: List[int]
+    from_date: date
+    to_date: date
+
+
 class OvertimePagination(Pagination):
     items: List[OvertimeRead] = []
 

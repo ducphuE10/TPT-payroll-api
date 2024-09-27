@@ -127,7 +127,4 @@ def remove_attendances(*, db_session, employee_id: int, from_date: date, to_date
             PayrollAttendance.day_attendance <= to_date,
         ),
     )
-    delete_attendance = query.first()
     query.delete()
-
-    return delete_attendance

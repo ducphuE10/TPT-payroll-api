@@ -1,6 +1,6 @@
 from datetime import date
 import logging
-from sqlalchemy import extract
+from sqlalchemy import and_, extract
 
 from payroll.overtimes.schemas import (
     OvertimeCreate,
@@ -119,3 +119,15 @@ def remove_overtime(*, db_session, overtime_id: int) -> PayrollOvertime:
     query.delete()
 
     return delete_overtime
+
+
+def remove_overtimes(*, db_session, employee_id: int, from_date: date, to_date: date):
+    """Deletes a attendance based on the given id."""
+    query = db_session.query(PayrollOvertime).filter(
+        PayrollOvertime.employee_id == employee_id,
+        and_(
+            PayrollOvertime.day_overtime >= from_date,
+            PayrollOvertime.day_overtime <= to_date,
+        ),
+    )
+    query.delete()
