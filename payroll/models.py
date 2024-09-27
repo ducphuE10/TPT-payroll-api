@@ -392,6 +392,7 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
     month: Mapped[int]
     year: Mapped[int]
     salary: Mapped[float]
+    work_days_standard: Mapped[float]
     work_days: Mapped[float]
     work_days_salary: Mapped[float]
     overtime_1_5x_hours: Mapped[Optional[float]]

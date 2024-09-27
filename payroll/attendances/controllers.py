@@ -4,6 +4,7 @@ from payroll.attendances.schemas import (
     AttendanceRead,
     AttendanceCreate,
     AttendancesCreate,
+    AttendancesDelete,
     AttendancesRead,
     AttendanceUpdate,
 )
@@ -12,6 +13,7 @@ from payroll.attendances.services import (
     create_attendance,
     create_multi_attendances,
     delete_attendance,
+    delete_multi_attendances,
     get_all_attendances,
     get_attendance_by_id,
     get_multi_attendances_by_month,
@@ -71,6 +73,15 @@ def update_one(
     """Updates a attendance based on the given id."""
     return update_attendance(
         db_session=db_session, attendance_id=attendance_id, attendance_in=attendance_in
+    )
+
+
+@attendance_router.delete("/bulk")
+def delete_multi(*, db_session: DbSession, attendance_list_in: AttendancesDelete):
+    """Deletes multiple attendances."""
+    return delete_multi_attendances(
+        db_session=db_session,
+        attendance_list_in=attendance_list_in,
     )
 
 

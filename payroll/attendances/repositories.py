@@ -1,6 +1,6 @@
 from datetime import date
 import logging
-from sqlalchemy import extract
+from sqlalchemy import and_, extract
 
 from payroll.attendances.schemas import (
     AttendanceCreate,
@@ -111,6 +111,21 @@ def remove_attendance(*, db_session, attendance_id: int) -> PayrollAttendance:
     """Deletes a attendance based on the given id."""
     query = db_session.query(PayrollAttendance).filter(
         PayrollAttendance.id == attendance_id
+    )
+    delete_attendance = query.first()
+    query.delete()
+
+    return delete_attendance
+
+
+def remove_attendances(*, db_session, employee_id: int, from_date: date, to_date: date):
+    """Deletes a attendance based on the given id."""
+    query = db_session.query(PayrollAttendance).filter(
+        PayrollAttendance.employee_id == employee_id,
+        and_(
+            PayrollAttendance.day_attendance >= from_date,
+            PayrollAttendance.day_attendance <= to_date,
+        ),
     )
     delete_attendance = query.first()
     query.delete()

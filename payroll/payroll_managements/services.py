@@ -203,6 +203,7 @@ def create_payroll_management(
         employee_id=payroll_management_in.employee_id,
         month=payroll_management_in.month,
         year=payroll_management_in.year,
+        work_days_standard=payroll_management_in.work_days_standard,
         apply_insurance=payroll_management_in.apply_insurance,
         insurance_id=payroll_management_in.insurance_id,
     )
@@ -252,6 +253,7 @@ def create_multi_payroll_managements(
                         employee_id=employee_id,
                         month=payroll_management_list_in.month,
                         year=payroll_management_list_in.year,
+                        work_days_standard=payroll_management_list_in.work_days_standard,
                         apply_insurance=payroll_management_list_in.apply_insurance,
                         insurance_id=payroll_management_list_in.insurance_id,
                     )
@@ -305,20 +307,20 @@ def work_hours_standard_handler(*, db_session, schedule_details: PayrollSchedule
     return work_hours_standard
 
 
-def work_days_standard_handler(*, schedule_details: PayrollScheduleDetail):
-    work_days_list = {
-        schedule_detail.day for schedule_detail in schedule_details["data"]
-    }
+# def work_days_standard_handler(*, schedule_details: PayrollScheduleDetail):
+#     work_days_list = {
+#         schedule_detail.day for schedule_detail in schedule_details["data"]
+#     }
 
-    work_days_standard = 0
+#     work_days_standard = 0
 
-    if len(work_days_list) == 6:
-        work_days_standard = 26
-        return work_days_standard
+#     if len(work_days_list) == 6:
+#         work_days_standard = 26
+#         return work_days_standard
 
-    elif len(work_days_list) == 5:
-        work_days_standard = 24
-        return work_days_standard
+#     elif len(work_days_list) == 5:
+#         work_days_standard = 24
+#         return work_days_standard
 
 
 def check_sufficient_work_hours(*, db_session, schedule_id: int, attendance_id: int):
@@ -467,6 +469,7 @@ def payroll_handler(
     employee_id: int,
     month: int,
     year: int,
+    work_days_standard: float,
     apply_insurance: bool = False,
     insurance_id: Optional[int],
 ):
@@ -500,7 +503,7 @@ def payroll_handler(
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "payroll management")
 
-    work_days_standard = work_days_standard_handler(schedule_details=schedule_details)
+    # work_days_standard = work_days_standard_handler(schedule_details=schedule_details)
 
     work_hours_standard = work_hours_standard_handler(
         db_session=db_session, schedule_details=schedule_details
@@ -655,6 +658,7 @@ def payroll_handler(
         "month": month,
         "year": year,
         "salary": basic_salary,
+        "work_days_standard": work_days_standard,
         "work_days": round(work_hours["adequate_hours"] / 8, 1),
         "work_days_salary": work_days_salary,
         "overtime_1_5x_hours": overtime_hours["overtime_1_5x"],

@@ -8,6 +8,7 @@ from payroll.attendances.repositories import (
     add_attendance,
     modify_attendance,
     remove_attendance,
+    remove_attendances,
     retrieve_all_attendances,
     retrieve_attendance_by_employee_and_day,
     retrieve_attendance_by_id,
@@ -18,6 +19,7 @@ from payroll.attendances.schemas import (
     AttendanceCreate,
     AttendanceUpdate,
     AttendancesCreate,
+    AttendancesDelete,
     TimeAttendanceHandlerBase,
     WorkhoursAttendanceHandlerBase,
 )
@@ -278,6 +280,50 @@ def update_attendance(
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return attendance
+
+
+def delete_multi_attendances(
+    *,
+    db_session,
+    attendance_list_in: AttendancesDelete,
+):
+    list_id = []
+
+    if attendance_list_in.to_date > date.today():
+        attendance_list_in.to_date = date.today()
+
+    if attendance_list_in.apply_all:
+        list_id = [
+            employee.id
+            for employee in retrieve_all_employees(db_session=db_session)["data"]
+        ]
+
+    else:
+        list_id = [id for id in attendance_list_in.list_emp]
+
+    for employee_id in list_id:
+        if not check_exist_employee_by_id(
+            db_session=db_session, employee_id=employee_id
+        ):
+            raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+        current_date = attendance_list_in.from_date
+        while current_date <= attendance_list_in.to_date:
+            try:
+                remove_attendances(
+                    db_session=db_session,
+                    employee_id=employee_id,
+                    from_date=attendance_list_in.from_date,
+                    to_date=attendance_list_in.to_date,
+                )
+                db_session.commit()
+            except Exception as e:
+                db_session.rollback()
+                raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+            current_date += timedelta(days=1)
+
+    return {"message": "Deleted successfully"}
 
 
 # DELETE /attendances/{attendance_id}

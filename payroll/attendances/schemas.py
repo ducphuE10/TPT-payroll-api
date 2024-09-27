@@ -36,6 +36,13 @@ class AttendancesCreate(PayrollBase):
     work_hours: float
 
 
+class AttendancesDelete(PayrollBase):
+    apply_all: bool = False
+    list_emp: List[int]
+    from_date: date
+    to_date: date
+
+
 class AttendancePagination(Pagination):
     items: List[AttendanceRead] = []
 

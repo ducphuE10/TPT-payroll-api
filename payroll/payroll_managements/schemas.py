@@ -14,6 +14,7 @@ class PayrollManagementBase(PayrollBase):
     month: int  # required
     year: int
     salary: float  # required
+    work_days_standard: float
     work_days: float  # required
     work_days_salary: float
     overtime_1_5x_hours: Optional[float] = None
@@ -73,6 +74,7 @@ class PayrollManagementCreate(PayrollBase):
     employee_id: int  # required
     month: int  # required
     year: int
+    work_days_standard: float
     apply_insurance: bool = False
     insurance_id: Optional[int] = None
 
@@ -86,6 +88,7 @@ class PayrollManagementsCreate(PayrollBase):
     list_emp: List[int]
     month: int
     year: int
+    work_days_standard: float
     apply_insurance: bool = False
     insurance_id: Optional[int] = None
 
