@@ -85,7 +85,7 @@ def upgrade() -> None:
     )
     op.add_column(
         "dependants",
-        sa.Column("id_doc_type", iddoctype, nullable=True, server_default=None),
+        sa.Column("id_doc_type", iddoctype, nullable=False, server_default="OTHER"),
     )
     op.add_column(
         "dependants",
@@ -102,12 +102,7 @@ def upgrade() -> None:
             server_default="OTHER",
         ),
     )
-    op.alter_column(
-        "dependants",
-        "id_doc_type",
-        nullable=False,  # Enforce non-null constraint
-        server_default=None,  # Remove default if no longer needed
-    )
+
     op.add_column("dependants", sa.Column("deduction_from", sa.Date(), nullable=False))
     op.add_column("dependants", sa.Column("deduction_to", sa.Date(), nullable=False))
     op.alter_column(
