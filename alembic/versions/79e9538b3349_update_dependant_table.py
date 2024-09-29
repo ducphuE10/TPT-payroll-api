@@ -85,14 +85,19 @@ def upgrade() -> None:
     )
     op.add_column(
         "dependants",
-        sa.Column("id_doc_type", iddoctype, nullable=False),
-    )
-    op.add_column(
-        "dependants", sa.Column("doc_number", sa.String(length=30), nullable=False)
+        sa.Column("id_doc_type", iddoctype, nullable=False, server_default=None),
     )
     op.add_column(
         "dependants",
-        sa.Column("relationship", dependantrelationship, nullable=True),
+        sa.Column(
+            "doc_number", sa.String(length=30), nullable=False, server_default=None
+        ),
+    )
+    op.add_column(
+        "dependants",
+        sa.Column(
+            "relationship", dependantrelationship, nullable=False, server_default=None
+        ),
     )
     op.add_column("dependants", sa.Column("deduction_from", sa.Date(), nullable=False))
     op.add_column("dependants", sa.Column("deduction_to", sa.Date(), nullable=False))
