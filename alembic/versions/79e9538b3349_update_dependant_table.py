@@ -90,7 +90,10 @@ def upgrade() -> None:
     op.add_column(
         "dependants",
         sa.Column(
-            "doc_number", sa.String(length=30), nullable=False, server_default="UNKNOWN"
+            "doc_number",
+            sa.String(length=30),
+            nullable=False,
+            server_default=sa.func.current_date(),
         ),
     )
     op.add_column(
