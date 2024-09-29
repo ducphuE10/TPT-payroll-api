@@ -90,10 +90,7 @@ def upgrade() -> None:
     op.add_column(
         "dependants",
         sa.Column(
-            "doc_number",
-            sa.String(length=30),
-            nullable=False,
-            server_default=sa.func.current_date(),
+            "doc_number", sa.String(length=30), nullable=False, server_default="UNKNOWN"
         ),
     )
     op.add_column(
@@ -106,8 +103,24 @@ def upgrade() -> None:
         ),
     )
 
-    op.add_column("dependants", sa.Column("deduction_from", sa.Date(), nullable=False))
-    op.add_column("dependants", sa.Column("deduction_to", sa.Date(), nullable=False))
+    op.add_column(
+        "dependants",
+        sa.Column(
+            "deduction_from",
+            sa.Date(),
+            nullable=False,
+            server_default=sa.func.current_date(),
+        ),
+    )
+    op.add_column(
+        "dependants",
+        sa.Column(
+            "deduction_to",
+            sa.Date(),
+            nullable=False,
+            server_default=sa.func.current_date(),
+        ),
+    )
     op.alter_column(
         "dependants",
         "code",
