@@ -13,6 +13,7 @@ from payroll.employees.repositories import (
     add_employee,
     modify_employee,
     remove_employee,
+    retrieve_active_employees_benefits,
     retrieve_all_employees,
     retrieve_employee_by_code,
     retrieve_employee_by_id,
@@ -50,32 +51,6 @@ def check_exist_employee_by_code(*, db_session, employee_code: str):
     return bool(
         retrieve_employee_by_code(db_session=db_session, employee_code=employee_code)
     )
-
-
-# def check_exist_employee_by_cccd(
-#     *, db_session, employee_cccd: str, exclude_employee_id: int = None
-# ):
-#     """Check if employee exists in the database."""
-#     return bool(
-#         retrieve_employee_by_cccd(
-#             db_session=db_session,
-#             employee_cccd=employee_cccd,
-#             exclude_employee_id=exclude_employee_id,
-#         )
-#     )
-
-
-# def check_exist_employee_by_mst(
-#     *, db_session, employee_mst: str, exclude_employee_id: int = None
-# ):
-#     """Check if employee exists in the database."""
-#     return bool(
-#         retrieve_employee_by_mst(
-#             db_session=db_session,
-#             employee_mst=employee_mst,
-#             exclude_employee_id=exclude_employee_id,
-#         )
-#     )
 
 
 def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
@@ -177,6 +152,17 @@ def get_all_employees(*, db_session):
         raise AppException(ErrorMessages.ResourceNotFound(), "employee")
 
     return list_employees
+
+
+def get_employees_active_benefits(
+    *,
+    db_session,
+):
+    list_benefits = retrieve_active_employees_benefits(db_session=db_session)
+    if not list_benefits["count"]:
+        raise AppException(ErrorMessages.ResourceNotFound(), "benefit")
+
+    return list_benefits
 
 
 # POST /employees

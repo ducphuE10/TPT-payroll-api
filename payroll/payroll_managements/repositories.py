@@ -34,14 +34,14 @@ def retrieve_number_of_payroll(*, db_session, month: int, year: int) -> int:
 
 
 def retrieve_payroll_management_by_information(
-    *, db_session, employee_id: int, contract_id: int, month: int, year: int
+    *, db_session, employee_id: int, contract_history_id: int, month: int, year: int
 ) -> PayrollPayrollManagement:
     """Returns a payroll_management based on the given id."""
     return (
         db_session.query(PayrollPayrollManagement)
         .filter(
             PayrollPayrollManagement.employee_id == employee_id,
-            PayrollPayrollManagement.contract_id == contract_id,
+            PayrollPayrollManagement.contract_history_id == contract_history_id,
             PayrollPayrollManagement.month == month,
             PayrollPayrollManagement.year == year,
         )

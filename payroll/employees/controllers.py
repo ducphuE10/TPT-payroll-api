@@ -1,8 +1,8 @@
 from fastapi import APIRouter, File, Form, UploadFile
 
-from payroll.attendances.services import get_employee_attendances
-from payroll.attendances.schemas import AttendancesRead
+# from payroll.attendances.services import get_employee_attendances
 from payroll.employees.schemas import (
+    BenefitsRead,
     EmployeeDelete,
     EmployeeRead,
     EmployeeCreate,
@@ -17,6 +17,7 @@ from payroll.employees.services import (
     delete_employee,
     get_all_employees,
     get_employee_by_id,
+    get_employees_active_benefits,
     update_employee,
     search_employee_by_name,
     update_multi_employees_schedule,
@@ -35,6 +36,11 @@ def retrieve_employees(*, db_session: DbSession, name: str = None):
     return get_all_employees(db_session=db_session)
 
 
+@employee_router.get("/benefits", response_model=BenefitsRead)
+def get_active_benefits(*, db_session: DbSession):
+    return get_employees_active_benefits(db_session=db_session)
+
+
 # GET /employees/{employee_id}
 @employee_router.get("/{employee_id}", response_model=EmployeeRead)
 def get_employee(*, db_session: DbSession, employee_id: int):
@@ -42,10 +48,10 @@ def get_employee(*, db_session: DbSession, employee_id: int):
     return get_employee_by_id(db_session=db_session, employee_id=employee_id)
 
 
-@employee_router.get("/{employee_id}/attendances", response_model=AttendancesRead)
-def retrieve_employee_attendances(*, db_session: DbSession, employee_id: int):
-    """Returns all attendances of an employee."""
-    return get_employee_attendances(db_session=db_session, employee_id=employee_id)
+# @employee_router.get("/{employee_id}/attendances", response_model=AttendancesRead)
+# def retrieve_employee_attendances(*, db_session: DbSession, employee_id: int):
+#     """Returns all attendances of an employee."""
+#     return get_employee_attendances(db_session=db_session, employee_id=employee_id)
 
 
 # POST /employees

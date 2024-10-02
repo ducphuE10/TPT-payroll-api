@@ -9,7 +9,8 @@ from payroll.utils.models import Pagination, PayrollBase
 
 class PayrollManagementBase(PayrollBase):
     employee_id: int  # required
-    contract_id: int
+    contract_history_id: int
+    insurance_policy_id: int
     net_income: float  # required
     month: int  # required
     year: int

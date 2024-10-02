@@ -25,7 +25,6 @@ from payroll.attendances.schemas import (
 )
 
 # from payroll.contracts.services import get_active_contract
-from payroll.contracts.services import get_employee_active_contract
 from payroll.employees.repositories import (
     retrieve_all_employees,
     retrieve_employee_by_code,
@@ -355,14 +354,14 @@ def attendance_handler(
     employee = retrieve_employee_by_id(
         db_session=db_session, employee_id=attendance_in.employee_id
     )
-    active_contract = get_employee_active_contract(
-        db_session=db_session,
-        employee_code=employee.code,
-        current_date=attendance_in.day_attendance,
-    )
+    # active_contract = get_employee_active_contract(
+    #     db_session=db_session,
+    #     employee_code=employee.code,
+    #     current_date=attendance_in.day_attendance,
+    # )
 
-    if not active_contract:
-        return
+    # if not active_contract:
+    #     return
 
     schedule_details = retrieve_schedule_details_by_schedule_id(
         db_session=db_session, schedule_id=employee.schedule_id

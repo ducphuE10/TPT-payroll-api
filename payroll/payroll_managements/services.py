@@ -9,9 +9,8 @@ from payroll.attendances.repositories import (
 # from payroll.contract_benefit_assocs.repositories import (
 #     retrieve_cbassocs_by_contract_id,
 # )
-from payroll.contracts.repositories import (
-    retrieve_contract_by_employee_and_period,
-)
+
+from payroll.contract_histories.services import get_active_contract_history_by_period
 from payroll.dependants.repositories import (
     retrieve_all_dependants_by_employee_id,
 )
@@ -62,14 +61,14 @@ def check_exist_payroll_management_by_id(*, db_session, payroll_management_id: i
 
 
 def check_exist_payroll_management_by_information(
-    *, db_session, employee_id: int, contract_id: int, month: int, year: int
+    *, db_session, employee_id: int, contract_history_id: int, month: int, year: int
 ):
     """Check if payroll_management exists in the database."""
     return bool(
         retrieve_payroll_management_by_information(
             db_session=db_session,
             employee_id=employee_id,
-            contract_id=contract_id,
+            contract_history_id=contract_history_id,
             month=month,
             year=year,
         )
@@ -80,21 +79,19 @@ def check_available_employee_create_payroll(
     *, db_session, employee_id: int, month: int, year: int
 ):
     employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
-    employee_code = retrieve_employee_by_id(
-        db_session=db_session, employee_id=employee_id
-    ).code
+
     if not employee.schedule_id:
         return False
     first_day, last_day = get_month_boundaries(month=month, year=year)
 
-    contract = retrieve_contract_by_employee_and_period(
-        db_session=db_session,
-        employee_code=employee_code,
-        from_date=first_day,
-        to_date=last_day,
-    )
-    if not contract:
-        return False
+    # contract = retrieve_contract_by_employee_and_period(
+    #     db_session=db_session,
+    #     employee_code=employee_code,
+    #     from_date=first_day,
+    #     to_date=last_day,
+    # )
+    # if not contract:
+    #     return False
 
     return True
 
@@ -474,9 +471,7 @@ def payroll_handler(
     insurance_id: Optional[int],
 ):
     employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
-    employee_code = retrieve_employee_by_id(
-        db_session=db_session, employee_id=employee_id
-    ).code
+
     schedule_id = employee.schedule_id
 
     schedule_details = retrieve_schedule_details_by_schedule_id(
@@ -485,19 +480,19 @@ def payroll_handler(
 
     first_day, last_day = get_month_boundaries(month=month, year=year)
 
-    contract = retrieve_contract_by_employee_and_period(
+    contract_history = get_active_contract_history_by_period(
         db_session=db_session,
-        employee_code=employee_code,
+        employee_id=employee_id,
         from_date=first_day,
         to_date=last_day,
     )
-    if not contract:
-        raise AppException(ErrorMessages.ResourceAlreadyExists(), "contract")
+    if not contract_history:
+        raise AppException(ErrorMessages.ResourceNotFound(), "contract history")
 
     if check_exist_payroll_management_by_information(
         db_session=db_session,
         employee_id=employee_id,
-        contract_id=contract.id,
+        contract_history_id=contract_history.id,
         month=month,
         year=year,
     ):
@@ -517,7 +512,7 @@ def payroll_handler(
         year=year,
     )
 
-    basic_salary = contract.salary
+    basic_salary = contract_history.salary
 
     # WORK HOURS SALARY
     work_days_salary = (
@@ -558,38 +553,38 @@ def payroll_handler(
     # benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
     # if f"{BenefitType.ATTENDANT}" in benefits:
     if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
-        attendant_benefit_salary = contract.attendant_benefit
+        attendant_benefit_salary = contract_history.attendant_benefit
 
     transportation_benefit_salary = benefit_salary_handler(
-        benefit_value=contract.transportation_benefit,
+        benefit_value=contract_history.transportation_benefit,
         work_days_standard=work_days_standard,
         work_hours_standard=work_hours_standard,
         work_hours_real=work_hours["adequate_hours"],
     )
 
     phone_benefit_salary = benefit_salary_handler(
-        benefit_value=contract.phone_benefit,
+        benefit_value=contract_history.phone_benefit,
         work_days_standard=work_days_standard,
         work_hours_standard=work_hours_standard,
         work_hours_real=work_hours["adequate_hours"],
     )
 
     housing_benefit_salary = benefit_salary_handler(
-        benefit_value=contract.housing_benefit,
+        benefit_value=contract_history.housing_benefit,
         work_days_standard=work_days_standard,
         work_hours_standard=work_hours_standard,
         work_hours_real=work_hours["adequate_hours"],
     )
 
     toxic_benefit_salary = benefit_salary_handler(
-        benefit_value=contract.toxic_benefit,
+        benefit_value=contract_history.toxic_benefit,
         work_days_standard=work_days_standard,
         work_hours_standard=work_hours_standard,
         work_hours_real=work_hours["adequate_hours"],
     )
 
     meal_benefit_salary = benefit_salary_handler(
-        benefit_value=contract.meal_benefit,
+        benefit_value=contract_history.meal_benefit,
         work_days_standard=work_days_standard,
         work_hours_standard=work_hours_standard,
         work_hours_real=work_hours["adequate_hours"] + overtime_hours["overtime_2_0x"],
@@ -653,7 +648,8 @@ def payroll_handler(
 
     payroll_management_data = {
         "employee_id": employee_id,
-        "contract_id": contract.id,
+        "contract_history_id": contract_history.id,
+        "insurance_policy_id": insurance.id,
         "net_income": net_income,
         "month": month,
         "year": year,

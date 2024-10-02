@@ -94,9 +94,27 @@ def retrieve_all_employees(*, db_session) -> PayrollEmployee:
     """Returns all employees."""
     query = db_session.query(PayrollEmployee)
     count = query.count()
-    employees = query.all()
+    employees = query.order_by(PayrollEmployee.id.asc()).all()
 
     return {"count": count, "data": employees}
+
+
+def retrieve_active_employees_benefits(*, db_session):
+    query = db_session.query(
+        PayrollEmployee.id,
+        PayrollEmployee.code,
+        PayrollEmployee.name,
+        PayrollEmployee.meal_benefit,
+        PayrollEmployee.transportation_benefit,
+        PayrollEmployee.housing_benefit,
+        PayrollEmployee.toxic_benefit,
+        PayrollEmployee.phone_benefit,
+        PayrollEmployee.attendant_benefit,
+    )
+    count = query.count()
+    benefits = query.order_by(PayrollEmployee.id.asc()).all()
+
+    return {"count": count, "data": benefits}
 
 
 def search_employees_by_partial_name(*, db_session, name: str):

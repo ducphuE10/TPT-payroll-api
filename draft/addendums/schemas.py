@@ -2,7 +2,7 @@ from datetime import datetime, date
 from typing import List, Optional
 
 # from payroll.contract_benefit_assocs.schemas import CBAssocsRead
-from payroll.contracts.schemas import ContractBase
+from payroll.contract_histories.schemas import ContractBase
 from payroll.utils.models import PaymentMethod, Status
 from payroll.utils.models import Pagination, PayrollBase
 

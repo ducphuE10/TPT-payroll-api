@@ -143,3 +143,8 @@ class DependantRelationship(str, Enum):
     PARENT = "parent"
     COUPLE = "couple"
     OTHER = "other"
+
+
+class ContractHistoryType(str, Enum):
+    ADDENDUM = "addendum"
+    CONTRACT = "contract"
