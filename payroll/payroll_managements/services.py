@@ -610,7 +610,9 @@ def payroll_handler(
     if apply_insurance:
         insurance = get_insurance_policy_by_id(db_session=db_session, id=insurance_id)
         if not insurance:
+            insurance_id = None
             raise AppException(ErrorMessages.ResourceNotFound, "insurance")
+        insurance_id = insurance.id
         employee_insurance = basic_salary * insurance.employee_percentage / 100
         company_insurance = basic_salary * insurance.company_percentage / 100
 
@@ -649,7 +651,7 @@ def payroll_handler(
     payroll_management_data = {
         "employee_id": employee_id,
         "contract_history_id": contract_history.id,
-        "insurance_policy_id": insurance.id,
+        "insurance_policy_id": insurance_id,
         "net_income": net_income,
         "month": month,
         "year": year,
