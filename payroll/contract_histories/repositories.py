@@ -1,7 +1,8 @@
 from datetime import date
 import logging
+from typing import Optional
 
-from sqlalchemy import and_, or_
+from sqlalchemy import or_
 
 from payroll.contract_histories.schemas import (
     ContractHistoryCreate,
@@ -58,43 +59,45 @@ def retrieve_contract_history_by_id(
 
 
 def retrieve_contract_history_by_employee_and_period(
-    *, db_session, employee_id: int, from_date: date, to_date: date
+    *, db_session, employee_id: int, from_date: date, to_date: Optional[date] = None
 ):
-    return (
-        db_session.query(PayrollContractHistory)
-        .filter(
-            PayrollContractHistory.employee_id == employee_id,
-            PayrollContractHistory.contract_type == ContractHistoryType.CONTRACT,
-            and_(
-                PayrollContractHistory.start_date <= to_date,
-                or_(
-                    PayrollContractHistory.end_date.is_(None),
-                    PayrollContractHistory.end_date >= from_date,
-                ),
-            ),
-        )
-        .first()
+    query = db_session.query(PayrollContractHistory).filter(
+        PayrollContractHistory.employee_id == employee_id,
+        PayrollContractHistory.contract_type == ContractHistoryType.CONTRACT,
     )
+
+    if to_date is not None:
+        query = query.filter(PayrollContractHistory.start_date <= to_date)
+
+    query = query.filter(
+        or_(
+            PayrollContractHistory.end_date.is_(None),
+            PayrollContractHistory.end_date >= from_date,
+        )
+    )
+
+    return query.first()
 
 
 def retrieve_contract_history_addendum_by_employee_and_period(
-    *, db_session, employee_id: int, from_date: date, to_date: date
+    *, db_session, employee_id: int, from_date: date, to_date: Optional[date] = None
 ):
-    return (
-        db_session.query(PayrollContractHistory)
-        .filter(
-            PayrollContractHistory.employee_id == employee_id,
-            PayrollContractHistory.contract_type == ContractHistoryType.ADDENDUM,
-            and_(
-                PayrollContractHistory.start_date <= to_date,
-                or_(
-                    PayrollContractHistory.end_date.is_(None),
-                    PayrollContractHistory.end_date >= from_date,
-                ),
-            ),
-        )
-        .first()
+    query = db_session.query(PayrollContractHistory).filter(
+        PayrollContractHistory.employee_id == employee_id,
+        PayrollContractHistory.contract_type == ContractHistoryType.ADDENDUM,
     )
+
+    if to_date is not None:
+        query = query.filter(PayrollContractHistory.start_date <= to_date)
+
+    query = query.filter(
+        or_(
+            PayrollContractHistory.end_date.is_(None),
+            PayrollContractHistory.end_date >= from_date,
+        )
+    )
+
+    return query.first()
 
 
 def retrieve_all_contract_histories(*, db_session):

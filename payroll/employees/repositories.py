@@ -5,7 +5,8 @@ from sqlalchemy import func
 from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeDelete,
-    EmployeeUpdate,
+    EmployeeUpdatePersonal,
+    EmployeeUpdateSalary,
 )
 from payroll.models import PayrollEmployee, PayrollSchedule
 
@@ -140,7 +141,10 @@ def add_employee(*, db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
 
 # PUT /employees/{employee_id}
 def modify_employee(
-    *, db_session, employee_id: int, employee_in: EmployeeUpdate
+    *,
+    db_session,
+    employee_id: int,
+    employee_in: EmployeeUpdatePersonal | EmployeeUpdateSalary,
 ) -> PayrollEmployee:
     """Updates a employee with the given data."""
     update_data = employee_in.model_dump(exclude_unset=True)

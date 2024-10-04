@@ -27,6 +27,19 @@ def check_exist_contract_history_by_id(*, db_session, contract_history_id: int):
     )
 
 
+def check_exist_contract_history_addendum(
+    *, db_session, employee_id: int, from_date: date, to_date: date
+):
+    return bool(
+        retrieve_contract_history_addendum_by_employee_and_period(
+            db_session=db_session,
+            employee_id=employee_id,
+            from_date=from_date,
+            to_date=to_date,
+        )
+    )
+
+
 def get_contract_history_by_id(*, db_session, contract_history_id: int):
     """Returns a contract based on the given id."""
     if not check_exist_contract_history_by_id(

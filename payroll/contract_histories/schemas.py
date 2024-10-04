@@ -3,7 +3,7 @@ from typing import List, Optional
 
 # from payroll.contract_benefit_assocs.schemas import CBAssocsRead
 from payroll.employees.schemas import EmployeeBase
-from payroll.utils.models import ContractHistoryType, PaymentMethod
+from payroll.utils.models import ContractHistoryType
 from payroll.utils.models import Pagination, PayrollBase
 
 
@@ -19,7 +19,6 @@ class ContractHistoryBase(PayrollBase):
     toxic_benefit: float
     phone_benefit: float
     attendant_benefit: float
-    payment_method: Optional[PaymentMethod] = None
     contract_type: ContractHistoryType
 
 
@@ -55,7 +54,6 @@ class ContractHistoryUpdate(PayrollBase):
     toxic_benefit: Optional[float] = None
     phone_benefit: Optional[float] = None
     attendant_benefit: Optional[float] = None
-    payment_method: Optional[PaymentMethod] = None
     contract_type: Optional[ContractHistoryType] = None
 
 

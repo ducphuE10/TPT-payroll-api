@@ -72,7 +72,7 @@ class EmployeeDelete(PayrollBase):
     position: str
 
 
-class EmployeeUpdate(PayrollBase):
+class EmployeeUpdatePersonal(PayrollBase):
     name: Optional[str] = None
     date_of_birth: Optional[date] = None
     gender: Optional[Gender] = None
@@ -85,6 +85,17 @@ class EmployeeUpdate(PayrollBase):
     cccd_place: Optional[str] = None
     permanent_addr: Optional[str] = None
     phone: Optional[str] = None
+    schedule_id: Optional[int] = None
+    payment_method: Optional[PaymentMethod] = None
+    bank_account: Optional[str] = None
+    bank_holder_name: Optional[str] = None
+    bank_name: Optional[str] = None
+    cv: Optional[bytes] = None
+    note: Optional[str] = None
+
+
+class EmployeeUpdateSalary(PayrollBase):
+    name: Optional[str] = None
     is_probation: Optional[bool] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -95,13 +106,6 @@ class EmployeeUpdate(PayrollBase):
     toxic_benefit: Optional[float] = None
     phone_benefit: Optional[float] = None
     attendant_benefit: Optional[float] = None
-    schedule_id: Optional[int] = None
-    payment_method: Optional[PaymentMethod] = None
-    bank_account: Optional[str] = None
-    bank_holder_name: Optional[str] = None
-    bank_name: Optional[str] = None
-    cv: Optional[bytes] = None
-    note: Optional[str] = None
 
 
 class EmployeeImport(PayrollBase):

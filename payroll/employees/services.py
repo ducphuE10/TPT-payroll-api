@@ -4,6 +4,12 @@ import pandas as pd
 from io import BytesIO
 from pydantic import ValidationError
 
+from payroll.contract_histories.repositories import (
+    add_contract_history,
+    retrieve_contract_history_by_employee_and_period,
+)
+from payroll.contract_histories.schemas import ContractHistoryUpdate
+from payroll.contract_histories.services import check_exist_contract_history_addendum
 from payroll.departments.services import (
     check_exist_department_by_id,
     get_department_by_code,
@@ -26,7 +32,8 @@ from payroll.employees.constant import DTYPES_MAP, IMPORT_EMPLOYEES_EXCEL_MAP
 from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeImport,
-    EmployeeUpdate,
+    EmployeeUpdatePersonal,
+    EmployeeUpdateSalary,
     EmployeesRead,
     EmployeesScheduleUpdate,
 )
@@ -35,6 +42,7 @@ from payroll.utils.functions import (
     check_exist_person_by_cccd,
     check_exist_person_by_mst,
 )
+from payroll.utils.models import ContractHistoryType
 
 log = logging.getLogger(__name__)
 
@@ -73,13 +81,6 @@ def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "employee")
 
-    # if check_exist_employee_by_cccd(
-    #     db_session=db_session, employee_cccd=employee_in.cccd
-    # ):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
-
-    # if check_exist_employee_by_mst(db_session=db_session, employee_mst=employee_in.mst):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
     if check_exist_person_by_cccd(db_session=db_session, cccd=employee_in.cccd):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
 
@@ -88,8 +89,8 @@ def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
     return True
 
 
-def validate_update_employee(
-    *, db_session, employee_id: int, employee_in: EmployeeUpdate
+def validate_update_employee_personal(
+    *, db_session, employee_id: int, employee_in: EmployeeUpdatePersonal
 ):
     if employee_in.department_id is not None and not check_exist_department_by_id(
         db_session=db_session, department_id=employee_in.department_id
@@ -106,19 +107,6 @@ def validate_update_employee(
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
 
-    # if employee_in.cccd and check_exist_employee_by_cccd(
-    #     db_session=db_session,
-    #     employee_cccd=employee_in.cccd,
-    #     exclude_employee_id=employee_id,
-    # ):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
-
-    # if employee_in.mst and check_exist_employee_by_mst(
-    #     db_session=db_session,
-    #     employee_mst=employee_in.mst,
-    #     exclude_employee_id=employee_id,
-    # ):
-    #     raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
     if employee_in.cccd and check_exist_person_by_cccd(
         db_session=db_session,
         cccd=employee_in.cccd,
@@ -225,12 +213,14 @@ def update_multi_employees_schedule(
 
 
 # PUT /employees/{employee_id}
-def update_employee(*, db_session, employee_id: int, employee_in: EmployeeUpdate):
+def update_employee_personal(
+    *, db_session, employee_id: int, employee_in: EmployeeUpdatePersonal
+):
     """Updates a employee with the given data."""
     if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
         raise AppException(ErrorMessages.ResourceNotFound(), "employee")
 
-    if validate_update_employee(
+    if validate_update_employee_personal(
         db_session=db_session, employee_id=employee_id, employee_in=employee_in
     ):
         try:
@@ -243,6 +233,81 @@ def update_employee(*, db_session, employee_id: int, employee_in: EmployeeUpdate
             raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
     return employee
+
+
+def update_employee_salary(
+    *,
+    db_session,
+    employee_id: int,
+    employee_in: EmployeeUpdateSalary,
+    is_addendum: bool,
+):
+    """Updates a employee with the given data."""
+    if not check_exist_employee_by_id(db_session=db_session, employee_id=employee_id):
+        raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+    try:
+        employee = modify_employee(
+            db_session=db_session, employee_id=employee_id, employee_in=employee_in
+        )
+        upsert_contract_history(
+            db_session=db_session,
+            employee_id=employee_id,
+            employee_in=employee,
+            is_addendum=is_addendum,
+        )
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return employee
+
+
+def upsert_contract_history(
+    *, db_session, employee_id: int, employee_in: PayrollEmployee, is_addendum: bool
+):
+    contract_history = None
+    contract_history_update = ContractHistoryUpdate(
+        employee_id=employee_id,
+        is_probation=employee_in.is_probation,
+        start_date=employee_in.start_date,
+        end_date=employee_in.end_date,
+        salary=employee_in.salary,
+        meal_benefit=employee_in.meal_benefit,
+        transportation_benefit=employee_in.transportation_benefit,
+        housing_benefit=employee_in.housing_benefit,
+        toxic_benefit=employee_in.toxic_benefit,
+        phone_benefit=employee_in.phone_benefit,
+        attendant_benefit=employee_in.attendant_benefit,
+    )
+    if not is_addendum:
+        if check_exist_contract_history_addendum(
+            db_session=db_session,
+            employee_id=employee_id,
+            from_date=employee_in.start_date,
+            to_date=employee_in.end_date,
+        ):
+            raise AppException(ErrorMessages.ExistDependObject(), "addendum")
+        else:
+            contract_history = retrieve_contract_history_by_employee_and_period(
+                db_session=db_session,
+                employee_id=employee_id,
+                from_date=employee_in.start_date,
+                to_date=employee_in.end_date,
+            )
+            contract_history_update.contract_type = ContractHistoryType.CONTRACT
+    else:
+        contract_history_update.contract_type = ContractHistoryType.ADDENDUM
+    try:
+        contract_history = add_contract_history(
+            db_session=db_session,
+            contract_history_in=contract_history_update,
+        )
+    except AppException as e:
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
+    return contract_history
 
 
 # DELETE /employees/{employee_id}
@@ -375,16 +440,12 @@ def uploadXLSX(
                 continue
 
             employee_data = row.to_dict()
-            print(employee_data)
             for key, value in employee_data.items():
                 if value == "nan" or value is pd.NaT:
                     employee_data[key] = None
 
-            print("employee_data", employee_data)
-
             employee = EmployeeImport.model_validate(employee_data)
             employees_data.append(employee)
-            print(employee)
 
         except ValidationError as e:
             errors.append(
@@ -398,7 +459,6 @@ def uploadXLSX(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail={"errors": errors},
         )
-    print("AAAAAA")
     # Insert all valid records into the database
     for employee_data in employees_data:
         upsert_employee(

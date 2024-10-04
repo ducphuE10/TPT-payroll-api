@@ -295,7 +295,6 @@ class PayrollContractHistory(Base, TimeStampMixin):
     toxic_benefit: Mapped[float]
     phone_benefit: Mapped[float]
     attendant_benefit: Mapped[float]
-    payment_method: Mapped[Optional[PaymentMethod]]  # required
     contract_type: Mapped[ContractHistoryType]
     # template: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required

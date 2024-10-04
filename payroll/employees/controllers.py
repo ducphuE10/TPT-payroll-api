@@ -6,8 +6,9 @@ from payroll.employees.schemas import (
     EmployeeDelete,
     EmployeeRead,
     EmployeeCreate,
+    EmployeeUpdatePersonal,
+    EmployeeUpdateSalary,
     EmployeesRead,
-    EmployeeUpdate,
     EmployeesScheduleUpdate,
     EmployeesScheduleUpdateRead,
 )
@@ -18,8 +19,9 @@ from payroll.employees.services import (
     get_all_employees,
     get_employee_by_id,
     get_employees_active_benefits,
-    update_employee,
     search_employee_by_name,
+    update_employee_personal,
+    update_employee_salary,
     update_multi_employees_schedule,
     uploadXLSX,
 )
@@ -79,11 +81,30 @@ def update_multi(
 
 
 # PUT /employees/{employee_id}
-@employee_router.put("/{employee_id}", response_model=EmployeeRead)
-def update(*, db_session: DbSession, employee_id: int, employee_in: EmployeeUpdate):
+@employee_router.put("/{employee_id}/personal_info", response_model=EmployeeRead)
+def update_personal(
+    *, db_session: DbSession, employee_id: int, employee_in: EmployeeUpdatePersonal
+):
     """Updates a employee with the given data."""
-    return update_employee(
+    return update_employee_personal(
         db_session=db_session, employee_id=employee_id, employee_in=employee_in
+    )
+
+
+@employee_router.put("/{employee_id}/salary_info", response_model=EmployeeRead)
+def update_salary(
+    *,
+    db_session: DbSession,
+    employee_id: int,
+    employee_in: EmployeeUpdateSalary,
+    is_addendum: bool,
+):
+    """Updates a employee with the given data."""
+    return update_employee_salary(
+        db_session=db_session,
+        employee_id=employee_id,
+        employee_in=employee_in,
+        is_addendum=is_addendum,
     )
 
 
