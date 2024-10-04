@@ -1,5 +1,6 @@
 from datetime import datetime, date
 from typing import List, Optional
+from payroll.employees.schemas import EmployeeBase
 from payroll.utils.models import (
     DependantRelationship,
     IDDocType,
@@ -26,6 +27,7 @@ class DependantBase(PayrollBase):
 class DependantRead(DependantBase):
     id: int
     created_at: datetime
+    employee: EmployeeBase
 
 
 class DependantsRead(PayrollBase):

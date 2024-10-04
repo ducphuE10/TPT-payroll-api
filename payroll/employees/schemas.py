@@ -26,6 +26,7 @@ class EmployeeBase(PayrollBase):
     cccd_place: Optional[str] = None
     permanent_addr: Optional[str] = None
     phone: Optional[str] = None
+    # -----------------------
     is_probation: bool
     start_date: date
     end_date: Optional[date] = None
@@ -36,11 +37,12 @@ class EmployeeBase(PayrollBase):
     toxic_benefit: float
     phone_benefit: float
     attendant_benefit: float
+    # -----------------------
     schedule_id: Optional[int] = None
-    payment_method: Optional[PaymentMethod] = None
     bank_account: Optional[str] = None
     bank_holder_name: Optional[str] = None
     bank_name: Optional[str] = None
+    payment_method: Optional[PaymentMethod] = None
     cv: Optional[bytes] = None
     note: Optional[str] = None
 
