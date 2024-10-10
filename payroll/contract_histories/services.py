@@ -7,6 +7,7 @@ from payroll.contract_histories.repositories import (
     remove_contract_history,
     retrieve_all_contract_histories,
     retrieve_contract_history_addendum_by_employee_and_period,
+    retrieve_contract_history_addendums_by_employee_and_period,
     retrieve_contract_history_by_employee_and_period,
     retrieve_contract_history_by_id,
 )
@@ -85,6 +86,36 @@ def get_active_contract_history_by_period(
         return active_contract_history_addendum
     else:
         return active_contract_history
+
+
+def get_active_contract_history_detail_by_period(
+    *, db_session, employee_id: int, from_date: date, to_date: date
+):
+    active_contract_history = retrieve_contract_history_by_employee_and_period(
+        db_session=db_session,
+        employee_id=employee_id,
+        from_date=from_date,
+        to_date=to_date,
+    )
+    active_contract_history_addendums = (
+        retrieve_contract_history_addendums_by_employee_and_period(
+            db_session=db_session,
+            employee_id=employee_id,
+            from_date=from_date,
+            to_date=to_date,
+        )
+    )
+
+    if not (active_contract_history or active_contract_history_addendums):
+        raise AppException(ErrorMessages.ResourceNotFound(), "contract history")
+
+    if active_contract_history_addendums:
+        return {
+            "contract": active_contract_history,
+            "addendums": active_contract_history_addendums,
+        }
+    else:
+        return {"contract": active_contract_history}
 
 
 def create_contract_history(*, db_session, contract_history_in: ContractHistoryCreate):

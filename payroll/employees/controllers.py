@@ -1,6 +1,11 @@
+from datetime import date
+from typing import Optional
 from fastapi import APIRouter, File, Form, UploadFile
 
 # from payroll.attendances.services import get_employee_attendances
+from payroll.contract_histories.services import (
+    get_active_contract_history_detail_by_period,
+)
 from payroll.employees.schemas import (
     BenefitsRead,
     EmployeeDelete,
@@ -41,6 +46,22 @@ def retrieve_employees(*, db_session: DbSession, name: str = None):
 @employee_router.get("/benefits", response_model=BenefitsRead)
 def get_active_benefits(*, db_session: DbSession):
     return get_employees_active_benefits(db_session=db_session)
+
+
+@employee_router.get("/{employee_id}/detail")
+def get_contract_history_detail(
+    *,
+    db_session: DbSession,
+    employee_id: int,
+    from_date: date = date.today(),
+    to_date: Optional[date] = None,
+):
+    return get_active_contract_history_detail_by_period(
+        db_session=db_session,
+        employee_id=employee_id,
+        from_date=from_date,
+        to_date=to_date,
+    )
 
 
 # GET /employees/{employee_id}

@@ -100,6 +100,27 @@ def retrieve_contract_history_addendum_by_employee_and_period(
     return query.first()
 
 
+def retrieve_contract_history_addendums_by_employee_and_period(
+    *, db_session, employee_id: int, from_date: date, to_date: Optional[date] = None
+):
+    query = db_session.query(PayrollContractHistory).filter(
+        PayrollContractHistory.employee_id == employee_id,
+        PayrollContractHistory.contract_type == ContractHistoryType.ADDENDUM,
+    )
+
+    if to_date is not None:
+        query = query.filter(PayrollContractHistory.start_date <= to_date)
+
+    query = query.filter(
+        or_(
+            PayrollContractHistory.end_date.is_(None),
+            PayrollContractHistory.end_date >= from_date,
+        )
+    )
+
+    return query.all()
+
+
 def retrieve_all_contract_histories(*, db_session):
     query = db_session.query(PayrollContractHistory)
     count = query.count()

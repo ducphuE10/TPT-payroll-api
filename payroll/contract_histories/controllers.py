@@ -31,8 +31,10 @@ def get_all(
 @contract_history_router.get(
     "/{contract_history_id}", response_model=ContractHistoryRead
 )
-def get_one(*, db_session: DbSession, id: int):
-    return get_contract_history_by_id(db_session=db_session, id=id)
+def get_one(*, db_session: DbSession, contract_history_id: int):
+    return get_contract_history_by_id(
+        db_session=db_session, contract_history_id=contract_history_id
+    )
 
 
 # @contract_history_router.get(
