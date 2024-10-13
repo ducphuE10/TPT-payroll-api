@@ -111,30 +111,24 @@ class EmployeeUpdateSalary(PayrollBase):
 class EmployeeImport(PayrollBase):
     code: str
     name: str
-    date_of_birth: date
     gender: Gender
-    nationality: Optional[Nationality] = None
-    ethnic: Optional[str] = None
-    religion: Optional[str] = None
+    department_code: str
+    position_code: str
+    mst: str
+    date_of_birth: date
     cccd: str
     cccd_date: Optional[date] = None
     cccd_place: Optional[str] = None
-    domicile: Optional[str] = None
     permanent_addr: Optional[str] = None
-    temp_addr: Optional[str] = None
-    phone: Optional[str] = None
-    academic_level: Optional[str] = None
-    bank_account: Optional[str] = None
-    bank_holder_name: Optional[str] = None
-    bank_name: Optional[str] = None
-    mst: str
-    kcb_number: Optional[str] = None
-    hospital_info: Optional[str] = None
-    note: Optional[str] = None
-    department_code: str
-    position_code: str
-    email: Optional[str] = None
-    cv: Optional[bytes] = None
+    start_date: date
+    end_date: Optional[date] = None
+    salary: float
+    housing_benefit: float
+    attendant_benefit: float
+    transportation_benefit: float
+    meal_benefit: float
+    toxic_benefit: float
+    phone_benefit: float
 
 
 class EmployeePagination(Pagination):

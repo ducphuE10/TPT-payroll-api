@@ -97,7 +97,7 @@ def retrieve_contract_history_addendum_by_employee_and_period(
         )
     )
 
-    return query.first()
+    return query.order_by(PayrollContractHistory.id.desc()).first()
 
 
 def retrieve_contract_history_addendums_by_employee_and_period(

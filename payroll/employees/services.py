@@ -6,9 +6,13 @@ from pydantic import ValidationError
 
 from payroll.contract_histories.repositories import (
     add_contract_history,
+    modify_contract_history,
     retrieve_contract_history_by_employee_and_period,
 )
-from payroll.contract_histories.schemas import ContractHistoryUpdate
+from payroll.contract_histories.schemas import (
+    ContractHistoryCreate,
+    ContractHistoryUpdate,
+)
 from payroll.contract_histories.services import check_exist_contract_history_addendum
 from payroll.departments.services import (
     check_exist_department_by_id,
@@ -159,6 +163,29 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
     if validate_create_employee(db_session=db_session, employee_in=employee_in):
         try:
             employee = add_employee(db_session=db_session, employee_in=employee_in)
+            added_employee = retrieve_employee_by_code(
+                db_session=db_session, employee_code=employee.code
+            )
+            print(added_employee)
+            contract_history_create = ContractHistoryCreate(
+                employee_id=employee.id,
+                is_probation=employee_in.is_probation,
+                start_date=employee_in.start_date,
+                end_date=employee_in.end_date,
+                salary=employee_in.salary,
+                meal_benefit=employee_in.meal_benefit,
+                transportation_benefit=employee_in.transportation_benefit,
+                housing_benefit=employee_in.housing_benefit,
+                toxic_benefit=employee_in.toxic_benefit,
+                phone_benefit=employee_in.phone_benefit,
+                attendant_benefit=employee_in.attendant_benefit,
+                contract_type=ContractHistoryType.CONTRACT,
+            )
+            contract_history = add_contract_history(
+                db_session=db_session,
+                contract_history_in=contract_history_create,
+            )
+            print(contract_history)
             db_session.commit()
         except Exception as e:
             db_session.rollback()
@@ -190,7 +217,7 @@ def update_multi_employees_schedule(
             ):
                 raise AppException(ErrorMessages.ResourceNotFound(), "employee")
             try:
-                employee_in = EmployeeUpdate(schedule_id=schedule_id)
+                employee_in = EmployeeUpdatePersonal(schedule_id=schedule_id)
                 employee = modify_employee(
                     db_session=db_session,
                     employee_id=employee_id,
@@ -267,43 +294,50 @@ def update_employee_salary(
 def upsert_contract_history(
     *, db_session, employee_id: int, employee_in: PayrollEmployee, is_addendum: bool
 ):
-    contract_history = None
-    contract_history_update = ContractHistoryUpdate(
-        employee_id=employee_id,
-        is_probation=employee_in.is_probation,
-        start_date=employee_in.start_date,
-        end_date=employee_in.end_date,
-        salary=employee_in.salary,
-        meal_benefit=employee_in.meal_benefit,
-        transportation_benefit=employee_in.transportation_benefit,
-        housing_benefit=employee_in.housing_benefit,
-        toxic_benefit=employee_in.toxic_benefit,
-        phone_benefit=employee_in.phone_benefit,
-        attendant_benefit=employee_in.attendant_benefit,
-    )
-    if not is_addendum:
-        if check_exist_contract_history_addendum(
-            db_session=db_session,
+    try:
+        contract_history = None
+        contract_history_update = ContractHistoryUpdate(
             employee_id=employee_id,
-            from_date=employee_in.start_date,
-            to_date=employee_in.end_date,
-        ):
-            raise AppException(ErrorMessages.ExistDependObject(), "addendum")
-        else:
-            contract_history = retrieve_contract_history_by_employee_and_period(
+            is_probation=employee_in.is_probation,
+            start_date=employee_in.start_date,
+            end_date=employee_in.end_date,
+            salary=employee_in.salary,
+            meal_benefit=employee_in.meal_benefit,
+            transportation_benefit=employee_in.transportation_benefit,
+            housing_benefit=employee_in.housing_benefit,
+            toxic_benefit=employee_in.toxic_benefit,
+            phone_benefit=employee_in.phone_benefit,
+            attendant_benefit=employee_in.attendant_benefit,
+        )
+        if not is_addendum:
+            if check_exist_contract_history_addendum(
                 db_session=db_session,
                 employee_id=employee_id,
                 from_date=employee_in.start_date,
                 to_date=employee_in.end_date,
+            ):
+                raise AppException(ErrorMessages.ExistDependObject(), "addendum")
+            else:
+                contract_history = retrieve_contract_history_by_employee_and_period(
+                    db_session=db_session,
+                    employee_id=employee_id,
+                    from_date=employee_in.start_date,
+                    to_date=employee_in.end_date,
+                )
+                print(contract_history.id)
+                contract_history_update.contract_type = ContractHistoryType.CONTRACT
+                contract_history = modify_contract_history(
+                    contract_history_id=contract_history.id,
+                    db_session=db_session,
+                    contract_history_in=contract_history_update,
+                )
+        else:
+            contract_history_update.contract_type = ContractHistoryType.ADDENDUM
+            contract_history = add_contract_history(
+                db_session=db_session,
+                contract_history_in=contract_history_update,
             )
-            contract_history_update.contract_type = ContractHistoryType.CONTRACT
-    else:
-        contract_history_update.contract_type = ContractHistoryType.ADDENDUM
-    try:
-        contract_history = add_contract_history(
-            db_session=db_session,
-            contract_history_in=contract_history_update,
-        )
+            db_session.commit()
     except AppException as e:
         raise AppException(ErrorMessages.ErrSM99999(), str(e))
 
@@ -419,12 +453,12 @@ def uploadXLSX(
     )
 
     # rename columns
-    df.dropna(subset=["Code"], inplace=True)
+    df.dropna(subset=["Số hợp đồng"], inplace=True)
 
     df = df.rename(columns={v: k for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
     # convert date columns to datetime
     df = df.astype(DTYPES_MAP)
-
+    print(df)
     date_columns = ["date_of_birth", "cccd_date"]
     for col in date_columns:
         df[col] = pd.to_datetime(df[col], errors="coerce")
@@ -441,6 +475,7 @@ def uploadXLSX(
 
             employee_data = row.to_dict()
             for key, value in employee_data.items():
+                print(key, value)
                 if value == "nan" or value is pd.NaT:
                     employee_data[key] = None
 

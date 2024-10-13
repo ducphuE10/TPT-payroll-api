@@ -5,6 +5,7 @@ from payroll.database.core import DbSession
 from payroll.contract_histories.services import (
     create_contract_history,
     delete_contract_history,
+    generate_contract_docx,
     get_all_contract_histories,
     get_contract_history_by_id,
     update_contract_history,
