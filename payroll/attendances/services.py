@@ -178,11 +178,11 @@ def create_multi_attendances(
         attendance_list_in.to_date = date.today()
 
     if attendance_list_in.apply_all:
-        list_id = [
-            employee.id
-            for employee in retrieve_all_employees(db_session=db_session)["data"]
-        ]
-
+        for employee in retrieve_all_employees(db_session=db_session)["data"]:
+            if check_exist_schedule_by_employee_id(
+                db_session=db_session, employee_id=employee.id
+            ):
+                list_id.append(employee.id)
     else:
         list_id = [id for id in attendance_list_in.list_emp]
 

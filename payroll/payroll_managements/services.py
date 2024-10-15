@@ -47,6 +47,7 @@ from payroll.exception.error_message import ErrorMessages
 from payroll.schedule_details.repositories import (
     retrieve_schedule_details_by_schedule_id,
 )
+from payroll.schedules.services import check_exist_schedule_by_employee_id
 from payroll.shifts.repositories import retrieve_shift_by_id
 from payroll.utils.models import Day
 
@@ -204,6 +205,8 @@ def create_payroll_management(
         apply_insurance=payroll_management_in.apply_insurance,
         insurance_id=payroll_management_in.insurance_id,
     )
+    if not payroll_management_create:
+        return
     try:
         payroll_management = add_payroll_management(
             db_session=db_session,
@@ -226,10 +229,11 @@ def create_multi_payroll_managements(
     list_id = []
 
     if payroll_management_list_in.apply_all:
-        list_id = [
-            employee.id
-            for employee in retrieve_all_employees(db_session=db_session)["data"]
-        ]
+        for employee in retrieve_all_employees(db_session=db_session)["data"]:
+            if check_exist_schedule_by_employee_id(
+                db_session=db_session, employee_id=employee.id
+            ):
+                list_id.append(employee.id)
     else:
         list_id = [id for id in payroll_management_list_in.list_emp]
 
@@ -496,7 +500,8 @@ def payroll_handler(
         month=month,
         year=year,
     ):
-        raise AppException(ErrorMessages.ResourceAlreadyExists(), "payroll management")
+        # raise AppException(ErrorMessages.ResourceAlreadyExists(), "payroll management")
+        return
 
     # work_days_standard = work_days_standard_handler(schedule_details=schedule_details)
 

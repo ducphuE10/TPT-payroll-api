@@ -16,11 +16,6 @@ from payroll.overtimes.controllers import overtime_router
 from payroll.dependants.controllers import dependant_router
 from payroll.payroll_managements.controllers import payroll_management_router
 
-# from payroll.storage.controllers import storage_router
-
-# from payroll.addendums.controllers import addendum_router
-# from payroll.schedule_details.controllers import schedule_detail_router
-
 from payroll.config import settings
 
 # WARNING: Don't use this unless you want unauthenticated routes

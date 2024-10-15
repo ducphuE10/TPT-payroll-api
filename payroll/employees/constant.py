@@ -37,6 +37,7 @@ DTYPES_MAP = {
     "permanent_addr": str,
     "start_date": str,
     "end_date": str,
+    "is_probation": str,
     "salary": str,
     "housing_benefit": str,
     "attendant_benefit": str,

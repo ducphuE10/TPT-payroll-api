@@ -210,5 +210,4 @@ def generate_contract_docx(*, db_session, id: int):
     contract_data = get_contract_history_by_id(
         db_session=db_session, contract_history_id=id
     )
-    print(contract_data)
     return contract_data

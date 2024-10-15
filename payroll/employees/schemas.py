@@ -122,6 +122,7 @@ class EmployeeImport(PayrollBase):
     permanent_addr: Optional[str] = None
     start_date: date
     end_date: Optional[date] = None
+    is_probation: bool
     salary: float
     housing_benefit: float
     attendant_benefit: float

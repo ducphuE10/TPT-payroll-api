@@ -163,10 +163,9 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
     if validate_create_employee(db_session=db_session, employee_in=employee_in):
         try:
             employee = add_employee(db_session=db_session, employee_in=employee_in)
-            added_employee = retrieve_employee_by_code(
+            retrieve_employee_by_code(
                 db_session=db_session, employee_code=employee.code
             )
-            print(added_employee)
             contract_history_create = ContractHistoryCreate(
                 employee_id=employee.id,
                 is_probation=employee_in.is_probation,
@@ -181,11 +180,10 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
                 attendant_benefit=employee_in.attendant_benefit,
                 contract_type=ContractHistoryType.CONTRACT,
             )
-            contract_history = add_contract_history(
+            add_contract_history(
                 db_session=db_session,
                 contract_history_in=contract_history_create,
             )
-            print(contract_history)
             db_session.commit()
         except Exception as e:
             db_session.rollback()
@@ -324,7 +322,6 @@ def upsert_contract_history(
                     from_date=employee_in.start_date,
                     to_date=employee_in.end_date,
                 )
-                print(contract_history.id)
                 contract_history_update.contract_type = ContractHistoryType.CONTRACT
                 contract_history = modify_contract_history(
                     contract_history_id=contract_history.id,
@@ -362,34 +359,57 @@ def delete_employee(*, db_session, employee_id: int):
     return removed_employee
 
 
-def create_employee_by_xlsx(
-    *, db_session, employee_in: EmployeeImport
-) -> PayrollEmployee:
+def create_employee_by_xlsx(*, db_session, employee_in: EmployeeImport):
     """Creates a new employee."""
-    employee = PayrollEmployee(
-        **employee_in.model_dump(exclude={"department_code", "position_code"})
-    )
-    employee_db = retrieve_employee_by_code(
-        db_session=db_session, employee_code=employee.code
-    )
-    if employee_db:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Employee already exists",
+    try:
+        if check_exist_employee_by_code(
+            db_session=db_session, employee_code=employee_in.code
+        ):
+            raise AppException(ErrorMessages.ResourceAlreadyExists, "employee")
+        if employee_in.department_code:
+            department = get_department_by_code(
+                db_session=db_session, department_code=employee_in.department_code
+            )
+            department_id = department.id
+        if employee_in.position_code:
+            position = get_position_by_code(
+                db_session=db_session, position_code=employee_in.position_code
+            )
+        position_id = position.id
+
+        employee_data = employee_in.model_dump(
+            exclude={"department_code", "position_code"}
         )
-    if employee_in.department_code:
-        department = get_department_by_code(
-            db_session=db_session, department_code=employee_in.department_code
+        employee_data["department_id"] = department_id
+        employee_data["position_id"] = position_id
+
+        employee_create = EmployeeCreate(**employee_data)
+
+        employee = add_employee(db_session=db_session, employee_in=employee_create)
+        retrieve_employee_by_code(db_session=db_session, employee_code=employee.code)
+        contract_history_create = ContractHistoryCreate(
+            employee_id=employee.id,
+            is_probation=employee_in.is_probation,
+            start_date=employee_in.start_date,
+            end_date=employee_in.end_date,
+            salary=employee_in.salary,
+            meal_benefit=employee_in.meal_benefit,
+            transportation_benefit=employee_in.transportation_benefit,
+            housing_benefit=employee_in.housing_benefit,
+            toxic_benefit=employee_in.toxic_benefit,
+            phone_benefit=employee_in.phone_benefit,
+            attendant_benefit=employee_in.attendant_benefit,
+            contract_type=ContractHistoryType.CONTRACT,
         )
-        employee.department_id = department.id
-    if employee_in.position_code:
-        position = get_position_by_code(
-            db_session=db_session, position_code=employee_in.position_code
+        add_contract_history(
+            db_session=db_session,
+            contract_history_in=contract_history_create,
         )
-        employee.position_id = position.id
-    employee.created_by = "admin"
-    db_session.add(employee)
-    db_session.commit()
+        db_session.commit()
+    except Exception as e:
+        db_session.rollback()
+        raise AppException(ErrorMessages.ErrSM99999(), str(e))
+
     return employee
 
 
@@ -446,24 +466,25 @@ def uploadXLSX(
 ):
     data = BytesIO(file.file.read())
 
-    _data = pd.read_excel(data)
+    dtype_map = {v: str for v in IMPORT_EMPLOYEES_EXCEL_MAP.values()}
+
+    _data = pd.read_excel(data, dtype=dtype_map)
+
     df = pd.DataFrame(
         _data,
         columns=list(IMPORT_EMPLOYEES_EXCEL_MAP.values()),
     )
 
-    # rename columns
     df.dropna(subset=["Số hợp đồng"], inplace=True)
 
     df = df.rename(columns={v: k for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
-    # convert date columns to datetime
+
     df = df.astype(DTYPES_MAP)
-    print(df)
+
     date_columns = ["date_of_birth", "cccd_date"]
     for col in date_columns:
         df[col] = pd.to_datetime(df[col], errors="coerce")
 
-    # Validate all rows before inserting
     employees_data = []
     errors = []
 
@@ -475,7 +496,6 @@ def uploadXLSX(
 
             employee_data = row.to_dict()
             for key, value in employee_data.items():
-                print(key, value)
                 if value == "nan" or value is pd.NaT:
                     employee_data[key] = None
 

@@ -5,6 +5,7 @@ from sqlalchemy import func
 from payroll.employees.schemas import (
     EmployeeCreate,
     EmployeeDelete,
+    EmployeeImport,
     EmployeeUpdatePersonal,
     EmployeeUpdateSalary,
 )
@@ -131,6 +132,15 @@ def search_employees_by_partial_name(*, db_session, name: str):
 
 # POST /employees
 def add_employee(*, db_session, employee_in: EmployeeCreate) -> PayrollEmployee:
+    """Creates a new employee."""
+    employee = PayrollEmployee(**employee_in.model_dump())
+    employee.created_by = "admin"
+    db_session.add(employee)
+
+    return employee
+
+
+def import_employee(*, db_session, employee_in: EmployeeImport) -> PayrollEmployee:
     """Creates a new employee."""
     employee = PayrollEmployee(**employee_in.model_dump())
     employee.created_by = "admin"
