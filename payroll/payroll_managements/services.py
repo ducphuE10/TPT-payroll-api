@@ -263,6 +263,8 @@ def create_multi_payroll_managements(
                         db_session=db_session,
                         payroll_management_in=payroll_management_in,
                     )
+                    if not payroll_management:
+                        continue
                     payroll_managements.append(payroll_management)
                     count += 1
 
@@ -472,7 +474,7 @@ def payroll_handler(
     year: int,
     work_days_standard: float,
     apply_insurance: bool = False,
-    insurance_id: Optional[int],
+    insurance_id: Optional[int] = None,
 ):
     employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
 
@@ -555,8 +557,6 @@ def payroll_handler(
         phone_benefit_salary
     ) = housing_benefit_salary = meal_benefit_salary = toxic_benefit_salary = 0
 
-    # benefits = benefit_handler(db_session=db_session, contract_id=contract.id)
-    # if f"{BenefitType.ATTENDANT}" in benefits:
     if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
         attendant_benefit_salary = contract_history.attendant_benefit
 
@@ -615,9 +615,7 @@ def payroll_handler(
     if apply_insurance:
         insurance = get_insurance_policy_by_id(db_session=db_session, id=insurance_id)
         if not insurance:
-            insurance_id = None
             raise AppException(ErrorMessages.ResourceNotFound, "insurance")
-        insurance_id = insurance.id
         employee_insurance = basic_salary * insurance.employee_percentage / 100
         company_insurance = basic_salary * insurance.company_percentage / 100
 
