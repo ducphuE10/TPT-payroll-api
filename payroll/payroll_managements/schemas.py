@@ -25,6 +25,7 @@ class PayrollManagementBase(PayrollBase):
     transportation_benefit_salary: float
     attendant_benefit_salary: float
     housing_benefit_salary: float
+    toxic_benefit_salary: float
     phone_benefit_salary: float
     meal_benefit_salary: float
     gross_income: float
@@ -44,6 +45,7 @@ class PayrollManagementBase(PayrollBase):
         "transportation_benefit_salary",
         "attendant_benefit_salary",
         "housing_benefit_salary",
+        "toxic_benefit_salary",
         "phone_benefit_salary",
         "meal_benefit_salary",
         "gross_income",
