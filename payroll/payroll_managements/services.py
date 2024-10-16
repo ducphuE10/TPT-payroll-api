@@ -486,14 +486,15 @@ def payroll_handler(
 
     first_day, last_day = get_month_boundaries(month=month, year=year)
 
-    contract_history = get_active_contract_history_by_period(
-        db_session=db_session,
-        employee_id=employee_id,
-        from_date=first_day,
-        to_date=last_day,
-    )
-    if not contract_history:
-        raise AppException(ErrorMessages.ResourceNotFound(), "contract history")
+    try:
+        contract_history = get_active_contract_history_by_period(
+            db_session=db_session,
+            employee_id=employee_id,
+            from_date=first_day,
+            to_date=last_day,
+        )
+    except Exception:
+        return
 
     if check_exist_payroll_management_by_information(
         db_session=db_session,
