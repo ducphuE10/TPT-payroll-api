@@ -1,3 +1,6 @@
+from io import BytesIO
+import os
+from docx import Document
 from fastapi import Depends
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
@@ -6,6 +9,10 @@ from payroll.config import settings
 import logging
 from typing import Annotated
 from fastapi.security import APIKeyHeader
+from docx.shared import Pt
+from docx.oxml.ns import qn
+from docx.table import Table
+from docx.text.paragraph import Paragraph
 
 from payroll.dependants.repositories import (
     # retrieve_dependant_by_cccd,
@@ -90,3 +97,65 @@ def check_exist_person_by_mst(
         exclude_dependant_id=exclude_id,
     )
     return bool(employee or dependant)
+
+
+def fill_template(template_path: str, data: dict):
+    if not os.path.exists(template_path):
+        raise FileNotFoundError(f"Template not found at {template_path}")
+    doc = Document(template_path)
+    # Iterate over paragraphs and replace placeholders with actual data
+
+    def set_font_to_times_new_roman(paragraph):
+        """Sets the font of a paragraph to Times New Roman."""
+        for run in paragraph.runs:
+            run.font.name = "Times New Roman"
+            run._element.rPr.rFonts.set(qn("w:eastAsia"), "Times New Roman")
+            run.font.size = Pt(11)
+
+    def replace_text_in_paragraph(paragraph, data):
+        """Replaces placeholders in the entire paragraph text."""
+        # Combine the text from all runs into one string
+        full_text = "".join([run.text for run in paragraph.runs])
+        # Replace placeholders with actual values
+        for key, value in data.items():
+            placeholder = f"{{{{ {key} }}}}"
+            if placeholder in full_text:
+                full_text = full_text.replace(placeholder, value)
+
+        # Set the replaced text back into the runs
+        if full_text:
+            paragraph.runs[0].text = full_text  # Assign all text to the first run
+            for run in paragraph.runs[1:]:  # Clear text in remaining runs
+                run.text = ""
+
+        set_font_to_times_new_roman(paragraph)
+
+    def replace_text_in_table(table, data):
+        """Replaces placeholders in all cells of a table."""
+        for row in table.rows:
+            for cell in row.cells:
+                for paragraph in cell.paragraphs:
+                    replace_text_in_paragraph(paragraph, data)
+
+    # Iterate over all elements in the document in the correct order
+    def iter_block_items(parent):
+        """Yield paragraphs and tables in the order they appear in the document."""
+        for child in parent.element.body:
+            if child.tag.endswith("p"):
+                yield Paragraph(child, parent)
+            elif child.tag.endswith("tbl"):
+                yield Table(child, parent)
+
+    # Process paragraphs and tables in the document in the correct order
+    for block in iter_block_items(doc):
+        if isinstance(block, Paragraph):
+            replace_text_in_paragraph(block, data)
+        elif isinstance(block, Table):
+            replace_text_in_table(block, data)
+
+    # Save the modified document to a bytes buffer
+    file_stream = BytesIO()
+    doc.save(file_stream)
+    file_stream.seek(0)
+
+    return file_stream

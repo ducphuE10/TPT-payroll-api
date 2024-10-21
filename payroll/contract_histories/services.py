@@ -1,6 +1,8 @@
 # from docx import Document
 from datetime import date
 
+from fastapi.responses import StreamingResponse
+
 from payroll.contract_histories.repositories import (
     add_contract_history,
     modify_contract_history,
@@ -15,7 +17,12 @@ from payroll.contract_histories.schemas import (
     ContractHistoryCreate,
     ContractHistoryUpdate,
 )
+
+from payroll.departments.repositories import retrieve_department_by_id
+from payroll.employees.repositories import retrieve_employee_by_id
 from payroll.exception import AppException, ErrorMessages
+from payroll.utils.functions import fill_template
+from payroll.utils.models import ContractHistoryType
 
 # from payroll.storage.services import read_file_from_minio
 
@@ -210,4 +217,53 @@ def generate_contract_docx(*, db_session, id: int):
     contract_data = get_contract_history_by_id(
         db_session=db_session, contract_history_id=id
     )
-    return contract_data
+    employee = retrieve_employee_by_id(
+        db_session=db_session, employee_id=contract_data.employee_id
+    )
+
+    if not contract_data:
+        raise AppException(ErrorMessages.ResourceNotFound())
+    if contract_data.contract_type == ContractHistoryType.ADDENDUM:
+        template_path = "payroll/utils/file/addendum.docx"
+
+        try:
+            data = {
+                "contract_id": f"CT_{contract_data.id}_{contract_data.employee_id}",
+                "department": retrieve_department_by_id(
+                    db_session=db_session, department_id=employee.department_id
+                ).name
+                or "N/A",  # Handle missing data
+                "employee_name": employee.name or "N/A",
+                "date_of_birth": (
+                    employee.date_of_birth.strftime("%Y-%m-%d")
+                    if employee.date_of_birth
+                    else "N/A"
+                ),
+                "gender": employee.gender or "N/A",
+                "permenant_addr": employee.permanent_addr or "N/A",
+                "cccd": employee.cccd or "N/A",
+                "cccd_date": (
+                    employee.cccd_date.strftime("%Y-%m-%d")
+                    if employee.cccd_date
+                    else "N/A"
+                ),
+                "cccd_place": employee.cccd_place or "N/A",
+            }
+            # Create a temporary directory to store the generated contract
+            file_buffer = fill_template(template_path=template_path, data=data)
+
+        except Exception as e:
+            raise Exception(f"Error loading template file: {e}")
+
+        # Load the template
+        headers = {
+            "Content-Disposition": 'attachment; filename="filled_template.docx"',
+            "Content-Encoding": "UTF-8",
+        }
+    else:
+        print("123")
+    return StreamingResponse(
+        file_buffer,
+        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        headers=headers,
+    )
