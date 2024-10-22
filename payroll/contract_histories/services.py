@@ -257,11 +257,11 @@ def generate_contract_docx(*, db_session, id: int):
 
         # Load the template
         headers = {
-            "Content-Disposition": 'attachment; filename="filled_template.docx"',
-            "Content-Encoding": "UTF-8",
+            "Content-Disposition": f'attachment; filename="contract_{id}.docx"',
+            "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         }
     else:
-        print("123")
+        raise AppException(ErrorMessages.InvalidContractType())
     return StreamingResponse(
         file_buffer,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
