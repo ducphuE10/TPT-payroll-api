@@ -22,7 +22,7 @@ class ContractHistoryBase(PayrollBase):
     phone_benefit: float
     attendant_benefit: float
     contract_type: ContractHistoryType
-    schedule_id: int
+    schedule_id: Optional[int] = None
 
 
 class ContractHistoryRead(ContractHistoryBase):

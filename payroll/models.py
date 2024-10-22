@@ -261,7 +261,9 @@ class PayrollDependant(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(30), unique=True)  # required
     name: Mapped[str] = mapped_column(String(50))  # required
-    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+    employee_id: Mapped[int] = mapped_column(
+        ForeignKey("employees.id", ondelete="CASCADE"),
+    )  # required
     date_of_birth: Mapped[date]  # required
     phone: Mapped[Optional[str]] = mapped_column(String(30))
     mst: Mapped[str] = mapped_column(String(30), unique=True)  # required
@@ -284,7 +286,9 @@ class PayrollDependant(Base, TimeStampMixin):
 class PayrollContractHistory(Base, TimeStampMixin):
     __tablename__ = "contract_histories"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
-    employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+    employee_id: Mapped[int] = mapped_column(
+        ForeignKey("employees.id", ondelete="CASCADE"),
+    )  # required
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))
     is_probation: Mapped[bool] = mapped_column()  # required
