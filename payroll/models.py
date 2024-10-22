@@ -298,7 +298,7 @@ class PayrollContractHistory(Base, TimeStampMixin):
     phone_benefit: Mapped[float]
     attendant_benefit: Mapped[float]
     contract_type: Mapped[ContractHistoryType]
-    schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.id"))
+    schedule_id: Mapped[Optional[int]] = mapped_column(ForeignKey("schedules.id"))
     # template: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
