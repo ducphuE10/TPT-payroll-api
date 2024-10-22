@@ -9,6 +9,8 @@ from payroll.utils.models import Pagination, PayrollBase
 
 class ContractHistoryBase(PayrollBase):
     employee_id: int
+    department_id: int
+    position_id: int
     is_probation: bool
     start_date: date  # required
     end_date: Optional[date] = None
@@ -20,6 +22,7 @@ class ContractHistoryBase(PayrollBase):
     phone_benefit: float
     attendant_benefit: float
     contract_type: ContractHistoryType
+    schedule_id: int
 
 
 class ContractHistoryRead(ContractHistoryBase):
@@ -44,6 +47,8 @@ class ContractHistoryCreate(ContractHistoryBase):
 
 class ContractHistoryUpdate(PayrollBase):
     employee_id: Optional[int] = None
+    department_id: Optional[int] = None
+    position_id: Optional[int] = None
     is_probation: Optional[bool] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -55,6 +60,7 @@ class ContractHistoryUpdate(PayrollBase):
     phone_benefit: Optional[float] = None
     attendant_benefit: Optional[float] = None
     contract_type: Optional[ContractHistoryType] = None
+    schedule_id: Optional[int] = None
 
 
 class ContractPagination(Pagination):

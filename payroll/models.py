@@ -285,6 +285,8 @@ class PayrollContractHistory(Base, TimeStampMixin):
     __tablename__ = "contract_histories"
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     employee_id: Mapped[int] = mapped_column(ForeignKey("employees.id"))  # required
+    department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))
+    position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))
     is_probation: Mapped[bool] = mapped_column()  # required
     start_date: Mapped[date]  # required
     end_date: Mapped[Optional[date]]  # required
@@ -296,6 +298,7 @@ class PayrollContractHistory(Base, TimeStampMixin):
     phone_benefit: Mapped[float]
     attendant_benefit: Mapped[float]
     contract_type: Mapped[ContractHistoryType]
+    schedule_id: Mapped[int] = mapped_column(ForeignKey("schedules.id"))
     # template: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
@@ -303,6 +306,7 @@ class PayrollContractHistory(Base, TimeStampMixin):
         "PayrollEmployee",
         back_populates="contract_histories",
     )
+
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="contract"
     )

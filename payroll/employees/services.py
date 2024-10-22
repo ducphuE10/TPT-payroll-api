@@ -7,6 +7,7 @@ from pydantic import ValidationError
 from payroll.contract_histories.repositories import (
     add_contract_history,
     modify_contract_history,
+    retrieve_contract_histories_by_employee,
     retrieve_contract_history_by_employee_and_period,
 )
 from payroll.contract_histories.schemas import (
@@ -157,6 +158,13 @@ def get_employees_active_benefits(
     return list_benefits
 
 
+def get_employee_contract_histories(*, db_session, employee_id: int):
+    contract_histories = retrieve_contract_histories_by_employee(
+        db_session=db_session, employee_id=employee_id
+    )
+    return contract_histories
+
+
 # POST /employees
 def create_employee(*, db_session, employee_in: EmployeeCreate):
     """Creates a new employee."""
@@ -168,6 +176,8 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
             )
             contract_history_create = ContractHistoryCreate(
                 employee_id=employee.id,
+                department_id=employee.department_id,
+                position_id=employee.position_id,
                 is_probation=employee_in.is_probation,
                 start_date=employee_in.start_date,
                 end_date=employee_in.end_date,
@@ -179,6 +189,7 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
                 phone_benefit=employee_in.phone_benefit,
                 attendant_benefit=employee_in.attendant_benefit,
                 contract_type=ContractHistoryType.CONTRACT,
+                schedule_id=employee.schedule_id,
             )
             add_contract_history(
                 db_session=db_session,
@@ -296,6 +307,8 @@ def upsert_contract_history(
         contract_history = None
         contract_history_update = ContractHistoryUpdate(
             employee_id=employee_id,
+            department_id=employee_in.department_id,
+            position_id=employee_in.position_id,
             is_probation=employee_in.is_probation,
             start_date=employee_in.start_date,
             end_date=employee_in.end_date,
@@ -306,6 +319,7 @@ def upsert_contract_history(
             toxic_benefit=employee_in.toxic_benefit,
             phone_benefit=employee_in.phone_benefit,
             attendant_benefit=employee_in.attendant_benefit,
+            schedule_id=employee_in.schedule_id,
         )
         if not is_addendum:
             if check_exist_contract_history_addendum(

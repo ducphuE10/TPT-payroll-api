@@ -58,6 +58,13 @@ def retrieve_contract_history_by_id(
 #     )
 
 
+def retrieve_contract_histories_by_employee(*, db_session, employee_id: int):
+    query = db_session.query(PayrollContractHistory).filter(
+        PayrollContractHistory.employee_id == employee_id,
+    )
+    return query.all()
+
+
 def retrieve_contract_history_by_employee_and_period(
     *, db_session, employee_id: int, from_date: date, to_date: Optional[date] = None
 ):

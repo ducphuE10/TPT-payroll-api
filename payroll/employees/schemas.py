@@ -18,8 +18,6 @@ class EmployeeBase(PayrollBase):
     date_of_birth: date  # required
     gender: Gender  # required
     nationality: Optional[Nationality] = None
-    department_id: int  # required
-    position_id: int  # required
     mst: str  # required
     cccd: str  # required
     cccd_date: Optional[date] = None
@@ -27,6 +25,8 @@ class EmployeeBase(PayrollBase):
     permanent_addr: Optional[str] = None
     phone: Optional[str] = None
     # -----------------------
+    department_id: int  # required
+    position_id: int  # required
     is_probation: bool
     start_date: date
     end_date: Optional[date] = None
@@ -37,8 +37,8 @@ class EmployeeBase(PayrollBase):
     toxic_benefit: float
     phone_benefit: float
     attendant_benefit: float
-    # -----------------------
     schedule_id: Optional[int] = None
+    # -----------------------
     bank_account: Optional[str] = None
     bank_holder_name: Optional[str] = None
     bank_name: Optional[str] = None

@@ -23,6 +23,7 @@ from payroll.employees.services import (
     delete_employee,
     get_all_employees,
     get_employee_by_id,
+    get_employee_contract_histories,
     get_employees_active_benefits,
     search_employee_by_name,
     update_employee_personal,
@@ -61,6 +62,13 @@ def get_contract_history_detail(
         employee_id=employee_id,
         from_date=from_date,
         to_date=to_date,
+    )
+
+
+@employee_router.get("/{employee_id}/contract_histories")
+def get_contract_histories(*, db_session: DbSession, employee_id: int):
+    return get_employee_contract_histories(
+        db_session=db_session, employee_id=employee_id
     )
 
 

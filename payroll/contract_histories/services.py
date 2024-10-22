@@ -21,8 +21,9 @@ from payroll.contract_histories.schemas import (
 from payroll.departments.repositories import retrieve_department_by_id
 from payroll.employees.repositories import retrieve_employee_by_id
 from payroll.exception import AppException, ErrorMessages
-from payroll.utils.functions import fill_template
-from payroll.utils.models import ContractHistoryType
+from payroll.positions.repositories import retrieve_position_by_id
+from payroll.utils.functions import fill_template, format_with_dot
+from payroll.utils.models import ContractHistoryType, Gender
 
 # from payroll.storage.services import read_file_from_minio
 
@@ -162,35 +163,6 @@ def update_contract_history(
     return contract_history
 
 
-# def update_contract_with_benefits(
-#     *,
-#     db_session,
-#     contract_id: int,
-#     contract_in: Optional[ContractUpdate] = None,
-#     cbassoc_list_in: Optional[List[CBAssocsUpdate]] = None,
-# ):
-#     try:
-#         if contract_in:
-#             contract = update(
-#                 db_session=db_session, id=contract_id, contract_in=contract_in
-#             )
-
-#         if cbassoc_list_in:
-#             from payroll.contract_benefit_assocs.services import update_multi_cbassocs
-
-#             contract_with_benefits = update_multi_cbassocs(
-#                 db_session=db_session,
-#                 cbassoc_list_in=cbassoc_list_in,
-#                 contract_id=contract.id,
-#             )
-#         db_session.commit()
-#     except AppException as e:
-#         db_session.rollback()
-#         raise AppException(ErrorMessages.ErrSM99999(), str(e))
-
-#     return contract_with_benefits
-
-
 def delete_contract_history(*, db_session, contract_history_id: int):
     """Deletes a contract based on the given id."""
     if not check_exist_contract_history_by_id(
@@ -211,51 +183,65 @@ def delete_contract_history(*, db_session, contract_history_id: int):
     return {"message": "Deleted successfully"}
 
 
-def generate_contract_docx(*, db_session, id: int):
-    """Generate a contract docx file based on the given data and template."""
-
+def retrieve_addendum_data(*, db_session, addendum_id: int):
     contract_data = get_contract_history_by_id(
-        db_session=db_session, contract_history_id=id
+        db_session=db_session, contract_history_id=addendum_id
     )
     employee = retrieve_employee_by_id(
         db_session=db_session, employee_id=contract_data.employee_id
     )
+    data = {
+        "contract_id": f"CT_{contract_data.id}_{contract_data.employee_id}",
+        "department": retrieve_department_by_id(
+            db_session=db_session, department_id=contract_data.department_id
+        ).name
+        or "N/A",
+        "position": retrieve_position_by_id(
+            db_session=db_session, position_id=contract_data.position_id
+        ).name
+        or "N/A",
+        "employee_name": employee.name or "N/A",
+        "date_of_birth": (
+            employee.date_of_birth.strftime("%d-%m-%Y")
+            if employee.date_of_birth
+            else "N/A"
+        ),
+        "gender": "Nam" if employee.gender == Gender.Male else "Nữ",
+        "permenant_addr": employee.permanent_addr or "N/A",
+        "cccd": employee.cccd or "N/A",
+        "cccd_date": (
+            employee.cccd_date.strftime("%Y-%m-%d") if employee.cccd_date else "N/A"
+        ),
+        "cccd_place": employee.cccd_place or "N/A",
+        "salary": str(format_with_dot(contract_data.salary)),
+        "attendant_benefit": str(format_with_dot(contract_data.attendant_benefit)),
+        "transportation_benefit": str(
+            format_with_dot(contract_data.transportation_benefit)
+        ),
+        "housing_benefit": str(format_with_dot(contract_data.housing_benefit)),
+        "phone_benefit": str(format_with_dot(contract_data.phone_benefit)),
+        "meal_benefit": str(format_with_dot(contract_data.meal_benefit)),
+        "toxic_benefit": str(format_with_dot(contract_data.toxic_benefit)),
+    }
+    return data
 
+
+def generate_contract_docx(*, db_session, id: int):
+    """Generate a contract docx file based on the given data and template."""
+    contract_data = get_contract_history_by_id(
+        db_session=db_session, contract_history_id=id
+    )
     if not contract_data:
         raise AppException(ErrorMessages.ResourceNotFound())
+
     if contract_data.contract_type == ContractHistoryType.ADDENDUM:
         template_path = "payroll/utils/file/addendum.docx"
-
         try:
-            data = {
-                "contract_id": f"CT_{contract_data.id}_{contract_data.employee_id}",
-                "department": retrieve_department_by_id(
-                    db_session=db_session, department_id=employee.department_id
-                ).name
-                or "N/A",  # Handle missing data
-                "employee_name": employee.name or "N/A",
-                "date_of_birth": (
-                    employee.date_of_birth.strftime("%Y-%m-%d")
-                    if employee.date_of_birth
-                    else "N/A"
-                ),
-                "gender": employee.gender or "N/A",
-                "permenant_addr": employee.permanent_addr or "N/A",
-                "cccd": employee.cccd or "N/A",
-                "cccd_date": (
-                    employee.cccd_date.strftime("%Y-%m-%d")
-                    if employee.cccd_date
-                    else "N/A"
-                ),
-                "cccd_place": employee.cccd_place or "N/A",
-            }
-            # Create a temporary directory to store the generated contract
+            data = retrieve_addendum_data(db_session=db_session, addendum_id=id)
             file_buffer = fill_template(template_path=template_path, data=data)
-
         except Exception as e:
             raise Exception(f"Error loading template file: {e}")
 
-        # Load the template
         headers = {
             "Content-Disposition": f'attachment; filename="contract_{id}.docx"',
             "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
