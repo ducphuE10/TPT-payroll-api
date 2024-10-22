@@ -1,5 +1,6 @@
 # from docx import Document
 from datetime import date
+from typing import Optional
 
 from fastapi.responses import StreamingResponse
 
@@ -194,25 +195,22 @@ def retrieve_addendum_data(*, db_session, addendum_id: int):
         "contract_id": f"CT_{contract_data.id}_{contract_data.employee_id}",
         "department": retrieve_department_by_id(
             db_session=db_session, department_id=contract_data.department_id
-        ).name
-        or "N/A",
+        ).name,
         "position": retrieve_position_by_id(
             db_session=db_session, position_id=contract_data.position_id
-        ).name
-        or "N/A",
-        "employee_name": employee.name or "N/A",
-        "date_of_birth": (
-            employee.date_of_birth.strftime("%d-%m-%Y")
-            if employee.date_of_birth
-            else "N/A"
-        ),
+        ).name,
+        "employee_name": employee.name,
+        "date_of_birth": (employee.date_of_birth.strftime("%d-%m-%Y")),
         "gender": "Nam" if employee.gender == Gender.Male else "Nữ",
-        "permenant_addr": employee.permanent_addr or "N/A",
-        "cccd": employee.cccd or "N/A",
+        "permenant_addr": employee.permanent_addr
+        or "........................................",
+        "cccd": employee.cccd,
         "cccd_date": (
-            employee.cccd_date.strftime("%Y-%m-%d") if employee.cccd_date else "N/A"
+            employee.cccd_date.strftime("%Y-%m-%d")
+            if employee.cccd_date
+            else "...................."
         ),
-        "cccd_place": employee.cccd_place or "N/A",
+        "cccd_place": employee.cccd_place or "........................................",
         "salary": str(format_with_dot(contract_data.salary)),
         "attendant_benefit": str(format_with_dot(contract_data.attendant_benefit)),
         "transportation_benefit": str(
@@ -226,7 +224,62 @@ def retrieve_addendum_data(*, db_session, addendum_id: int):
     return data
 
 
-def generate_contract_docx(*, db_session, id: int):
+def retrieve_contract_data(
+    *,
+    db_session,
+    contract_id: int,
+    detail_benefit: Optional[bool] = None,
+    detail_insurance: Optional[bool] = None,
+):
+    contract_data = get_contract_history_by_id(
+        db_session=db_session, contract_history_id=contract_id
+    )
+    employee = retrieve_employee_by_id(
+        db_session=db_session, employee_id=contract_data.employee_id
+    )
+    if detail_benefit:
+        benefit = {
+            "benefit": f"\n+ Phụ cấp chuyên cần/ Attendant allowance: {str(format_with_dot(contract_data.attendant_benefit))} đ\n+ Phụ cấp đi lại/ Transportation allowance: {str(format_with_dot(contract_data.transportation_benefit))} đ\n+ Phụ cấp nhà ở/ Housing allowance: {str(format_with_dot(contract_data.housing_benefit))} đ\n+ Phụ cấp điện thoại/ Phone allowance: {str(format_with_dot(contract_data.phone_benefit))} đ\n+ Phụ cấp tiền ăn/ Meal allowance: {str(format_with_dot(contract_data.meal_benefit))} đ\n+ Phụ cấp độc hại/ Toxic allowance: {str(format_with_dot(contract_data.toxic_benefit))} đ"
+        }
+    elif not detail_benefit:
+        benefit = {
+            "benefit": "theo chính sách chung của Công ty tại từng thời điểm\nAllowance: In accordance with the policy of the Company from time to time."
+        }
+
+    data = {
+        "contract_id": f"CT_{contract_data.id}_{contract_data.employee_id}",
+        "employee_name": employee.name,
+        "date_of_birth": (employee.date_of_birth.strftime("%d-%m-%Y")),
+        "cccd": employee.cccd,
+        "cccd_date": (
+            employee.cccd_date.strftime("%Y-%m-%d")
+            if employee.cccd_date
+            else "...................."
+        ),
+        "cccd_place": employee.cccd_place or "........................................",
+        "permenant_addr": employee.permanent_addr
+        or "........................................",
+        "mst": employee.mst,
+        "position": retrieve_position_by_id(
+            db_session=db_session, position_id=contract_data.position_id
+        ).name,
+        "department": retrieve_department_by_id(
+            db_session=db_session, department_id=contract_data.department_id
+        ).name,
+        "salary": str(format_with_dot(contract_data.salary)),
+    }
+    data.update(benefit)
+
+    return data
+
+
+def generate_contract_docx(
+    *,
+    db_session,
+    id: int,
+    detail_benefit: Optional[bool] = None,
+    detail_insurance: Optional[bool] = None,
+):
     """Generate a contract docx file based on the given data and template."""
     contract_data = get_contract_history_by_id(
         db_session=db_session, contract_history_id=id
@@ -243,11 +296,26 @@ def generate_contract_docx(*, db_session, id: int):
             raise Exception(f"Error loading template file: {e}")
 
         headers = {
-            "Content-Disposition": f'attachment; filename="contract_{id}.docx"',
+            "Content-Disposition": f'attachment; filename="addendum_{data["contract_id"]}.docx"',
             "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
         }
     else:
-        raise AppException(ErrorMessages.InvalidContractType())
+        template_path = "payroll/utils/file/contract.docx"
+        try:
+            data = retrieve_contract_data(
+                db_session=db_session,
+                contract_id=id,
+                detail_benefit=detail_benefit,
+                detail_insurance=detail_insurance,
+            )
+            file_buffer = fill_template(template_path=template_path, data=data)
+        except Exception as e:
+            raise Exception(f"Error loading template file: {e}")
+
+        headers = {
+            "Content-Disposition": f'attachment; filename="contract_{data["contract_id"]}.docx"',
+            "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        }
     return StreamingResponse(
         file_buffer,
         media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",

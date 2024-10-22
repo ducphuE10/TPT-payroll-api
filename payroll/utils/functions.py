@@ -118,7 +118,6 @@ def fill_template(template_path: str, data: dict):
         full_text = "".join([run.text for run in paragraph.runs])
         # Replace placeholders with actual values
         for key, value in data.items():
-            print(key, value)
             placeholder = f"{{{{ {key} }}}}"
             if placeholder in full_text:
                 full_text = full_text.replace(placeholder, value)

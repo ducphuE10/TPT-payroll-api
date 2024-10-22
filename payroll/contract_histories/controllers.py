@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter
 
 from payroll.database.core import DbSession
@@ -37,36 +38,11 @@ def get_one(*, db_session: DbSession, contract_history_id: int):
     )
 
 
-# @contract_history_router.get(
-#     "/{employee_code}/active-contract", response_model=ContractHistoryRead
-# )
-# def get_active(*, db_session: DbSession, employee_code: str, current_date: date):
-#     return get_employee_active_contract(
-#         db_session=db_session, employee_code=employee_code, current_date=current_date
-#     )
-
-
 @contract_history_router.post("", response_model=ContractHistoryRead)
 def create(*, db_session: DbSession, contract_history_in: ContractHistoryCreate):
     return create_contract_history(
         db_session=db_session, contract_history_in=contract_history_in
     )
-
-
-# # POST /schedules
-# @contract_router.post("/both", response_model=ContractWithBenefitRead)
-# def create_with_benefits(
-#     *,
-#     db_session: DbSession,
-#     contract_in: ContractCreate,
-#     benefits_list_in: Optional[List[CBAssocsCreate]] = None,
-# ):
-#     """Creates a new schedule."""
-#     return contract_services.create_contract_with_benefits(
-#         db_session=db_session,
-#         contract_in=contract_in,
-#         benefits_list_in=benefits_list_in,
-#     )
 
 
 @contract_history_router.put(
@@ -92,7 +68,18 @@ def delete(*, db_session: DbSession, contract_history_id: int):
     )
 
 
-@contract_history_router.get("/export/{id}")
-def export_contract(*, db_session: DbSession, id: int):
-    file_stream = generate_contract_docx(db_session=db_session, id=id)
+@contract_history_router.get("/export/{id}/")
+def export_contract(
+    *,
+    db_session: DbSession,
+    id: int,
+    detail_benefit: Optional[bool] = None,
+    detail_insurance: Optional[bool] = None,
+):
+    file_stream = generate_contract_docx(
+        db_session=db_session,
+        id=id,
+        detail_benefit=detail_benefit,
+        detail_insurance=detail_insurance,
+    )
     return file_stream

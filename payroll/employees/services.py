@@ -226,11 +226,22 @@ def update_multi_employees_schedule(
             ):
                 raise AppException(ErrorMessages.ResourceNotFound(), "employee")
             try:
-                employee_in = EmployeeUpdatePersonal(schedule_id=schedule_id)
+                employee_in = EmployeeUpdateSalary(schedule_id=schedule_id)
                 employee = modify_employee(
                     db_session=db_session,
                     employee_id=employee_id,
                     employee_in=employee_in,
+                )
+                contract_history_id = retrieve_contract_history_by_employee_and_period(
+                    db_session=db_session,
+                    employee_id=employee_id,
+                    from_date=employee.start_date,
+                ).id
+                contract_history_update = ContractHistoryUpdate(schedule_id=schedule_id)
+                modify_contract_history(
+                    db_session=db_session,
+                    contract_history_id=contract_history_id,
+                    contract_history_in=contract_history_update,
                 )
 
                 employees.append(employee)
@@ -384,7 +395,7 @@ def create_employee_by_xlsx(*, db_session, employee_in: EmployeeImport):
             department = get_department_by_code(
                 db_session=db_session, department_code=employee_in.department_code
             )
-            department_id = department.id
+        department_id = department.id
         if employee_in.position_code:
             position = get_position_by_code(
                 db_session=db_session, position_code=employee_in.position_code
@@ -403,6 +414,8 @@ def create_employee_by_xlsx(*, db_session, employee_in: EmployeeImport):
         retrieve_employee_by_code(db_session=db_session, employee_code=employee.code)
         contract_history_create = ContractHistoryCreate(
             employee_id=employee.id,
+            department_id=department_id,
+            position_id=position_id,
             is_probation=employee_in.is_probation,
             start_date=employee_in.start_date,
             end_date=employee_in.end_date,

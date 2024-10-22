@@ -31,11 +31,6 @@ class ContractHistoryRead(ContractHistoryBase):
     employee: EmployeeBase
 
 
-# class ContractWithBenefitRead(PayrollBase):
-#     contract_in: ContractBase
-#     benefits_list_in: Optional[CBAssocsRead] = None
-
-
 class ContractHistoriesRead(PayrollBase):
     count: int
     data: list[ContractHistoryRead] = []

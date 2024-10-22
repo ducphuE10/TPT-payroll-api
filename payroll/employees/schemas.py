@@ -77,15 +77,12 @@ class EmployeeUpdatePersonal(PayrollBase):
     date_of_birth: Optional[date] = None
     gender: Optional[Gender] = None
     nationality: Optional[Nationality] = None
-    department_id: Optional[int] = None
-    position_id: Optional[int] = None
     mst: Optional[str] = None
     cccd: Optional[str] = None
     cccd_date: Optional[date] = None
     cccd_place: Optional[str] = None
     permanent_addr: Optional[str] = None
     phone: Optional[str] = None
-    schedule_id: Optional[int] = None
     payment_method: Optional[PaymentMethod] = None
     bank_account: Optional[str] = None
     bank_holder_name: Optional[str] = None
@@ -96,6 +93,8 @@ class EmployeeUpdatePersonal(PayrollBase):
 
 class EmployeeUpdateSalary(PayrollBase):
     name: Optional[str] = None
+    department_id: Optional[int] = None
+    position_id: Optional[int] = None
     is_probation: Optional[bool] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
@@ -106,6 +105,7 @@ class EmployeeUpdateSalary(PayrollBase):
     toxic_benefit: Optional[float] = None
     phone_benefit: Optional[float] = None
     attendant_benefit: Optional[float] = None
+    schedule_id: Optional[int] = None
 
 
 class EmployeeImport(PayrollBase):

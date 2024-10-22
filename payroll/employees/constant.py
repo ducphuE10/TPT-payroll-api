@@ -6,7 +6,7 @@ IMPORT_EMPLOYEES_EXCEL_MAP = {
     "position_code": "MÃ CHỨC VỤ",
     "mst": "MST",
     "date_of_birth": "NĂM SINH",
-    "cccd": "SỐ CMND",
+    "cccd": "SỐ CCCD",
     "cccd_date": "NGÀY CẤP",
     "cccd_place": "NƠI CẤP",
     "permanent_addr": "ĐỊA CHỈ THƯỜNG TRÚ",

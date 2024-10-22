@@ -72,10 +72,8 @@ def retrieve_contract_history_by_employee_and_period(
         PayrollContractHistory.employee_id == employee_id,
         PayrollContractHistory.contract_type == ContractHistoryType.CONTRACT,
     )
-
     if to_date is not None:
         query = query.filter(PayrollContractHistory.start_date <= to_date)
-
     query = query.filter(
         or_(
             PayrollContractHistory.end_date.is_(None),
