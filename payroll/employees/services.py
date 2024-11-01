@@ -97,21 +97,6 @@ def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
 def validate_update_employee_personal(
     *, db_session, employee_id: int, employee_in: EmployeeUpdatePersonal
 ):
-    if employee_in.department_id is not None and not check_exist_department_by_id(
-        db_session=db_session, department_id=employee_in.department_id
-    ):
-        raise AppException(ErrorMessages.ResourceNotFound(), "department")
-
-    if employee_in.position_id is not None and not check_exist_position_by_id(
-        db_session=db_session, position_id=employee_in.position_id
-    ):
-        raise AppException(ErrorMessages.ResourceNotFound(), "position")
-
-    if employee_in.schedule_id is not None and not check_exist_schedule_by_id(
-        db_session=db_session, schedule_id=employee_in.schedule_id
-    ):
-        raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
-
     if employee_in.cccd and check_exist_person_by_cccd(
         db_session=db_session,
         cccd=employee_in.cccd,
@@ -407,6 +392,8 @@ def create_employee_by_xlsx(*, db_session, employee_in: EmployeeImport):
         )
         employee_data["department_id"] = department_id
         employee_data["position_id"] = position_id
+        employee_data["is_offboard"] = False
+        employee_data["schedule_id"] = None
 
         employee_create = EmployeeCreate(**employee_data)
 
@@ -502,8 +489,7 @@ def uploadXLSX(
         columns=list(IMPORT_EMPLOYEES_EXCEL_MAP.values()),
     )
 
-    df.dropna(subset=["Số hợp đồng"], inplace=True)
-
+    df.dropna(subset=["Số hợp đồng *"], inplace=True)
     df = df.rename(columns={v: k for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
 
     df = df.astype(DTYPES_MAP)

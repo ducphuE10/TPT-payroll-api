@@ -8,6 +8,7 @@ class AttendanceBase(PayrollBase):
     employee_id: int  # required
     day_attendance: date  # required
     work_hours: float  # required
+    is_holiday: bool
 
 
 class AttendanceRead(AttendanceBase):
@@ -34,6 +35,7 @@ class AttendancesCreate(PayrollBase):
     from_date: date
     to_date: date
     work_hours: float
+    is_holiday: bool
 
 
 class AttendancesDelete(PayrollBase):
@@ -52,6 +54,7 @@ class WorkhoursAttendanceHandlerBase(PayrollBase):
     employee_id: int  # required
     day_attendance: date  # required
     work_hours: float  # required
+    is_holiday: bool
 
 
 class TimeAttendanceHandlerBase(PayrollBase):

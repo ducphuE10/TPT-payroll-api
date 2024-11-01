@@ -595,7 +595,7 @@ def payroll_handler(
         work_hours_standard=work_hours_standard,
         work_hours_real=work_hours["adequate_hours"] + overtime_hours["overtime_2_0x"],
     )
-
+    print(meal_benefit_salary)
     benefit_salary = (
         transportation_benefit_salary
         + attendant_benefit_salary

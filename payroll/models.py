@@ -68,13 +68,14 @@ class PayrollEmployee(Base, TimeStampMixin):
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
     mst: Mapped[str] = mapped_column(String(30), unique=True)  # required
     cccd: Mapped[str] = mapped_column(String(30), unique=True)  # required
-    cccd_date: Mapped[Optional[date]]
-    cccd_place: Mapped[Optional[str]] = mapped_column(String(255))
+    cccd_date: Mapped[date]
+    cccd_place: Mapped[str] = mapped_column(String(255))
     permanent_addr: Mapped[Optional[str]] = mapped_column(String(255))
     phone: Mapped[Optional[str]] = mapped_column(String(30))
     is_probation: Mapped[bool] = mapped_column()  # required
     start_date: Mapped[date]  # required
     end_date: Mapped[Optional[date]]  # required
+    is_offboard: Mapped[bool]
     salary: Mapped[float]  # required
     meal_benefit: Mapped[float]
     transportation_benefit: Mapped[float]
@@ -217,6 +218,7 @@ class PayrollAttendance(Base, TimeStampMixin):
     employee_id: Mapped[int] = mapped_column(
         ForeignKey("employees.id", ondelete="CASCADE")
     )  # required
+    is_holiday: Mapped[bool]
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     employee: Mapped["PayrollEmployee"] = relationship(

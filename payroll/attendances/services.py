@@ -205,6 +205,7 @@ def create_multi_attendances(
                 employee_id=employee_id,
                 day_attendance=current_date,
                 work_hours=attendance_list_in.work_hours,
+                is_holiday=attendance_list_in.is_holiday,
             )
             if check_exist_attendance_by_employee_and_day(
                 db_session=db_session,
@@ -236,7 +237,6 @@ def create_multi_attendances(
                         attendance_in = WorkhoursAttendanceHandlerBase(
                             **attendance_in.model_dump()
                         )
-
                         attendance = attendance_handler(
                             db_session=db_session,
                             attendance_in=attendance_in,
@@ -354,14 +354,6 @@ def attendance_handler(
     employee = retrieve_employee_by_id(
         db_session=db_session, employee_id=attendance_in.employee_id
     )
-    # active_contract = get_employee_active_contract(
-    #     db_session=db_session,
-    #     employee_code=employee.code,
-    #     current_date=attendance_in.day_attendance,
-    # )
-
-    # if not active_contract:
-    #     return
 
     schedule_details = retrieve_schedule_details_by_schedule_id(
         db_session=db_session, schedule_id=employee.schedule_id
@@ -389,6 +381,7 @@ def attendance_handler(
                     employee_id=employee.id,
                     day_attendance=attendance_in.day_attendance,
                     work_hours=attendance_in.work_hours,
+                    is_holiday=attendance_in.is_holiday,
                 ),
             )
             db_session.commit()

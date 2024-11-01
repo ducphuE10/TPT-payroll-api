@@ -20,8 +20,8 @@ class EmployeeBase(PayrollBase):
     nationality: Optional[Nationality] = None
     mst: str  # required
     cccd: str  # required
-    cccd_date: Optional[date] = None
-    cccd_place: Optional[str] = None
+    cccd_date: date
+    cccd_place: str
     permanent_addr: Optional[str] = None
     phone: Optional[str] = None
     # -----------------------
@@ -30,6 +30,7 @@ class EmployeeBase(PayrollBase):
     is_probation: bool
     start_date: date
     end_date: Optional[date] = None
+    is_offboard: bool
     salary: float
     meal_benefit: float
     transportation_benefit: float
@@ -52,7 +53,7 @@ class EmployeeRead(EmployeeBase):
     created_at: datetime
     department: DepartmentBase
     position: PositionBase
-    schedule: Optional[ScheduleBase]
+    schedule: Optional[ScheduleBase] = None
 
 
 class EmployeesRead(PayrollBase):
@@ -98,6 +99,7 @@ class EmployeeUpdateSalary(PayrollBase):
     is_probation: Optional[bool] = None
     start_date: Optional[date] = None
     end_date: Optional[date] = None
+    is_offboard: Optional[bool] = None
     salary: Optional[float] = None
     meal_benefit: Optional[float] = None
     transportation_benefit: Optional[float] = None
@@ -117,8 +119,8 @@ class EmployeeImport(PayrollBase):
     mst: str
     date_of_birth: date
     cccd: str
-    cccd_date: Optional[date] = None
-    cccd_place: Optional[str] = None
+    cccd_date: date
+    cccd_place: str
     permanent_addr: Optional[str] = None
     start_date: date
     end_date: Optional[date] = None
