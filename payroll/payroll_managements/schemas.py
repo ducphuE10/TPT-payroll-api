@@ -1,7 +1,6 @@
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import field_validator
 
 from payroll.employees.schemas import EmployeeBase
 from payroll.utils.models import Pagination, PayrollBase
@@ -37,29 +36,29 @@ class PayrollManagementBase(PayrollBase):
     tax: Optional[float] = None
     total_deduction: Optional[float] = None
 
-    @field_validator(
-        "salary",
-        "work_days_salary",
-        "overtime_1_5x_salary",
-        "overtime_2_0x_salary",
-        "transportation_benefit_salary",
-        "attendant_benefit_salary",
-        "housing_benefit_salary",
-        "toxic_benefit_salary",
-        "phone_benefit_salary",
-        "meal_benefit_salary",
-        "gross_income",
-        "employee_insurance",
-        "company_insurance",
-        "no_tax_salary",
-        "tax_salary",
-        "tax",
-        "total_deduction",
-        "net_income",
-    )
-    @classmethod
-    def double(cls, v: float) -> int:
-        return round(v, -3)
+    # @field_validator(
+    #     "salary",
+    #     "work_days_salary",
+    #     "overtime_1_5x_salary",
+    #     "overtime_2_0x_salary",
+    #     "transportation_benefit_salary",
+    #     "attendant_benefit_salary",
+    #     "housing_benefit_salary",
+    #     "toxic_benefit_salary",
+    #     "phone_benefit_salary",
+    #     "meal_benefit_salary",
+    #     "gross_income",
+    #     "employee_insurance",
+    #     "company_insurance",
+    #     "no_tax_salary",
+    #     "tax_salary",
+    #     "tax",
+    #     "total_deduction",
+    #     "net_income",
+    # )
+    # @classmethod
+    # def double(cls, v: float) -> int:
+    #     return round(v, -3)
 
 
 class PayrollManagementRead(PayrollManagementBase):

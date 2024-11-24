@@ -1,4 +1,4 @@
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from typing import Optional
 from payroll.attendances.repositories import (
     retrieve_attendance_by_id,
@@ -411,12 +411,12 @@ def get_month_boundaries(month: int, year: int):
     if month < 1 or month > 12:
         raise ValueError("Month must be between 1 and 12")
 
-    first_day = datetime(year, month, 1)
+    first_day = date(year, month, 1)
 
     if month == 12:
-        next_month = datetime(year + 1, 1, 1)
+        next_month = date(year + 1, 1, 1)
     else:
-        next_month = datetime(year, month + 1, 1)
+        next_month = date(year, month + 1, 1)
 
     last_day = next_month - timedelta(days=1)
 
@@ -439,7 +439,7 @@ def tax_handler(income: float):
     else:
         tax = income * 0.05
 
-    return round(tax, 0)
+    return tax
 
 
 # def benefit_handler(*, db_session, contract_id):
@@ -464,6 +464,16 @@ def benefit_salary_handler(
     work_hours_real: float,
 ):
     return benefit_value / work_days_standard / work_hours_standard * work_hours_real
+
+
+def dependant_period_deduction_handler(
+    *, month: int, year: int, deduction_from: date, deduction_to: date
+):
+    first_day, last_day = get_month_boundaries(month=month, year=year)
+    if deduction_to >= last_day:
+        print("TRUE")
+        return True
+    return False
 
 
 def payroll_handler(
@@ -595,7 +605,7 @@ def payroll_handler(
         work_hours_standard=work_hours_standard,
         work_hours_real=work_hours["adequate_hours"] + overtime_hours["overtime_2_0x"],
     )
-    print(meal_benefit_salary)
+
     benefit_salary = (
         transportation_benefit_salary
         + attendant_benefit_salary
@@ -630,10 +640,20 @@ def payroll_handler(
         * (overtime_hours["overtime_1_5x"] + overtime_hours["overtime_2_0x"])
     )
 
-    # NPT HANDLER
-    dependent_pers = retrieve_all_dependants_by_employee_id(
+    # Handle dependant deduction
+    dependants_list = retrieve_all_dependants_by_employee_id(
         db_session=db_session, employee_id=employee_id
-    )["count"]
+    )
+    dependant_deduction_count = 0
+    for dependant in dependants_list["data"]:
+        print(dependant.deduction_to)
+        if dependant_period_deduction_handler(
+            month=month,
+            year=year,
+            deduction_from=dependant.deduction_from,
+            deduction_to=dependant.deduction_to,
+        ):
+            dependant_deduction_count += 1
 
     # TAX SALARY HANDLER
     tax_salary = max(
@@ -641,7 +661,7 @@ def payroll_handler(
         - employee_insurance
         - no_tax_salary
         - 11000000
-        - 4400000 * dependent_pers,
+        - 4400000 * dependant_deduction_count,
         0,
     )
 
@@ -677,7 +697,7 @@ def payroll_handler(
         "employee_insurance": employee_insurance,
         "company_insurance": company_insurance,
         "no_tax_salary": no_tax_salary,
-        "dependant_people": dependent_pers,
+        "dependant_people": dependant_deduction_count,
         "tax_salary": tax_salary,
         "tax": tax,
         "total_deduction": total_deduction,

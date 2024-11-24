@@ -70,16 +70,12 @@ def retrieve_contract_history_by_employee_and_period(
 ):
     query = db_session.query(PayrollContractHistory).filter(
         PayrollContractHistory.employee_id == employee_id,
-        PayrollContractHistory.contract_type == ContractHistoryType.CONTRACT,
+        PayrollContractHistory.contract_type.in_(["CONTRACT"]),
+        PayrollContractHistory.start_date <= from_date,
     )
+
     if to_date is not None:
-        query = query.filter(PayrollContractHistory.start_date <= to_date)
-    query = query.filter(
-        or_(
-            PayrollContractHistory.end_date.is_(None),
-            PayrollContractHistory.end_date >= from_date,
-        )
-    )
+        query.filter(PayrollContractHistory.end_date >= to_date)
 
     return query.first()
 
@@ -89,18 +85,12 @@ def retrieve_contract_history_addendum_by_employee_and_period(
 ):
     query = db_session.query(PayrollContractHistory).filter(
         PayrollContractHistory.employee_id == employee_id,
-        PayrollContractHistory.contract_type == ContractHistoryType.ADDENDUM,
+        PayrollContractHistory.contract_type.in_(["ADDENDUM"]),
+        PayrollContractHistory.start_date <= from_date,
     )
 
     if to_date is not None:
-        query = query.filter(PayrollContractHistory.start_date <= to_date)
-
-    query = query.filter(
-        or_(
-            PayrollContractHistory.end_date.is_(None),
-            PayrollContractHistory.end_date >= from_date,
-        )
-    )
+        query.filter(PayrollContractHistory.end_date >= to_date)
 
     return query.order_by(PayrollContractHistory.id.desc()).first()
 

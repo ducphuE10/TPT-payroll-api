@@ -66,8 +66,8 @@ class PayrollEmployee(Base, TimeStampMixin):
     nationality: Mapped[Optional[Nationality]]
     department_id: Mapped[int] = mapped_column(ForeignKey("departments.id"))  # required
     position_id: Mapped[int] = mapped_column(ForeignKey("positions.id"))  # required
-    mst: Mapped[str] = mapped_column(String(30), unique=True)  # required
-    cccd: Mapped[str] = mapped_column(String(30), unique=True)  # required
+    mst: Mapped[str] = mapped_column(String(10), unique=True)  # required
+    cccd: Mapped[str] = mapped_column(String(12), unique=True)  # required
     cccd_date: Mapped[date]
     cccd_place: Mapped[str] = mapped_column(String(255))
     permanent_addr: Mapped[Optional[str]] = mapped_column(String(255))
