@@ -1,6 +1,8 @@
 # from docx import Document
 from datetime import date
-from typing import Optional
+import io
+import zipfile
+from typing import List, Optional
 
 from fastapi.responses import StreamingResponse
 
@@ -276,48 +278,91 @@ def retrieve_contract_data(
 def generate_contract_docx(
     *,
     db_session,
-    id: int,
+    contract_ids: List[int],
     detail_benefit: Optional[bool] = None,
     detail_insurance: Optional[bool] = None,
 ):
     """Generate a contract docx file based on the given data and template."""
-    contract_data = get_contract_history_by_id(
-        db_session=db_session, contract_history_id=id
-    )
-    if not contract_data:
-        raise AppException(ErrorMessages.ResourceNotFound())
+    generated_contracts = []
 
-    if contract_data.contract_type == ContractHistoryType.ADDENDUM:
-        template_path = "payroll/utils/file/addendum.docx"
+    for contract_id in contract_ids:
         try:
-            data = retrieve_addendum_data(db_session=db_session, addendum_id=id)
-            file_buffer = fill_template(template_path=template_path, data=data)
-        except Exception as e:
-            raise Exception(f"Error loading template file: {e}")
-
-        headers = {
-            "Content-Disposition": f'attachment; filename="addendum_{data["contract_id"]}.docx"',
-            "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        }
-    else:
-        template_path = "payroll/utils/file/contract.docx"
-        try:
-            data = retrieve_contract_data(
-                db_session=db_session,
-                contract_id=id,
-                detail_benefit=detail_benefit,
-                detail_insurance=detail_insurance,
+            contract_data = get_contract_history_by_id(
+                db_session=db_session, contract_history_id=contract_id
             )
-            file_buffer = fill_template(template_path=template_path, data=data)
-        except Exception as e:
-            raise Exception(f"Error loading template file: {e}")
 
-        headers = {
-            "Content-Disposition": f'attachment; filename="contract_{data["contract_id"]}.docx"',
-            "Content-Type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        }
+            if not contract_data:
+                raise AppException(ErrorMessages.ResourceNotFound())
+
+            if contract_data.contract_type == ContractHistoryType.ADDENDUM:
+                template_path = "payroll/utils/file/addendum.docx"
+                try:
+                    data = retrieve_addendum_data(
+                        db_session=db_session, addendum_id=contract_id
+                    )
+                    filename = f"addendum_{data['contract_id']}.docx"
+                except Exception as e:
+                    raise Exception(f"Error retrieve addendum data: {e}")
+
+            else:
+                template_path = "payroll/utils/file/contract.docx"
+                try:
+                    data = retrieve_contract_data(
+                        db_session=db_session,
+                        contract_id=contract_id,
+                        detail_benefit=detail_benefit,
+                        detail_insurance=detail_insurance,
+                    )
+                    filename = f"contract_{data['contract_id']}.docx"
+                except Exception as e:
+                    raise Exception(f"Error retrieve contract data: {e}")
+
+            file_buffer = fill_template(template_path=template_path, data=data)
+
+            generated_contracts.append({"buffer": file_buffer, "filename": filename})
+
+        except Exception as e:
+            # Log the error or handle it as needed
+            print(f"Error generating contract {contract_id}: {e}")
+
+    return generated_contracts
+
+
+def generate_multi_contracts_docx(
+    *,
+    db_session,
+    contract_ids: List[int],
+    detail_benefit: Optional[bool] = None,
+    detail_insurance: Optional[bool] = None,
+    archive_format: str = "zip",
+):
+    archive_buffer = io.BytesIO()
+
+    generated_contracts = generate_contract_docx(
+        db_session=db_session,
+        contract_ids=contract_ids,
+        detail_benefit=detail_benefit,
+        detail_insurance=detail_insurance,
+    )
+    if archive_format == "zip":
+        with zipfile.ZipFile(archive_buffer, "w", zipfile.ZIP_DEFLATED) as archive:
+            for contract in generated_contracts:
+                archive.writestr(contract["filename"], contract["buffer"].getvalue())
+
+        content_type = "application/zip"
+        file_extension = "zip"
+    else:
+        raise ValueError("Only 'zip' format is supported currently")
+
+    archive_buffer.seek(0)
+
+    headers = {
+        "Content-Disposition": f'attachment; filename="contracts.{file_extension}"',
+        "Content-Type": content_type,
+    }
+
     return StreamingResponse(
-        file_buffer,
-        media_type="application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        archive_buffer,
+        media_type=content_type,
         headers=headers,
     )

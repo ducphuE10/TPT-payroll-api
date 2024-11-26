@@ -58,5 +58,11 @@ class ContractHistoryUpdate(PayrollBase):
     schedule_id: Optional[int] = None
 
 
+class ContractsExport(PayrollBase):
+    list_contracts: List[int]
+    detail_benefit: Optional[bool] = (None,)
+    detail_insurance: Optional[bool] = (None,)
+
+
 class ContractPagination(Pagination):
     items: List[ContractHistoryRead] = []

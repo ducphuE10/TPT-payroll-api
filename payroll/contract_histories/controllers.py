@@ -1,11 +1,12 @@
-from typing import Optional
-from fastapi import APIRouter
+from typing import List, Optional
+from fastapi import APIRouter, Query
 
 from payroll.database.core import DbSession
 from payroll.contract_histories.services import (
     create_contract_history,
     delete_contract_history,
     generate_contract_docx,
+    generate_multi_contracts_docx,
     get_all_contract_histories,
     get_contract_history_by_id,
     update_contract_history,
@@ -72,13 +73,30 @@ def delete(*, db_session: DbSession, contract_history_id: int):
 def export_contract(
     *,
     db_session: DbSession,
-    id: int,
+    contract_ids: List[int],
     detail_benefit: Optional[bool] = None,
     detail_insurance: Optional[bool] = None,
 ):
     file_stream = generate_contract_docx(
         db_session=db_session,
-        id=id,
+        contract_ids=contract_ids,
+        detail_benefit=detail_benefit,
+        detail_insurance=detail_insurance,
+    )
+    return file_stream
+
+
+@contract_history_router.get("/export/")
+def export_contracts(
+    *,
+    db_session: DbSession,
+    list_id: List[int] = Query(..., description="List of contract IDs to export"),
+    detail_benefit: Optional[bool] = None,
+    detail_insurance: Optional[bool] = None,
+):
+    file_stream = generate_multi_contracts_docx(
+        db_session=db_session,
+        contract_ids=list_id,
         detail_benefit=detail_benefit,
         detail_insurance=detail_insurance,
     )
