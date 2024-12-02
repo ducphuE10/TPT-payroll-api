@@ -5,6 +5,7 @@ from payroll.database.core import DbSession
 from payroll.contract_histories.services import (
     create_contract_history,
     delete_contract_history,
+    generate_all_contracts_docx,
     generate_contract_docx,
     generate_multi_contracts_docx,
     get_all_contract_histories,
@@ -97,6 +98,21 @@ def export_contracts(
     file_stream = generate_multi_contracts_docx(
         db_session=db_session,
         contract_ids=list_id,
+        detail_benefit=detail_benefit,
+        detail_insurance=detail_insurance,
+    )
+    return file_stream
+
+
+@contract_history_router.get("/export/all")
+def export_all_contracts(
+    *,
+    db_session: DbSession,
+    detail_benefit: Optional[bool] = None,
+    detail_insurance: Optional[bool] = None,
+):
+    file_stream = generate_all_contracts_docx(
+        db_session=db_session,
         detail_benefit=detail_benefit,
         detail_insurance=detail_insurance,
     )

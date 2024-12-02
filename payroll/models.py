@@ -17,7 +17,6 @@ from payroll.utils.models import (
     DependantRelationship,
     Gender,
     IDDocType,
-    InsuranceType,
     Nationality,
     PaymentMethod,
     TimeStampMixin,
@@ -139,11 +138,9 @@ class InsurancePolicy(Base, TimeStampMixin):
     id: Mapped[int] = mapped_column(primary_key=True)  # required
     code: Mapped[str] = mapped_column(String(30), unique=True)  # required
     name: Mapped[str] = mapped_column(String(50))  # required
-    based_on: Mapped[InsuranceType]
     company_percentage: Mapped[float] = mapped_column(Float)  # required
     employee_percentage: Mapped[float] = mapped_column(Float)  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
-    is_active: Mapped[bool]
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     def __repr__(self) -> str:
