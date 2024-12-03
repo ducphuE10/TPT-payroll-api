@@ -491,12 +491,13 @@ def uploadXLSX(
 
     df.dropna(subset=["Số hợp đồng *"], inplace=True)
     df = df.rename(columns={v: k for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
-
     df = df.astype(DTYPES_MAP)
 
-    date_columns = ["date_of_birth", "cccd_date"]
+    date_columns = ["date_of_birth", "cccd_date", "start_date"]
+    print(df["date_of_birth"])
     for col in date_columns:
         df[col] = pd.to_datetime(df[col], errors="coerce")
+        print(df[col])
 
     employees_data = []
     errors = []

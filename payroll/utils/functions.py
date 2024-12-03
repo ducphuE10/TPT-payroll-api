@@ -5,6 +5,7 @@ from fastapi import Depends
 from fastapi.security.utils import get_authorization_scheme_param
 from jose import JWTError, jwt
 from jose.exceptions import JWKError
+
 from payroll.config import settings
 import logging
 from typing import Annotated
