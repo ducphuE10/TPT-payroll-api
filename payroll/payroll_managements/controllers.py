@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from typing import List
+from fastapi import APIRouter, Query
 
 from payroll.payroll_managements.schemas import (
     PayrollManagementBase,
@@ -12,6 +13,7 @@ from payroll.payroll_managements.services import (
     create_multi_payroll_managements,
     create_payroll_management,
     delete_payroll_management,
+    delete_payroll_managements,
     get_all_payroll_management,
     get_payroll_management_by_id,
     metrics_handler,
@@ -72,6 +74,15 @@ def create_multi(
         db_session=db_session,
         payroll_management_list_in=payroll_management_list_in,
     )
+
+
+@payroll_management_router.delete("/bulk/")
+def delete_contracts(
+    *,
+    db_session: DbSession,
+    list_id: List[int] = Query(),
+):
+    return delete_payroll_managements(db_session=db_session, list_id=list_id)
 
 
 # DELETE /payroll_managements/{payroll_management_id}

@@ -1,5 +1,6 @@
+import calendar
 from datetime import date, timedelta
-from typing import Optional
+from typing import List, Optional
 from payroll.attendances.repositories import (
     retrieve_attendance_by_id,
     retrieve_employee_attendances_by_month,
@@ -298,6 +299,20 @@ def delete_payroll_management(*, db_session, payroll_management_id: int):
     return payroll_management
 
 
+def delete_payroll_managements(*, db_session, list_id: List):
+    """Deletes a payroll_management based on the given id."""
+    for payroll_management_id in list_id:
+        try:
+            payroll_management = remove_payroll_management(
+                db_session=db_session, payroll_management_id=payroll_management_id
+            )
+            db_session.commit()
+        except Exception as e:
+            db_session.rollback()
+            raise AppException(ErrorMessages.ErrSM99999(), str(e))
+    return payroll_management
+
+
 def work_hours_standard_handler(*, db_session, schedule_details: PayrollScheduleDetail):
     work_hours_standard = 0
     for schedule_detail in schedule_details["data"]:
@@ -310,20 +325,31 @@ def work_hours_standard_handler(*, db_session, schedule_details: PayrollSchedule
     return work_hours_standard
 
 
-# def work_days_standard_handler(*, schedule_details: PayrollScheduleDetail):
-#     work_days_list = {
-#         schedule_detail.day for schedule_detail in schedule_details["data"]
-#     }
+def work_days_actual_handler(
+    *, schedule_details: PayrollScheduleDetail, month: int, year: int
+):
+    work_days_list = {
+        schedule_detail.day for schedule_detail in schedule_details["data"]
+    }
+    weekday_map = {
+        0: Day.Mon,
+        1: Day.Tue,
+        2: Day.Wed,
+        3: Day.Thu,
+        4: Day.Fri,
+        5: Day.Sat,
+        6: Day.Sun,
+    }
 
-#     work_days_standard = 0
+    month_days = calendar.monthrange(year, month)[1]
 
-#     if len(work_days_list) == 6:
-#         work_days_standard = 26
-#         return work_days_standard
+    total_actual_work_days = sum(
+        1
+        for day in range(1, month_days + 1)
+        if weekday_map[date(year, month, day).weekday()] in work_days_list
+    )
 
-#     elif len(work_days_list) == 5:
-#         work_days_standard = 24
-#         return work_days_standard
+    return total_actual_work_days
 
 
 def check_sufficient_work_hours(*, db_session, schedule_id: int, attendance_id: int):
@@ -529,7 +555,7 @@ def payroll_handler(
         month=month,
         year=year,
     )
-
+    print("work_hours", work_hours)
     basic_salary = contract_history.salary
 
     # WORK HOURS SALARY
@@ -568,7 +594,18 @@ def payroll_handler(
         phone_benefit_salary
     ) = housing_benefit_salary = meal_benefit_salary = toxic_benefit_salary = 0
 
-    if work_days_standard == work_hours["adequate_hours"] / work_hours_standard:
+    print(
+        work_days_actual_handler(
+            schedule_details=schedule_details, month=month, year=year
+        )
+    )
+
+    if (
+        work_days_actual_handler(
+            schedule_details=schedule_details, month=month, year=year
+        )
+        == work_hours["adequate_hours"] / work_hours_standard
+    ):
         attendant_benefit_salary = contract_history.attendant_benefit
 
     transportation_benefit_salary = benefit_salary_handler(
@@ -664,7 +701,6 @@ def payroll_handler(
         - 4400000 * dependant_deduction_count,
         0,
     )
-
     # TAX HANDLER
     tax = tax_handler(income=tax_salary)
 

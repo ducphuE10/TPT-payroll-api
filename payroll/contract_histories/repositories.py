@@ -25,39 +25,6 @@ def retrieve_contract_history_by_id(
     )
 
 
-# def retrieve_employee_active_contract(
-#     *, db_session, employee_code: str, current_date: date
-# ):
-#     return (
-#         db_session.query(PayrollContract)
-#         .filter(
-#             and_(
-#                 PayrollContract.employee_code == employee_code,
-#                 PayrollContract.start_date <= current_date,
-#                 (PayrollContract.end_date >= current_date)
-#                 | (PayrollContract.end_date.is_(None)),
-#                 PayrollContract.status == "ACTIVE",
-#             )
-#         )
-#         .first()
-#     )
-
-
-# def retrieve_active_contracts(*, db_session, current_date: date):
-#     return (
-#         db_session.query(PayrollContract)
-#         .filter(
-#             and_(
-#                 PayrollContract.start_date <= current_date,
-#                 (PayrollContract.end_date >= current_date)
-#                 | (PayrollContract.end_date.is_(None)),
-#                 PayrollContract.status == Status.ACTIVE,
-#             )
-#         )
-#         .all()
-#     )
-
-
 def retrieve_contract_histories_by_employee(*, db_session, employee_id: int):
     query = db_session.query(PayrollContractHistory).filter(
         PayrollContractHistory.employee_id == employee_id,
@@ -154,14 +121,3 @@ def remove_contract_history(*, db_session, contract_history_id: int) -> None:
     db_session.query(PayrollContractHistory).filter(
         PayrollContractHistory.id == contract_history_id
     ).delete()
-
-
-# def get_contract_template(*, db_session, code: str) -> PayrollContract:
-#     """Returns a contract template based on the given code."""
-#     template = db_session.query(PayrollContract).filter_by(code=code).first()
-#     if not template:
-#         raise HTTPException(
-#             status_code=404, detail="Contract type or template not found"
-#         )
-
-#     return template

@@ -15,6 +15,7 @@ def retrieve_payroll_management_by_id(
     """Returns a payroll_management based on the given id."""
     return (
         db_session.query(PayrollPayrollManagement)
+        .order_by(PayrollPayrollManagement.id.asc())
         .filter(
             PayrollPayrollManagement.id == payroll_management_id,
         )
@@ -54,7 +55,9 @@ def retrieve_all_payroll_managements(
     *, db_session, month: int = None, year: int = None
 ) -> PayrollPayrollManagement:
     """Returns all payroll_managements."""
-    query = db_session.query(PayrollPayrollManagement)
+    query = db_session.query(PayrollPayrollManagement).order_by(
+        PayrollPayrollManagement.id.asc()
+    )
     if month and year:
         query = query.filter(
             PayrollPayrollManagement.month == month,
