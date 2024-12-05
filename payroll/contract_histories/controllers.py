@@ -108,7 +108,7 @@ def export_contracts(
 def export_all_contracts(
     *,
     db_session: DbSession,
-    detail_benefit: Optional[bool] = None,
+    detail_benefit: Optional[bool] = True,
     detail_insurance: Optional[bool] = None,
 ):
     file_stream = generate_all_contracts_docx(

@@ -36,7 +36,7 @@ def retrieve_all_departments(*, db_session) -> PayrollDepartment:
     """Returns all departments."""
     query = db_session.query(PayrollDepartment)
     count = query.count()
-    departments = query.all()
+    departments = query.order_by(PayrollDepartment.id.asc()).all()
 
     return {"count": count, "data": departments}
 

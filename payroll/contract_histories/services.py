@@ -276,7 +276,7 @@ def retrieve_contract_data(
         "permenant_addr": employee.permanent_addr
         or "........................................",
         "mst": employee.mst,
-        "start_date": (employee.start_date.strftime("%d-%m-%Y")),
+        "start_date": (contract_data.start_date.strftime("%d-%m-%Y")),
         "position": retrieve_position_by_id(
             db_session=db_session, position_id=contract_data.position_id
         ).name,

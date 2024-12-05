@@ -34,7 +34,7 @@ def retrieve_all_positions(*, db_session) -> PositionsRead:
     """Returns all positions."""
     query = db_session.query(PayrollPosition)
     count = query.count()
-    positions = query.all()
+    positions = query.order_by(PayrollPosition.id.asc()).all()
 
     return {"count": count, "data": positions}
 
