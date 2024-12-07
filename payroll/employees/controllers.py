@@ -2,7 +2,6 @@ from datetime import date
 from typing import Optional
 from fastapi import APIRouter, File, Form, UploadFile
 
-# from payroll.attendances.services import get_employee_attendances
 from payroll.contract_histories.services import (
     get_active_contract_history_detail_by_period,
 )
@@ -29,7 +28,7 @@ from payroll.employees.services import (
     update_employee_personal,
     update_employee_salary,
     update_multi_employees_schedule,
-    uploadXLSX,
+    upload_employees_XLSX,
 )
 
 employee_router = APIRouter()
@@ -149,4 +148,6 @@ def delete(*, db_session: DbSession, employee_id: int):
 def import_excel(
     *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
 ):
-    return uploadXLSX(db_session=db, file=file, update_on_exists=update_on_exists)
+    return upload_employees_XLSX(
+        db_session=db, file=file, update_on_exists=update_on_exists
+    )

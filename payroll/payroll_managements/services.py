@@ -497,7 +497,6 @@ def dependant_period_deduction_handler(
 ):
     first_day, last_day = get_month_boundaries(month=month, year=year)
     if deduction_to >= last_day:
-        print("TRUE")
         return True
     return False
 
@@ -555,7 +554,6 @@ def payroll_handler(
         month=month,
         year=year,
     )
-    print("work_hours", work_hours)
     basic_salary = contract_history.salary
 
     # WORK HOURS SALARY
@@ -593,12 +591,6 @@ def payroll_handler(
     ) = (
         phone_benefit_salary
     ) = housing_benefit_salary = meal_benefit_salary = toxic_benefit_salary = 0
-
-    print(
-        work_days_actual_handler(
-            schedule_details=schedule_details, month=month, year=year
-        )
-    )
 
     if (
         work_days_actual_handler(
@@ -683,7 +675,6 @@ def payroll_handler(
     )
     dependant_deduction_count = 0
     for dependant in dependants_list["data"]:
-        print(dependant.deduction_to)
         if dependant_period_deduction_handler(
             month=month,
             year=year,

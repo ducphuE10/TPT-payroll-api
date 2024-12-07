@@ -52,5 +52,18 @@ class DependantUpdate(PayrollBase):
     note: Optional[str] = None
 
 
+class DependantImport(PayrollBase):
+    code: str
+    name: str
+    employee_code: str
+    date_of_birth: date
+    id_doc_type: IDDocType
+    doc_number: str
+    relationship: DependantRelationship
+    deduction_from: date
+    deduction_to: date
+    mst: str
+
+
 class DependantPagination(Pagination):
     items: List[DependantRead] = []

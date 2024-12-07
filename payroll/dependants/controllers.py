@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, File, Form, UploadFile
 
 from payroll.dependants.schemas import (
     DependantRead,
@@ -14,6 +14,7 @@ from payroll.dependants.services import (
     get_dependant_by_id,
     update_dependant,
     search_dependant_by_name,
+    upload_dependants_XLSX,
 )
 
 dependant_router = APIRouter()
@@ -63,3 +64,13 @@ def update(
 def delete(*, db_session: DbSession, dependant_id: int):
     """Deletes a dependant based on the given id."""
     return delete_dependant(db_session=db_session, dependant_id=dependant_id)
+
+
+# POST /employees/import-excel
+@dependant_router.post("/import-excel")
+def import_excel(
+    *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
+):
+    return upload_dependants_XLSX(
+        db_session=db, file=file, update_on_exists=update_on_exists
+    )

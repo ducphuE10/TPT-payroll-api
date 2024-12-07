@@ -122,6 +122,16 @@ def get_employee_by_id(*, db_session, employee_id: int):
     return retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
 
 
+def get_employee_by_code(*, db_session, employee_code: str):
+    """Returns a employee based on the given code."""
+    if not check_exist_employee_by_code(
+        db_session=db_session, employee_code=employee_code
+    ):
+        raise AppException(ErrorMessages.ResourceNotFound(), "employee")
+
+    return retrieve_employee_by_code(db_session=db_session, employee_code=employee_code)
+
+
 # GET /employees
 def get_all_employees(*, db_session):
     """Returns all employees."""
@@ -431,7 +441,6 @@ def update_employee_by_xlsx(
     *, db_session, employee_db: PayrollEmployee, employee_in: EmployeeImport
 ) -> PayrollEmployee:
     """Updates a employee with the given data."""
-
     employee_data = employee_db.dict()
     update_data = employee_in.model_dump(exclude_unset=True)
 
@@ -463,19 +472,16 @@ def upsert_employee(
     if employee_db:
         if not update_on_exists:
             return employee_db
-        # Convert EmployeeCreate to EmployeeUpdate
         employee_update = EmployeeImport(**employee_in.model_dump(exclude_unset=True))
-        # Update existing employee
         update_employee_by_xlsx(
             db_session=db_session, employee_db=employee_db, employee_in=employee_update
         )
     else:
-        # Create new employee
         create_employee_by_xlsx(db_session=db_session, employee_in=employee_in)
     return employee_db
 
 
-def uploadXLSX(
+def upload_employees_XLSX(
     *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
 ):
     data = BytesIO(file.file.read())
@@ -483,7 +489,6 @@ def uploadXLSX(
     dtype_map = {v: str for v in IMPORT_EMPLOYEES_EXCEL_MAP.values()}
 
     _data = pd.read_excel(data, dtype=dtype_map)
-
     df = pd.DataFrame(
         _data,
         columns=list(IMPORT_EMPLOYEES_EXCEL_MAP.values()),
@@ -491,17 +496,16 @@ def uploadXLSX(
 
     df.dropna(subset=["Số hợp đồng *"], inplace=True)
     df = df.rename(columns={v: k for k, v in IMPORT_EMPLOYEES_EXCEL_MAP.items()})
+
     df = df.astype(DTYPES_MAP)
 
     date_columns = ["date_of_birth", "cccd_date", "start_date"]
-    print(df["date_of_birth"])
+
     for col in date_columns:
         df[col] = pd.to_datetime(df[col], errors="coerce")
-        print(df[col])
 
     employees_data = []
     errors = []
-
     for index, row in df.iterrows():
         try:
             if pd.isna(row["code"]):
