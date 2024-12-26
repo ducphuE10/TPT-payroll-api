@@ -1,11 +1,11 @@
 import logging
 
-from payroll.contract_benefit_assocs.schemas import (
+from app.contract_benefit_assocs.schemas import (
     CBAssocCreate,
     CBAssocUpdate,
     CBAssocBase,
 )
-from payroll.models import PayrollCBAssoc
+from app.db.models import PayrollCBAssoc
 
 # add, retrieve, modify, remove
 log = logging.getLogger(__name__)

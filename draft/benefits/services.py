@@ -1,4 +1,4 @@
-from payroll.benefits.repositories import (
+from app.benefits.repositories import (
     add_benefit,
     modify_benefit,
     remove_benefit,
@@ -6,11 +6,11 @@ from payroll.benefits.repositories import (
     retrieve_benefit_by_code,
     retrieve_benefit_by_id,
 )
-from payroll.benefits.schemas import BenefitCreate, BenefitUpdate
+from app.benefits.schemas import BenefitCreate, BenefitUpdate
 
 # from payroll.employees.repositories import retrieve_employee_by_benefit
-from payroll.exception.app_exception import AppException
-from payroll.exception.error_message import ErrorMessages
+from app.exception.app_exception import AppException
+from app.exception.error_message import ErrorMessages
 
 
 def check_exist_benefit_by_id(*, db_session, benefit_id: int):

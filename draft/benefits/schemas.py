@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Optional
 
-from payroll.utils.models import BenefitType, Pagination, PayrollBase
+from app.utils.models import BenefitType, Pagination, PayrollBase
 
 
 class BenefitBase(PayrollBase):

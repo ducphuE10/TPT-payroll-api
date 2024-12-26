@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
-from payroll.benefits.schemas import (
+from app.benefits.schemas import (
     BenefitRead,
     BenefitCreate,
     BenefitsRead,
     BenefitUpdate,
 )
-from payroll.database.core import DbSession
-from payroll.benefits.services import (
+from app.db.core import DbSession
+from app.benefits.services import (
     create_benefit,
     delete_benefit,
     get_all_benefit,

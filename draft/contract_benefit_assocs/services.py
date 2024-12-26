@@ -1,6 +1,6 @@
 from typing import List
-from payroll.benefits.services import check_exist_benefit_by_id
-from payroll.contract_benefit_assocs.repositories import (
+from app.benefits.services import check_exist_benefit_by_id
+from app.contract_benefit_assocs.repositories import (
     add_cbassoc,
     add_cbassoc_with_contract_id,
     modify_cbassoc,
@@ -10,7 +10,7 @@ from payroll.contract_benefit_assocs.repositories import (
     retrieve_cbassoc_by_information,
     retrieve_cbassocs_by_contract_id,
 )
-from payroll.contract_benefit_assocs.schemas import (
+from app.contract_benefit_assocs.schemas import (
     CBAssocCreate,
     CBAssocUpdate,
     CBAssocBase,
@@ -18,9 +18,9 @@ from payroll.contract_benefit_assocs.schemas import (
 )
 
 # from payroll.employees.repositories import retrieve_employee_by_cbassoc
-from payroll.exception.app_exception import AppException
-from payroll.exception.error_message import ErrorMessages
-from payroll.utils.models import UpdateStatus
+from app.exception.app_exception import AppException
+from app.exception.error_message import ErrorMessages
+from app.utils.models import UpdateStatus
 
 
 def check_exist_cbassoc_by_id(*, db_session, cbassoc_id: int):

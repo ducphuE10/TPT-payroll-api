@@ -1,19 +1,19 @@
 from fastapi import APIRouter
 
-from payroll.addendums.schemas import (
+from app.addendums.schemas import (
     AddendumCreate,
     AddendumRead,
     AddendumUpdate,
     AddendumsRead,
 )
-from payroll.addendums.services import (
+from app.addendums.services import (
     create_addendum,
     delete_addendum,
     get_addendum_by_id,
     get_all_addendums,
     update_addendum,
 )
-from payroll.database.core import DbSession
+from app.db.core import DbSession
 
 
 addendum_router = APIRouter()

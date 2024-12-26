@@ -3,7 +3,7 @@ from typing import List, Optional
 
 from pydantic import Field
 
-from payroll.utils.models import Pagination, PayrollBase, UpdateStatus
+from app.utils.models import Pagination, PayrollBase, UpdateStatus
 
 
 class CBAssocBase(PayrollBase):

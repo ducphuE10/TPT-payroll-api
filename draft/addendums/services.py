@@ -1,6 +1,6 @@
 # from docx import Document
 
-from payroll.addendums.repositories import (
+from app.addendums.repositories import (
     add_addendum,
     modify_addendum,
     remove_addendum,
@@ -8,8 +8,8 @@ from payroll.addendums.repositories import (
     retrieve_addendum_by_id,
     retrieve_all_addendums,
 )
-from payroll.addendums.schemas import AddendumCreate, AddendumUpdate
-from payroll.exception import AppException, ErrorMessages
+from app.addendums.schemas import AddendumCreate, AddendumUpdate
+from app.exception import AppException, ErrorMessages
 
 # from payroll.storage.services import read_file_from_minio
 
