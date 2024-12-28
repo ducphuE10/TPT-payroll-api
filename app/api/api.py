@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 from app.auth.service import get_current_user
+from app.api.routes.companies.controllers import company_router
 from app.api.routes.departments.controllers import department_router
 from app.api.routes.positions.controllers import position_router
 from app.api.routes.employees.controllers import employee_router
