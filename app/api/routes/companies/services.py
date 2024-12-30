@@ -1,7 +1,7 @@
 from app.api.routes.companies.repositories import (
     add_company,
     modify_company,
-    remove_company,
+    # remove_company,
     retrieve_all_companies,
     retrieve_company_by_code,
     retrieve_company_by_id,

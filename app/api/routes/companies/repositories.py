@@ -61,10 +61,10 @@ def modify_company(
 
 
 # DELETE /companies/{company_id}
-def remove_company(*, db_session, company_id: int):
-    """Deletes a company based on the given id."""
-    query = db_session.query(PayrollCompany).filter(PayrollCompany.id == company_id)
-    deleted_company = query.first()
-    query.delete()
+# def remove_company(*, db_session, company_id: int):
+#     """Deletes a company based on the given id."""
+#     query = db_session.query(PayrollCompany).filter(PayrollCompany.id == company_id)
+#     deleted_company = query.first()
+#     query.delete()
 
-    return deleted_company
+#     return deleted_company

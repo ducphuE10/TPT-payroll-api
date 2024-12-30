@@ -9,7 +9,7 @@ from app.api.routes.companies.schemas import (
 from app.db.core import DbSession
 from app.api.routes.companies.services import (
     create_company,
-    delete_company,
+    # delete_company,
     get_all_company,
     get_company_by_id,
     update_company,
@@ -52,7 +52,7 @@ def update(*, db_session: DbSession, company_id: int, company_in: CompanyUpdate)
 
 
 # DELETE /companies/{company_id}
-@company_router.delete("/{company_id}", response_model=CompanyRead)
-def delete(*, db_session: DbSession, company_id: int):
-    """Delete a company by id."""
-    return delete_company(db_session=db_session, company_id=company_id)
+# @company_router.delete("/{company_id}", response_model=CompanyRead)
+# def delete(*, db_session: DbSession, company_id: int):
+#     """Delete a company by id."""
+#     return delete_company(db_session=db_session, company_id=company_id)

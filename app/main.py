@@ -2,7 +2,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi import FastAPI, Request
 from app.db.core import engine, sessionmaker
 from app.exception import AppException, SystemException
-from app.middleware.exception_handle import (
+from app.middlewares.exception_handle import (
     application_error_handler,
     system_error_handler,
 )
