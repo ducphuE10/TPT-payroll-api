@@ -15,6 +15,8 @@ class InsurancePolicyRead(PayrollBase):
     description: Optional[str] = None
     company_percentage: PercentageType
     employee_percentage: PercentageType
+    company_id: int
+
     created_at: datetime
 
 
@@ -28,6 +30,7 @@ class InsurancePolicyCreate(PayrollBase):
     description: Optional[str] = None
     company_percentage: PercentageType
     employee_percentage: PercentageType
+    company_id: int
 
 
 class InsurancePolicyUpdate(PayrollBase):

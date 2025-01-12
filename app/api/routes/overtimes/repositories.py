@@ -75,10 +75,11 @@ def retrieve_employee_overtimes(*, db_session, employee_id: int) -> PayrollOvert
 
 # GET /overtimes/period?m=month&y=year
 def retrieve_employee_overtimes_by_month(
-    *, db_session, month: int, year: int
+    *, db_session, month: int, year: int, company_id: int
 ) -> PayrollOvertime:
     """Retrieve all overtimes of employees by month and year"""
     query = db_session.query(PayrollOvertime).filter(
+        PayrollOvertime.company_id == company_id,
         extract("month", PayrollOvertime.day_overtime) == month,
         extract("year", PayrollOvertime.day_overtime) == year,
     )

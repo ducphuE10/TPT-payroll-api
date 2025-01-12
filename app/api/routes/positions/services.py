@@ -3,9 +3,9 @@ from app.api.routes.positions.repositories import (
     add_position,
     modify_position,
     remove_position,
-    retrieve_all_positions,
     retrieve_position_by_code,
     retrieve_position_by_id,
+    retrieve_all_positions_by_company_id,
 )
 from app.api.routes.positions.schemas import PositionCreate, PositionUpdate
 from app.exception.app_exception import AppException
@@ -17,10 +17,12 @@ def check_exist_position_by_id(*, db_session, position_id: int):
     return bool(retrieve_position_by_id(db_session=db_session, position_id=position_id))
 
 
-def check_exist_position_by_code(*, db_session, position_code: str):
+def check_exist_position_by_code(*, db_session, position_code: str, company_id: int):
     """Check if position exists in the database."""
     return bool(
-        retrieve_position_by_code(db_session=db_session, position_code=position_code)
+        retrieve_position_by_code(
+            db_session=db_session, position_code=position_code, company_id=company_id
+        )
     )
 
 
@@ -33,10 +35,10 @@ def get_position_by_id(*, db_session, position_id: int):
     return retrieve_position_by_id(db_session=db_session, position_id=position_id)
 
 
-def get_position_by_code(*, db_session, position_code: int):
+def get_position_by_code(*, db_session, position_code: int, company_id: int):
     """Returns a position based on the given code."""
     if not check_exist_position_by_code(
-        db_session=db_session, position_code=position_code
+        db_session=db_session, position_code=position_code, company_id=company_id
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "position")
 
@@ -44,9 +46,11 @@ def get_position_by_code(*, db_session, position_code: int):
 
 
 # GET /positions
-def get_all_position(*, db_session):
+def get_all_position(*, db_session, company_id: int):
     """Returns all positions."""
-    positions = retrieve_all_positions(db_session=db_session)
+    positions = retrieve_all_positions_by_company_id(
+        db_session=db_session, company_id=company_id
+    )
     if not positions["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "position")
 
@@ -57,7 +61,9 @@ def get_all_position(*, db_session):
 def create_position(*, db_session, position_in: PositionCreate):
     """Creates a new position."""
     if check_exist_position_by_code(
-        db_session=db_session, position_code=position_in.code
+        db_session=db_session,
+        position_code=position_in.code,
+        company_id=position_in.company_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "position")
 

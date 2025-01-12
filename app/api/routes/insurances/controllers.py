@@ -17,8 +17,9 @@ insurance_router = APIRouter()
 def all(
     *,
     db_session: DbSession,
+    company_id: int,
 ):
-    return insurance_services.get_all(db_session=db_session)
+    return insurance_services.get_all(db_session=db_session, company_id=company_id)
 
 
 @insurance_router.get("/{id}", response_model=InsurancePolicyRead)

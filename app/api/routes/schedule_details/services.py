@@ -1,7 +1,7 @@
 import logging
 from typing import List
 
-from app.schedule_details.repositories import (
+from app.api.routes.schedule_details.repositories import (
     add_schedule_detail,
     add_schedule_detail_with_schedule_id,
     modify_schedule_detail,
@@ -13,16 +13,15 @@ from app.schedule_details.repositories import (
 )
 from app.exception.app_exception import AppException
 from app.exception.error_message import ErrorMessages
-from app.schedule_details.schemas import (
+from app.api.routes.schedule_details.schemas import (
     ScheduleDetailBase,
     ScheduleDetailCreate,
     ScheduleDetailUpdate,
     ScheduleDetailsCreate,
     ScheduleDetailsUpdate,
 )
-from app.schedules.repositories import retrieve_schedule_by_id
-from app.schedules.services import check_exist_schedule_by_id
-from app.shifts.services import check_exist_shift_by_id
+from app.api.routes.schedules.repositories import retrieve_schedule_by_id
+from app.api.routes.shifts.services import check_exist_shift_by_id
 from app.utils.models import Day, UpdateStatus
 
 log = logging.getLogger(__name__)
@@ -88,6 +87,8 @@ def get_schedule_detail_by_id(*, db_session, schedule_detail_id: int):
 
 # GET /schedule_details/?schedule_id={schedule_id}
 def get_schedule_details_by_schedule_id(*, db_session, schedule_id: int):
+    from app.api.routes.schedules.services import check_exist_schedule_by_id
+
     if not check_exist_schedule_by_id(db_session=db_session, schedule_id=schedule_id):
         raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
 
@@ -99,6 +100,8 @@ def get_schedule_details_by_schedule_id(*, db_session, schedule_id: int):
 # POST /schedule_details
 def create_schedule_detail(*, db_session, schedule_detail_in: ScheduleDetailCreate):
     """Creates a new schedule_detail."""
+    from app.api.routes.schedules.services import check_exist_schedule_by_id
+
     if not check_exist_schedule_by_id(
         db_session=db_session, schedule_id=schedule_detail_in.schedule_id
     ):

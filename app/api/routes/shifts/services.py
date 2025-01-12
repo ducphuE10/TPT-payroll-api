@@ -19,9 +19,13 @@ def check_exist_shift_by_id(*, db_session, shift_id: int):
     return bool(retrieve_shift_by_id(db_session=db_session, shift_id=shift_id))
 
 
-def check_exist_shift_by_code(*, db_session, shift_code: str):
+def check_exist_shift_by_code(*, db_session, shift_code: str, company_id: int):
     """Check if shift exists in the database."""
-    return bool(retrieve_shift_by_code(db_session=db_session, shift_code=shift_code))
+    return bool(
+        retrieve_shift_by_code(
+            db_session=db_session, shift_code=shift_code, company_id=company_id
+        )
+    )
 
 
 def validate_work_hours(*, standard_work_hours: float):
@@ -39,18 +43,20 @@ def get_shift_by_id(*, db_session, shift_id: int):
     return retrieve_shift_by_id(db_session=db_session, shift_id=shift_id)
 
 
-def get_shift_by_code(*, db_session, shift_code: int):
+def get_shift_by_code(*, db_session, shift_code: int, company_id: int):
     """Returns a shift based on the given code."""
-    if not check_exist_shift_by_code(db_session=db_session, shift_code=shift_code):
+    if not check_exist_shift_by_code(
+        db_session=db_session, shift_code=shift_code, company_id=company_id
+    ):
         raise AppException(ErrorMessages.ResourceNotFound(), "shift")
 
     return retrieve_shift_by_code(db_session=db_session, shift_code=shift_code)
 
 
 # GET /shifts
-def get_all_shift(*, db_session):
+def get_all_shift(*, db_session, company_id: int):
     """Returns all shifts."""
-    shifts = retrieve_all_shifts(db_session=db_session)
+    shifts = retrieve_all_shifts(db_session=db_session, company_id=company_id)
     if not shifts["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "shift")
 
@@ -60,7 +66,9 @@ def get_all_shift(*, db_session):
 # POST /shifts
 def create_shift(*, db_session, shift_in: ShiftCreate):
     """Creates a new shift."""
-    if check_exist_shift_by_code(db_session=db_session, shift_code=shift_in.code):
+    if check_exist_shift_by_code(
+        db_session=db_session, shift_code=shift_in.code, company_id=shift_in.company_id
+    ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "shift")
     if not validate_work_hours(standard_work_hours=shift_in.standard_work_hours):
         raise AppException(ErrorMessages.InvalidInput(), "work hours")

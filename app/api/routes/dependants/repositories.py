@@ -32,11 +32,12 @@ def retrieve_dependant_by_code(*, db_session, dependant_code: str) -> PayrollDep
 
 
 def retrieve_dependant_by_mst(
-    *, db_session, dependant_mst: str, exclude_dependant_id: int = None
+    *, db_session, dependant_mst: str, exclude_dependant_id: int = None, company_id: int
 ) -> PayrollDependant:
     """Returns a dependant based on the given code."""
     query = db_session.query(PayrollDependant).filter(
         PayrollDependant.mst == dependant_mst
+        and PayrollDependant.company_id == company_id
     )
     if exclude_dependant_id:
         query = query.filter(PayrollDependant.id != exclude_dependant_id)
@@ -58,19 +59,22 @@ def retrieve_all_dependants_by_employee_id(
 
 
 # GET /dependants
-def retrieve_all_dependants(*, db_session) -> PayrollDependant:
+def retrieve_all_dependants(*, db_session, company_id: int) -> PayrollDependant:
     """Returns all dependants."""
-    query = db_session.query(PayrollDependant)
+    query = db_session.query(PayrollDependant).filter(
+        PayrollDependant.company_id == company_id
+    )
     count = query.count()
     dependants = query.all()
 
     return {"count": count, "data": dependants}
 
 
-def search_dependants_by_partial_name(*, db_session, name: str):
+def search_dependants_by_partial_name(*, db_session, name: str, company_id: int):
     """Searches for dependants based on a partial name match (case-insensitive)."""
     query = db_session.query(PayrollDependant).filter(
         func.lower(PayrollDependant.name).like(f"%{name.lower()}%")
+        and PayrollDependant.company_id == company_id
     )
     count = query.count()
     dependants = query.all()

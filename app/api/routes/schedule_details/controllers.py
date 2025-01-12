@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
-from app.schedule_details.schemas import (
+from app.api.routes.schedule_details.schemas import (
     ScheduleDetailRead,
     ScheduleDetailsRead,
     ScheduleDetailCreate,
     ScheduleDetailUpdate,
 )
 from app.db.core import DbSession
-from app.schedule_details.services import (
+from app.api.routes.schedule_details.services import (
     create_schedule_detail,
     delete_schedule_detail,
     get_all_schedule_details,

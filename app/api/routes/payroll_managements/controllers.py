@@ -25,19 +25,19 @@ payroll_management_router = APIRouter()
 # GET /payroll_managements
 @payroll_management_router.get("", response_model=PayrollManagementsRead)
 def retrieve_payroll_managements(
-    *, db_session: DbSession, month: int = None, year: int = None
+    *, db_session: DbSession, company_id: int, month: int = None, year: int = None
 ):
     """Retrieve all payroll_managements."""
     return get_all_payroll_management(
-        db_session=db_session,
-        month=month,
-        year=year,
+        db_session=db_session, month=month, year=year, company_id=company_id
     )
 
 
 @payroll_management_router.get("/metrics")
-def metrics(*, db_session: DbSession, month: int, year: int):
-    return metrics_handler(db_session=db_session, month=month, year=year)
+def metrics(*, db_session: DbSession, month: int, year: int, company_id: int):
+    return metrics_handler(
+        db_session=db_session, month=month, year=year, company_id=company_id
+    )
 
 
 # GET /payroll_managements/{payroll_management_id}

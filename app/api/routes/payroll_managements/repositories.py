@@ -23,10 +23,13 @@ def retrieve_payroll_management_by_id(
     )
 
 
-def retrieve_number_of_payroll(*, db_session, month: int, year: int) -> int:
+def retrieve_number_of_payroll(
+    *, db_session, month: int, year: int, company_id: int
+) -> int:
     return (
         db_session.query(PayrollPayrollManagement)
         .filter(
+            PayrollPayrollManagement.company_id == company_id,
             PayrollPayrollManagement.month == month,
             PayrollPayrollManagement.year == year,
         )
@@ -52,11 +55,13 @@ def retrieve_payroll_management_by_information(
 
 # GET /payroll_managements
 def retrieve_all_payroll_managements(
-    *, db_session, month: int = None, year: int = None
+    *, db_session, month: int = None, year: int = None, company_id: int
 ) -> PayrollPayrollManagement:
     """Returns all payroll_managements."""
-    query = db_session.query(PayrollPayrollManagement).order_by(
-        PayrollPayrollManagement.id.asc()
+    query = (
+        db_session.query(PayrollPayrollManagement)
+        .filter(PayrollPayrollManagement.company_id == company_id)
+        .order_by(PayrollPayrollManagement.id.asc())
     )
     if month and year:
         query = query.filter(
@@ -70,11 +75,12 @@ def retrieve_all_payroll_managements(
 
 
 def retrieve_total_gross_income_by_period(
-    *, db_session, month: int, year: int
+    *, db_session, month: int, year: int, company_id: int
 ) -> float:
     return (
         db_session.query(func.sum(PayrollPayrollManagement.gross_income))
         .filter(
+            PayrollPayrollManagement.company_id == company_id,
             PayrollPayrollManagement.month == month,
             PayrollPayrollManagement.year == year,
         )
@@ -82,10 +88,13 @@ def retrieve_total_gross_income_by_period(
     )
 
 
-def retrieve_total_tax_by_period(*, db_session, month: int, year: int) -> float:
+def retrieve_total_tax_by_period(
+    *, db_session, month: int, year: int, company_id: int
+) -> float:
     return (
         db_session.query(func.sum(PayrollPayrollManagement.tax))
         .filter(
+            PayrollPayrollManagement.company_id == company_id,
             PayrollPayrollManagement.month == month,
             PayrollPayrollManagement.year == year,
         )
@@ -94,7 +103,7 @@ def retrieve_total_tax_by_period(*, db_session, month: int, year: int) -> float:
 
 
 def retrieve_total_overtime_salary_by_period(
-    *, db_session, month: int, year: int
+    *, db_session, month: int, year: int, company_id: int
 ) -> float:
     return (
         db_session.query(
@@ -102,6 +111,7 @@ def retrieve_total_overtime_salary_by_period(
             + func.sum(PayrollPayrollManagement.overtime_2_0x_salary)
         )
         .filter(
+            PayrollPayrollManagement.company_id == company_id,
             PayrollPayrollManagement.month == month,
             PayrollPayrollManagement.year == year,
         )
@@ -110,7 +120,7 @@ def retrieve_total_overtime_salary_by_period(
 
 
 def retrieve_total_benefit_salary_by_period(
-    *, db_session, month: int, year: int
+    *, db_session, month: int, year: int, company_id: int
 ) -> float:
     return (
         db_session.query(
@@ -121,6 +131,7 @@ def retrieve_total_benefit_salary_by_period(
             + func.sum(PayrollPayrollManagement.phone_benefit_salary)
         )
         .filter(
+            PayrollPayrollManagement.company_id == company_id,
             PayrollPayrollManagement.month == month,
             PayrollPayrollManagement.year == year,
         )

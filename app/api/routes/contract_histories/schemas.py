@@ -9,6 +9,7 @@ from app.utils.models import Pagination, PayrollBase
 
 class ContractHistoryBase(PayrollBase):
     employee_id: int
+    company_id: int
     department_id: int
     position_id: int
     is_probation: bool

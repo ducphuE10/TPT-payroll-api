@@ -64,8 +64,10 @@ def get_contract_history_by_id(*, db_session, contract_history_id: int):
     )
 
 
-def get_all_contract_histories(*, db_session):
-    list_contracts = retrieve_all_contract_histories(db_session=db_session)
+def get_all_contract_histories(*, db_session, company_id: int):
+    list_contracts = retrieve_all_contract_histories(
+        db_session=db_session, company_id=company_id
+    )["data"]
     if not list_contracts:
         raise AppException(ErrorMessages.ResourceNotFound(), "contract history")
 

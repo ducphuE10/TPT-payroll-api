@@ -5,6 +5,7 @@ from app.utils.models import Pagination, PayrollBase
 
 
 class ShiftBase(PayrollBase):
+    company_id: int  # required
     code: str  # required
     name: str  # required
     standard_work_hours: float  # required

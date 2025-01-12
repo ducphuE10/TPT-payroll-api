@@ -111,10 +111,10 @@ def get_employee_overtimes(*, db_session, employee_id: int):
 
 
 # GET /overtimes/period?m=month&y=year
-def get_overtimes_by_month(*, db_session, month: int, year: int):
+def get_overtimes_by_month(*, db_session, company_id: int, month: int, year: int):
     """Returns all overtimes for a given month and year."""
     list_overtimes = retrieve_employee_overtimes_by_month(
-        db_session=db_session, month=month, year=year
+        db_session=db_session, month=month, year=year, company_id=company_id
     )
 
     if not list_overtimes["count"]:
@@ -176,6 +176,7 @@ def create_multi_overtimes(
                 employee_id=employee_id,
                 day_overtime=current_date,
                 overtime_hours=overtime_list_in.overtime_hours,
+                company_id=overtime_list_in.company_id,
             )
             if check_exist_overtime_by_employee_and_day(
                 db_session=db_session,

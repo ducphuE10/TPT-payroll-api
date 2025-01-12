@@ -20,11 +20,16 @@ def retrieve_schedule_by_id(*, db_session, schedule_id: int) -> PayrollSchedule:
     )
 
 
-def retrieve_schedule_by_code(*, db_session, schedule_code: str) -> PayrollSchedule:
+def retrieve_schedule_by_code(
+    *, db_session, schedule_code: str, company_id: int
+) -> PayrollSchedule:
     """Returns a schedule based on the given code."""
     return (
         db_session.query(PayrollSchedule)
-        .filter(PayrollSchedule.code == schedule_code)
+        .filter(
+            PayrollSchedule.code == schedule_code
+            and PayrollSchedule.company_id == company_id
+        )
         .first()
     )
 

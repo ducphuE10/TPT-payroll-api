@@ -49,9 +49,9 @@ class PayrollCompany(Base, TimeStampMixin):
     schedules: Mapped[List["PayrollSchedule"]] = relationship(
         "PayrollSchedule", back_populates="company"
     )
-    schedule_details: Mapped[List["PayrollScheduleDetail"]] = relationship(
-        "PayrollScheduleDetail", back_populates="company"
-    )
+    # schedule_details: Mapped[List["PayrollScheduleDetail"]] = relationship(
+    #     "PayrollScheduleDetail", back_populates="company"
+    # )
     attendances: Mapped[List["PayrollAttendance"]] = relationship(
         "PayrollAttendance", back_populates="company"
     )
@@ -63,9 +63,6 @@ class PayrollCompany(Base, TimeStampMixin):
     )
     contract_histories: Mapped[List["PayrollContractHistory"]] = relationship(
         "PayrollContractHistory", back_populates="company"
-    )
-    payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
-        "PayrollPayrollManagement", back_populates="company"
     )
     payroll_managements: Mapped[List["PayrollPayrollManagement"]] = relationship(
         "PayrollPayrollManagement", back_populates="company"
@@ -88,6 +85,10 @@ class PayrollDepartment(Base, TimeStampMixin):
         "PayrollEmployee", back_populates="department"
     )
 
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="departments"
+    )
+
     def __repr__(self) -> str:
         return f"Department (name={self.name!r})"
 
@@ -103,6 +104,10 @@ class PayrollPosition(Base, TimeStampMixin):
 
     employees: Mapped[List["PayrollEmployee"]] = relationship(
         "PayrollEmployee", back_populates="position"
+    )
+
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="positions"
     )
 
     def __repr__(self) -> str:
@@ -145,6 +150,10 @@ class PayrollEmployee(Base, TimeStampMixin):
     note: Mapped[Optional[str]] = mapped_column(String(255))
     company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"))  # required
     created_by: Mapped[str] = mapped_column(String(30))  # required
+
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="employees"
+    )
 
     department: Mapped["PayrollDepartment"] = relationship(
         "PayrollDepartment",
@@ -199,6 +208,10 @@ class InsurancePolicy(Base, TimeStampMixin):
     company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"))  # required
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="insurance_policies"
+    )
+
     def __repr__(self) -> str:
         return f"InsurancePolicy(name={self.name!r})"
 
@@ -218,6 +231,10 @@ class PayrollShift(Base, TimeStampMixin):
     company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"))  # required
     created_by: Mapped[str] = mapped_column(String(30))
 
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="shifts"
+    )
+
     def __repr__(self) -> str:
         return f"Shift (name={self.name!r}, code={self.code!r}, standard_work_hours={self.standard_work_hours!r})"
 
@@ -235,6 +252,10 @@ class PayrollSchedule(Base, TimeStampMixin):
         "PayrollScheduleDetail", cascade="all, delete-orphan", back_populates="schedule"
     )
 
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="schedules"
+    )
+
     def __repr__(self) -> str:
         return f"Schedule (name={self.name!r}, code={self.code!r})"
 
@@ -247,13 +268,17 @@ class PayrollScheduleDetail(Base, TimeStampMixin):
     )
     shift_id: Mapped[int] = mapped_column(ForeignKey("shifts.id"))
     day: Mapped[Day]
-    company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"))  # required
+    # company_id: Mapped[int] = mapped_column(ForeignKey("companies.id"))  # required
     created_by: Mapped[str] = mapped_column(String(30))  # required
 
     shift: Mapped["PayrollShift"] = relationship()
     schedule: Mapped["PayrollSchedule"] = relationship(
         "PayrollSchedule", back_populates="shifts"
     )
+
+    # company: Mapped["PayrollCompany"] = relationship(
+    #     "PayrollCompany", back_populates="schedule_details"
+    # )
 
     __table_args__ = (
         UniqueConstraint(
@@ -282,6 +307,10 @@ class PayrollAttendance(Base, TimeStampMixin):
         "PayrollEmployee", back_populates="attendances"
     )
 
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="attendances"
+    )
+
     __table_args__ = (
         UniqueConstraint(
             "employee_id", "day_attendance", name="uq_employee_attendance"
@@ -306,6 +335,10 @@ class PayrollOvertime(Base, TimeStampMixin):
 
     employee: Mapped["PayrollEmployee"] = relationship(
         "PayrollEmployee", back_populates="overtimes"
+    )
+
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="overtimes"
     )
 
     __table_args__ = (
@@ -340,6 +373,10 @@ class PayrollDependant(Base, TimeStampMixin):
         "PayrollEmployee", back_populates="dependants"
     )
 
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="dependants"
+    )
+
     def __repr__(self) -> str:
         return f"Dependant (name={self.name!r}, (employee_id={self.employee_id!r}))"
 
@@ -370,6 +407,11 @@ class PayrollContractHistory(Base, TimeStampMixin):
 
     employee: Mapped["PayrollEmployee"] = relationship(
         "PayrollEmployee",
+        back_populates="contract_histories",
+    )
+
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany",
         back_populates="contract_histories",
     )
 
@@ -428,6 +470,9 @@ class PayrollPayrollManagement(Base, TimeStampMixin):
     # tax_policy: Mapped["TaxPolicy"] = relationship("TaxPolicy", backref="contracttypes")
     insurance_policy: Mapped[Optional["InsurancePolicy"]] = relationship(
         "InsurancePolicy", backref="contracttypes"
+    )
+    company: Mapped["PayrollCompany"] = relationship(
+        "PayrollCompany", back_populates="payroll_managements"
     )
 
     def __repr__(self) -> str:

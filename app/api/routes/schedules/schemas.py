@@ -11,6 +11,7 @@ class ScheduleBase(PayrollBase):
     code: str  # required
     name: str  # required
     shift_per_day: int  # required
+    company_id: int  # required
 
 
 class ScheduleRead(ScheduleBase):

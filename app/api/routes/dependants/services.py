@@ -58,7 +58,9 @@ def validate_create_dependant(*, db_session, dependant_in: DependantCreate):
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "dependant")
 
-    if check_exist_person_by_mst(db_session=db_session, mst=dependant_in.mst):
+    if check_exist_person_by_mst(
+        db_session=db_session, mst=dependant_in.mst, company_id=dependant_in.company_id
+    ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
     return True
 
@@ -70,6 +72,7 @@ def validate_update_dependant(
         db_session=db_session,
         mst=dependant_in.mst,
         exclude_id=dependant_id,
+        company_id=dependant_in.company_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
     return True
@@ -87,9 +90,11 @@ def get_dependant_by_id(*, db_session, dependant_id: int):
 
 
 # GET /dependants
-def get_all_dependants(*, db_session):
+def get_all_dependants(*, db_session, company_id: int):
     """Returns all dependants."""
-    list_dependants = retrieve_all_dependants(db_session=db_session)
+    list_dependants = retrieve_all_dependants(
+        db_session=db_session, company_id=company_id
+    )
     if not list_dependants["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "dependant")
 
@@ -214,8 +219,12 @@ def update_dependant_by_xlsx(
     return dependant_db
 
 
-def search_dependant_by_name(*, db_session, name: str) -> PayrollDependant:
-    dependants = search_dependants_by_partial_name(db_session=db_session, name=name)
+def search_dependant_by_name(
+    *, db_session, name: str, company_id: int
+) -> PayrollDependant:
+    dependants = search_dependants_by_partial_name(
+        db_session=db_session, name=name, company_id=company_id
+    )
     return dependants
 
 
@@ -241,7 +250,11 @@ def upsert_dependant(db_session, dependant_in: DependantImport, update_on_exists
 
 
 def upload_dependants_XLSX(
-    *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
+    *,
+    db_session,
+    file: UploadFile = File(...),
+    update_on_exists: bool = False,
+    company_id: int,
 ):
     data = BytesIO(file.file.read())
 
@@ -271,6 +284,8 @@ def upload_dependants_XLSX(
                 continue
 
             depedant_data = row.to_dict()
+            depedant_data["company_id"] = company_id
+
             for key, value in depedant_data.items():
                 if value == "nan" or value is pd.NaT:
                     depedant_data[key] = None

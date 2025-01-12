@@ -36,11 +36,13 @@ employee_router = APIRouter()
 
 # GET /employees
 @employee_router.get("", response_model=EmployeesRead)
-def retrieve_employees(*, db_session: DbSession, name: str = None):
+def retrieve_employees(*, db_session: DbSession, name: str = None, company_id: int):
     """Returns all employees."""
     if name:
-        return search_employee_by_name(db_session=db_session, name=name)
-    return get_all_employees(db_session=db_session)
+        return search_employee_by_name(
+            db_session=db_session, name=name, company_id=company_id
+        )
+    return get_all_employees(db_session=db_session, company_id=company_id)
 
 
 @employee_router.get("/benefits", response_model=BenefitsRead)
@@ -146,8 +148,15 @@ def delete(*, db_session: DbSession, employee_id: int):
 # POST /employees/import-excel
 @employee_router.post("/import-excel")
 def import_excel(
-    *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
+    *,
+    db: DbSession,
+    file: UploadFile = File(...),
+    update_on_exists: bool = Form(False),
+    company_id: int = Form(...),
 ):
     return upload_employees_XLSX(
-        db_session=db, file=file, update_on_exists=update_on_exists
+        db_session=db,
+        file=file,
+        update_on_exists=update_on_exists,
+        company_id=company_id,
     )

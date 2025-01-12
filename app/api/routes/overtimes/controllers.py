@@ -38,9 +38,13 @@ def retrieve_overtimes(
 
 # GET /overtimes/period?m=month&y=year
 @overtime_router.get("/period", response_model=OvertimesRead)
-def retrieve_overtimes_by_month(*, db_session: DbSession, month: int, year: int):
+def retrieve_overtimes_by_month(
+    *, db_session: DbSession, company_id: int, month: int, year: int
+):
     """Retrieve all overtimes of employees by month and year"""
-    return get_overtimes_by_month(db_session=db_session, month=month, year=year)
+    return get_overtimes_by_month(
+        db_session=db_session, month=month, year=year, company_id=company_id
+    )
 
 
 # GET /overtimes/{overtime_id}

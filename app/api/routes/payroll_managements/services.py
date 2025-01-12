@@ -100,62 +100,76 @@ def check_available_employee_create_payroll(
     return True
 
 
-def get_number_payroll_documents(*, db_session, month: int, year: int):
+def get_number_payroll_documents(*, db_session, month: int, year: int, company_id: int):
     return round(
-        retrieve_number_of_payroll(db_session=db_session, month=month, year=year)
+        retrieve_number_of_payroll(
+            db_session=db_session, month=month, year=year, company_id=company_id
+        )
     )
 
 
-def get_total_payroll_gross_income(*, db_session, month: int, year: int):
+def get_total_payroll_gross_income(
+    *, db_session, month: int, year: int, company_id: int
+):
     return round(
         retrieve_total_gross_income_by_period(
-            db_session=db_session, month=month, year=year
+            db_session=db_session, month=month, year=year, company_id=company_id
         ),
         -3,
     )
 
 
-def get_total_payroll_tax(*, db_session, month: int, year: int):
+def get_total_payroll_tax(*, db_session, month: int, year: int, company_id: int):
     return round(
-        retrieve_total_tax_by_period(db_session=db_session, month=month, year=year), -3
+        retrieve_total_tax_by_period(
+            db_session=db_session, month=month, year=year, company_id=company_id
+        ),
+        -3,
     )
 
 
-def get_total_payroll_overtime_salary(*, db_session, month: int, year: int):
+def get_total_payroll_overtime_salary(
+    *, db_session, month: int, year: int, company_id: int
+):
     return round(
         retrieve_total_overtime_salary_by_period(
-            db_session=db_session, month=month, year=year
+            db_session=db_session, month=month, year=year, company_id=company_id
         ),
         -3,
     )
 
 
-def get_total_benefit_salary(*, db_session, month: int, year: int):
+def get_total_benefit_salary(*, db_session, month: int, year: int, company_id: int):
     return round(
         retrieve_total_benefit_salary_by_period(
-            db_session=db_session, month=month, year=year
+            db_session=db_session, month=month, year=year, company_id=company_id
         ),
         -3,
     )
 
 
-def metrics_handler(*, db_session, month: int, year: int):
-    if get_number_payroll_documents(db_session=db_session, month=month, year=year) != 0:
+def metrics_handler(*, db_session, month: int, year: int, company_id: int):
+    if (
+        get_number_payroll_documents(
+            db_session=db_session, month=month, year=year, company_id=company_id
+        )
+        != 0
+    ):
         return {
             "total_payroll_documents": get_number_payroll_documents(
-                db_session=db_session, month=month, year=year
+                db_session=db_session, month=month, year=year, company_id=company_id
             ),
             "total_gross_income": get_total_payroll_gross_income(
-                db_session=db_session, month=month, year=year
+                db_session=db_session, month=month, year=year, company_id=company_id
             ),
             "total_tax": get_total_payroll_tax(
-                db_session=db_session, month=month, year=year
+                db_session=db_session, month=month, year=year, company_id=company_id
             ),
             "total_overtime_salary": get_total_payroll_overtime_salary(
-                db_session=db_session, month=month, year=year
+                db_session=db_session, month=month, year=year, company_id=company_id
             ),
             "total_benefit_salary": get_total_benefit_salary(
-                db_session=db_session, month=month, year=year
+                db_session=db_session, month=month, year=year, company_id=company_id
             ),
         }
     else:
@@ -183,10 +197,12 @@ def get_payroll_management_by_id(*, db_session, payroll_management_id: int):
 
 
 # GET /payroll_managements
-def get_all_payroll_management(*, db_session, month: int = None, year: int = None):
+def get_all_payroll_management(
+    *, db_session, company_id: int, month: int = None, year: int = None
+):
     """Returns all payroll_managements."""
     payroll_managements = retrieve_all_payroll_managements(
-        db_session=db_session, month=month, year=year
+        db_session=db_session, month=month, year=year, company_id=company_id
     )
     if not payroll_managements["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "payroll")
@@ -207,6 +223,7 @@ def create_payroll_management(
         work_days_standard=payroll_management_in.work_days_standard,
         apply_insurance=payroll_management_in.apply_insurance,
         insurance_id=payroll_management_in.insurance_id,
+        company_id=payroll_management_in.company_id,
     )
     if not payroll_management_create:
         return
@@ -232,7 +249,9 @@ def create_multi_payroll_managements(
     list_id = []
 
     if payroll_management_list_in.apply_all:
-        for employee in retrieve_all_employees(db_session=db_session)["data"]:
+        for employee in retrieve_all_employees(
+            db_session=db_session, company_id=payroll_management_list_in.company_id
+        )["data"]:
             if check_exist_schedule_by_employee_id(
                 db_session=db_session, employee_id=employee.id
             ):
@@ -260,6 +279,7 @@ def create_multi_payroll_managements(
                         work_days_standard=payroll_management_list_in.work_days_standard,
                         apply_insurance=payroll_management_list_in.apply_insurance,
                         insurance_id=payroll_management_list_in.insurance_id,
+                        company_id=payroll_management_list_in.company_id,
                     )
 
                     payroll_management = create_payroll_management(
@@ -512,6 +532,7 @@ def payroll_handler(
     work_days_standard: float,
     apply_insurance: bool = False,
     insurance_id: Optional[int] = None,
+    company_id: int,
 ):
     employee = retrieve_employee_by_id(db_session=db_session, employee_id=employee_id)
 
@@ -703,6 +724,7 @@ def payroll_handler(
 
     payroll_management_data = {
         "employee_id": employee_id,
+        "company_id": company_id,
         "contract_history_id": contract_history.id,
         "insurance_policy_id": insurance_id,
         "net_income": net_income,

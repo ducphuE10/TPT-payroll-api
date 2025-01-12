@@ -22,6 +22,7 @@ class DependantBase(PayrollBase):
     deduction_from: date
     deduction_to: date
     note: Optional[str] = None
+    company_id: int
 
 
 class DependantRead(DependantBase):
@@ -50,6 +51,7 @@ class DependantUpdate(PayrollBase):
     deduction_from: Optional[date] = None
     deduction_to: Optional[date] = None
     note: Optional[str] = None
+    company_id: Optional[int] = None
 
 
 class DependantImport(PayrollBase):

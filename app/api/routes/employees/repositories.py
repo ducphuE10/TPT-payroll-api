@@ -36,21 +36,27 @@ def retrieve_employee_by_id(*, db_session, employee_id: int) -> PayrollEmployee:
     )
 
 
-def retrieve_employee_by_code(*, db_session, employee_code: str) -> PayrollEmployee:
+def retrieve_employee_by_code(
+    *, db_session, employee_code: str, company_id: int
+) -> PayrollEmployee:
     """Returns a employee based on the given code."""
     return (
         db_session.query(PayrollEmployee)
-        .filter(PayrollEmployee.code == employee_code)
+        .filter(
+            PayrollEmployee.code == employee_code
+            and PayrollEmployee.company_id == company_id
+        )
         .first()
     )
 
 
 def retrieve_employee_by_cccd(
-    *, db_session, employee_cccd: str, exclude_employee_id: int = None
+    *, db_session, employee_cccd: str, exclude_employee_id: int = None, company_id: int
 ) -> PayrollEmployee:
     """Returns a employee based on the given code."""
     query = db_session.query(PayrollEmployee).filter(
         PayrollEmployee.cccd == employee_cccd
+        and PayrollEmployee.company_id == company_id
     )
     if exclude_employee_id:
         query = query.filter(PayrollEmployee.id != exclude_employee_id)
@@ -59,11 +65,11 @@ def retrieve_employee_by_cccd(
 
 
 def retrieve_employee_by_mst(
-    *, db_session, employee_mst: str, exclude_employee_id: int = None
+    *, db_session, employee_mst: str, exclude_employee_id: int = None, company_id: int
 ) -> PayrollEmployee:
     """Returns a employee based on the given code."""
     query = db_session.query(PayrollEmployee).filter(
-        PayrollEmployee.mst == employee_mst
+        PayrollEmployee.mst == employee_mst and PayrollEmployee.company_id == company_id
     )
     if exclude_employee_id:
         query = query.filter(PayrollEmployee.id != exclude_employee_id)
@@ -92,16 +98,18 @@ def retrieve_employee_by_department(
 
 
 # GET /employees
-def retrieve_all_employees(*, db_session) -> PayrollEmployee:
+def retrieve_all_employees(*, db_session, company_id: int) -> PayrollEmployee:
     """Returns all employees."""
-    query = db_session.query(PayrollEmployee)
+    query = db_session.query(PayrollEmployee).filter(
+        PayrollEmployee.company_id == company_id
+    )
     count = query.count()
     employees = query.order_by(PayrollEmployee.id.asc()).all()
 
     return {"count": count, "data": employees}
 
 
-def retrieve_active_employees_benefits(*, db_session):
+def retrieve_active_employees_benefits(*, db_session, company_id: int):
     query = db_session.query(
         PayrollEmployee.id,
         PayrollEmployee.code,
@@ -112,17 +120,18 @@ def retrieve_active_employees_benefits(*, db_session):
         PayrollEmployee.toxic_benefit,
         PayrollEmployee.phone_benefit,
         PayrollEmployee.attendant_benefit,
-    )
+    ).filter(PayrollEmployee.company_id == company_id)
     count = query.count()
     benefits = query.order_by(PayrollEmployee.id.asc()).all()
 
     return {"count": count, "data": benefits}
 
 
-def search_employees_by_partial_name(*, db_session, name: str):
+def search_employees_by_partial_name(*, db_session, name: str, company_id: int):
     """Searches for employees based on a partial name match (case-insensitive)."""
     query = db_session.query(PayrollEmployee).filter(
         func.lower(PayrollEmployee.name).like(f"%{name.lower()}%")
+        and PayrollEmployee.company_id == company_id
     )
     count = query.count()
     employees = query.all()

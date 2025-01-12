@@ -43,7 +43,7 @@ api_router = APIRouter(
 )
 router = APIRouter(prefix=settings.API_VERSION_PREFIX)
 
-
+router.include_router(company_router, prefix="/companies", tags=["companies"])
 router.include_router(department_router, prefix="/departments", tags=["departments"])
 router.include_router(position_router, prefix="/positions", tags=["positions"])
 router.include_router(employee_router, prefix="/employees", tags=["employees"])

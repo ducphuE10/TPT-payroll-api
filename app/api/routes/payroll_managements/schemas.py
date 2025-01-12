@@ -8,6 +8,7 @@ from app.utils.models import Pagination, PayrollBase
 
 class PayrollManagementBase(PayrollBase):
     employee_id: int  # required
+    company_id: int
     contract_history_id: int
     insurance_policy_id: Optional[int] = None
     net_income: float  # required
@@ -74,6 +75,7 @@ class PayrollManagementsRead(PayrollBase):
 
 class PayrollManagementCreate(PayrollBase):
     employee_id: int  # required
+    company_id: int
     month: int  # required
     year: int
     work_days_standard: float
@@ -93,6 +95,7 @@ class PayrollManagementsCreate(PayrollBase):
     work_days_standard: float
     apply_insurance: bool = False
     insurance_id: Optional[int] = None
+    company_id: int
 
 
 class PayrollManagementBPagination(Pagination):

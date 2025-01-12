@@ -20,11 +20,16 @@ def retrieve_position_by_id(*, db_session, position_id: int) -> PayrollPosition:
     )
 
 
-def retrieve_position_by_code(*, db_session, position_code: str) -> PayrollPosition:
+def retrieve_position_by_code(
+    *, db_session, position_code: str, company_id: int
+) -> PayrollPosition:
     """Returns a position based on the given code."""
     return (
         db_session.query(PayrollPosition)
-        .filter(PayrollPosition.code == position_code)
+        .filter(
+            PayrollPosition.code == position_code
+            and PayrollPosition.company_id == company_id
+        )
         .first()
     )
 
@@ -35,6 +40,21 @@ def retrieve_all_positions(*, db_session) -> PositionsRead:
     query = db_session.query(PayrollPosition)
     count = query.count()
     positions = query.order_by(PayrollPosition.id.asc()).all()
+
+    return {"count": count, "data": positions}
+
+
+def retrieve_all_positions_by_company_id(
+    *, db_session, company_id: int
+) -> PositionsRead:
+    """Returns all positions."""
+    query = db_session.query(PayrollPosition)
+    count = query.count()
+    positions = (
+        query.filter(PayrollPosition.company_id == company_id)
+        .order_by(PayrollPosition.id.asc())
+        .all()
+    )
 
     return {"count": count, "data": positions}
 

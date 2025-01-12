@@ -22,11 +22,15 @@ dependant_router = APIRouter()
 
 # GET /dependants
 @dependant_router.get("", response_model=DependantsRead)
-def retrieve_dependants(*, db_session: DbSession, name: str = None):
+def retrieve_dependants(
+    *, db_session: DbSession, name: str = None, company_id: int = None
+):
     """Returns all dependants."""
     if name:
-        return search_dependant_by_name(db_session=db_session, name=name)
-    return get_all_dependants(db_session=db_session)
+        return search_dependant_by_name(
+            db_session=db_session, name=name, company_id=company_id
+        )
+    return get_all_dependants(db_session=db_session, company_id=company_id)
 
 
 # GET /dependants/{dependant_id}
@@ -69,8 +73,15 @@ def delete(*, db_session: DbSession, dependant_id: int):
 # POST /employees/import-excel
 @dependant_router.post("/import-excel")
 def import_excel(
-    *, db: DbSession, file: UploadFile = File(...), update_on_exists: bool = Form(False)
+    *,
+    db: DbSession,
+    file: UploadFile = File(...),
+    update_on_exists: bool = Form(False),
+    company_id: int = Form(...),
 ):
     return upload_dependants_XLSX(
-        db_session=db, file=file, update_on_exists=update_on_exists
+        db_session=db,
+        file=file,
+        update_on_exists=update_on_exists,
+        company_id=company_id,
     )

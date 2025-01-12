@@ -29,16 +29,21 @@ attendance_router = APIRouter()
 def get_all(
     *,
     db_session: DbSession,
+    company_id: int,
 ):
     """Returns all attendances."""
-    return get_all_attendances(db_session=db_session)
+    return get_all_attendances(db_session=db_session, company_id=company_id)
 
 
 # GET /attendances/period?m=month&y=year
 @attendance_router.get("/period", response_model=AttendancesRead)
-def get_multi_by_month(*, db_session: DbSession, month: int, year: int):
+def get_multi_by_month(
+    *, db_session: DbSession, company_id: int, month: int, year: int
+):
     """Returns all attendances based on the given month and year."""
-    return get_multi_attendances_by_month(db_session=db_session, month=month, year=year)
+    return get_multi_attendances_by_month(
+        db_session=db_session, company_id=company_id, month=month, year=year
+    )
 
 
 # GET /attendances/{attendance_id}

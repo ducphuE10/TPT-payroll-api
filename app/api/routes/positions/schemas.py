@@ -8,6 +8,7 @@ class PositionBase(PayrollBase):
     code: str  # required
     name: str  # required
     description: Optional[str] = None
+    company_id: int  # required
 
 
 class PositionRead(PositionBase):

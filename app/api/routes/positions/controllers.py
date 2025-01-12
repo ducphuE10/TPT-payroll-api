@@ -20,12 +20,9 @@ position_router = APIRouter()
 
 # GET /positions
 @position_router.get("", response_model=PositionsRead)
-def retrieve_positions(
-    *,
-    db_session: DbSession,
-):
+def retrieve_positions(*, db_session: DbSession, company_id: int):
     """Retrieve all positions."""
-    return get_all_position(db_session=db_session)
+    return get_all_position(db_session=db_session, company_id=company_id)
 
 
 # GET /positions/{position_id}

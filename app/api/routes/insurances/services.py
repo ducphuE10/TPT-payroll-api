@@ -29,7 +29,9 @@ def create(
     """Creates a new insurance policy."""
     insurance_policy = InsurancePolicy(**insurance_policy_in.model_dump())
     insurance_policy_db = get_insurance_policy_by_code(
-        db_session=db_session, code=insurance_policy.code
+        db_session=db_session,
+        code=insurance_policy.code,
+        company_id=insurance_policy.company_id,
     )
     if insurance_policy_db:
         raise AppException(ErrorMessages.ResourceAlreadyExists())
@@ -65,7 +67,7 @@ def delete(*, db_session, id: int) -> None:
     db_session.commit()
 
 
-def get_all(*, db_session) -> InsurancePoliciesRead:
+def get_all(*, db_session, company_id: int) -> InsurancePoliciesRead:
     """Returns all insurance policies."""
-    data = insurance_repo.get_all(db_session=db_session)
+    data = insurance_repo.get_all(db_session=db_session, company_id=company_id)
     return InsurancePoliciesRead(data=data)

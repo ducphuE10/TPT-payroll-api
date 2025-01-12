@@ -12,9 +12,11 @@ from app.db.models import PayrollAttendance
 log = logging.getLogger(__name__)
 
 
-def retrieve_all_attendances(*, db_session) -> PayrollAttendance:
+def retrieve_all_attendances(*, db_session, company_id: int) -> PayrollAttendance:
     """Returns all attendances."""
-    query = db_session.query(PayrollAttendance)
+    query = db_session.query(PayrollAttendance).filter(
+        PayrollAttendance.company_id == company_id
+    )
     count = query.count()
     attendances = query.all()
 
@@ -71,10 +73,11 @@ def retrieve_employee_attendances_by_month(
 
 
 def retrieve_multi_attendances_by_month(
-    *, db_session, month: int, year: int
+    *, db_session, company_id: int, month: int, year: int
 ) -> PayrollAttendance:
     """Returns all attendances by month."""
     query = db_session.query(PayrollAttendance).filter(
+        PayrollAttendance.company_id == company_id,
         extract("month", PayrollAttendance.day_attendance) == month,
         extract("year", PayrollAttendance.day_attendance) == year,
     )

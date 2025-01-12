@@ -25,6 +25,7 @@ class EmployeeBase(PayrollBase):
     permanent_addr: Optional[str] = None
     phone: Optional[str] = None
     # -----------------------
+    company_id: int  # required
     department_id: int  # required
     position_id: int  # required
     is_probation: bool
@@ -75,6 +76,7 @@ class EmployeeDelete(PayrollBase):
 
 class EmployeeUpdatePersonal(PayrollBase):
     name: Optional[str] = None
+    company_id: Optional[int] = None
     date_of_birth: Optional[date] = None
     gender: Optional[Gender] = None
     nationality: Optional[Nationality] = None

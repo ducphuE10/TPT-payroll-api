@@ -17,17 +17,23 @@ def retrieve_shift_by_id(*, db_session, shift_id: int) -> PayrollShift:
     return db_session.query(PayrollShift).filter(PayrollShift.id == shift_id).first()
 
 
-def retrieve_shift_by_code(*, db_session, shift_code: str) -> PayrollShift:
+def retrieve_shift_by_code(
+    *, db_session, shift_code: str, company_id: int
+) -> PayrollShift:
     """Returns a shift based on the given code."""
     return (
-        db_session.query(PayrollShift).filter(PayrollShift.code == shift_code).first()
+        db_session.query(PayrollShift)
+        .filter(
+            PayrollShift.code == shift_code and PayrollShift.company_id == company_id
+        )
+        .first()
     )
 
 
 # GET /shifts
-def retrieve_all_shifts(*, db_session) -> ShiftsRead:
+def retrieve_all_shifts(*, db_session, company_id: int) -> ShiftsRead:
     """Returns all shifts."""
-    query = db_session.query(PayrollShift)
+    query = db_session.query(PayrollShift).filter(PayrollShift.company_id == company_id)
     count = query.count()
     shifts = query.order_by(PayrollShift.id.asc()).all()
 

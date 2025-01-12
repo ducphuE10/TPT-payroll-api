@@ -20,12 +20,9 @@ department_router = APIRouter()
 
 # GET /departments
 @department_router.get("", response_model=DepartmentsRead)
-def retrieve_departments(
-    *,
-    db_session: DbSession,
-):
+def retrieve_departments(*, db_session: DbSession, company_id: int):
     """Retrieve all departments."""
-    return get_all_department(db_session=db_session)
+    return get_all_department(db_session=db_session, company_id=company_id)
 
 
 # GET /departments/{department_id}

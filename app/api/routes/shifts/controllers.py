@@ -23,9 +23,10 @@ shift_router = APIRouter()
 def retrieve_shifts(
     *,
     db_session: DbSession,
+    company_id: int,
 ):
     """Retrieve all shifts."""
-    return get_all_shift(db_session=db_session)
+    return get_all_shift(db_session=db_session, company_id=company_id)
 
 
 # GET /shifts/{shift_id}

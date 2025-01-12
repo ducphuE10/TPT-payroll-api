@@ -12,17 +12,27 @@ def get_insurance_policy_by_id(*, db_session, id: int) -> InsurancePolicy:
     return insurance_policy
 
 
-def get_insurance_policy_by_code(*, db_session, code: str) -> InsurancePolicy:
+def get_insurance_policy_by_code(
+    *, db_session, code: str, company_id: int
+) -> InsurancePolicy:
     """Returns a insurance policy based on the given code."""
     insurance_policy = (
-        db_session.query(InsurancePolicy).filter(InsurancePolicy.code == code).first()
+        db_session.query(InsurancePolicy)
+        .filter(
+            InsurancePolicy.code == code and InsurancePolicy.company_id == company_id
+        )
+        .first()
     )
     return insurance_policy
 
 
-def get_all(*, db_session):
+def get_all(*, db_session, company_id: int):
     """Returns all insurance policies."""
-    return db_session.query(InsurancePolicy).all()
+    return (
+        db_session.query(InsurancePolicy)
+        .filter(InsurancePolicy.company_id == company_id)
+        .all()
+    )
 
 
 def create(*, db_session, create_data: dict) -> InsurancePolicy:

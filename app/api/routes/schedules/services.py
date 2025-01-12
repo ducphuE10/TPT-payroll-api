@@ -3,6 +3,11 @@ from app.api.routes.employees.repositories import (
     retrieve_schedule_by_employee_id,
 )
 
+from app.api.routes.schedule_details.services import (
+    create_multi_schedule_details,
+    update_multi_schedule_details,
+)
+
 from app.api.routes.schedule_details.repositories import (
     retrieve_schedule_details_by_schedule_id,
 )
@@ -11,6 +16,7 @@ from app.api.routes.schedule_details.schemas import (
     ScheduleDetailsRead,
     ScheduleDetailsUpdate,
 )
+
 from app.api.routes.schedules.repositories import (
     add_schedule,
     modify_schedule,
@@ -33,10 +39,12 @@ def check_exist_schedule_by_id(*, db_session, schedule_id: int):
     return bool(retrieve_schedule_by_id(db_session=db_session, schedule_id=schedule_id))
 
 
-def check_exist_schedule_by_code(*, db_session, schedule_code: str):
+def check_exist_schedule_by_code(*, db_session, schedule_code: str, company_id: int):
     """Check if schedule exists in the database."""
     return bool(
-        retrieve_schedule_by_code(db_session=db_session, schedule_code=schedule_code)
+        retrieve_schedule_by_code(
+            db_session=db_session, schedule_code=schedule_code, company_id=company_id
+        )
     )
 
 
@@ -61,10 +69,10 @@ def get_schedule_by_id(*, db_session, schedule_id: int):
     return retrieve_schedule_by_id(db_session=db_session, schedule_id=schedule_id)
 
 
-def get_schedule_by_code(*, db_session, schedule_code: str):
+def get_schedule_by_code(*, db_session, schedule_code: str, company_id: int):
     """Returns a schedule based on the given code."""
     if not check_exist_schedule_by_code(
-        db_session=db_session, schedule_code=schedule_code
+        db_session=db_session, schedule_code=schedule_code, company_id=company_id
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
 
@@ -100,7 +108,9 @@ def get_all_schedule(*, db_session):
 def create_schedule(*, db_session, schedule_in: ScheduleCreate):
     """Creates a new schedule."""
     if check_exist_schedule_by_code(
-        db_session=db_session, schedule_code=schedule_in.code
+        db_session=db_session,
+        schedule_code=schedule_in.code,
+        company_id=schedule_in.company_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "schedule")
     if not validate_shift_per_day(shift_per_day=schedule_in.shift_per_day):
@@ -124,7 +134,9 @@ def create_schedule_with_details(
 ):
     try:
         if check_exist_schedule_by_code(
-            db_session=db_session, schedule_code=schedule_in.code
+            db_session=db_session,
+            schedule_code=schedule_in.code,
+            company_id=schedule_in.company_id,
         ):
             raise AppException(ErrorMessages.ResourceAlreadyExists(), "schedule")
         if not validate_shift_per_day(shift_per_day=schedule_in.shift_per_day):
@@ -133,11 +145,10 @@ def create_schedule_with_details(
         add_schedule(db_session=db_session, schedule_in=schedule_in)
 
         added_schedule = retrieve_schedule_by_code(
-            db_session=db_session, schedule_code=schedule_in.code
+            db_session=db_session,
+            schedule_code=schedule_in.code,
+            company_id=schedule_in.company_id,
         )
-
-        from app.schedule_details.services import create_multi_schedule_details
-
         schedule_with_details = create_multi_schedule_details(
             db_session=db_session,
             schedule_detail_list_in=schedule_detail_list_in,
@@ -186,8 +197,6 @@ def update_schedule_with_details(
 
         schedule_with_details = ModuleNotFoundError
         if schedule_detail_list_in:
-            from app.schedule_details.services import update_multi_schedule_details
-
             schedule_with_details = update_multi_schedule_details(
                 db_session=db_session,
                 schedule_detail_list_in=schedule_detail_list_in,

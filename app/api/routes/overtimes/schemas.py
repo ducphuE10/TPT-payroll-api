@@ -8,6 +8,7 @@ class OvertimeBase(PayrollBase):
     employee_id: int  # required
     day_overtime: date  # required
     overtime_hours: float  # required
+    company_id: int  # required
 
 
 class OvertimeRead(OvertimeBase):
@@ -34,6 +35,7 @@ class OvertimesCreate(PayrollBase):
     from_date: date
     to_date: date
     overtime_hours: float
+    company_id: int
 
 
 class OvertimesDelete(PayrollBase):
@@ -52,3 +54,4 @@ class WorkhoursOvertimeHandlerBase(PayrollBase):
     employee_id: int  # required
     day_overtime: date  # required
     overtime_hours: float  # required
+    company_id: int  # required

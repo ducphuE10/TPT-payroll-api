@@ -27,8 +27,9 @@ contract_history_router = APIRouter()
 def get_all(
     *,
     db_session: DbSession,
+    company_id: int,
 ):
-    return get_all_contract_histories(db_session=db_session)
+    return get_all_contract_histories(db_session=db_session, company_id=company_id)
 
 
 @contract_history_router.get(

@@ -89,9 +89,11 @@ def validate_update_attendance(*, attendance_in: AttendanceCreate):
 
 
 # GET /attendances
-def get_all_attendances(*, db_session):
+def get_all_attendances(*, db_session, company_id: int):
     """Returns all attendances."""
-    list_attendances = retrieve_all_attendances(db_session=db_session)
+    list_attendances = retrieve_all_attendances(
+        db_session=db_session, company_id=company_id
+    )
     if not list_attendances["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "attendance")
 
@@ -125,10 +127,12 @@ def get_employee_attendances(*, db_session, employee_id: int):
 
 
 # GET /attendances/period?m=month&y=year
-def get_multi_attendances_by_month(*, db_session, month: int, year: int):
+def get_multi_attendances_by_month(
+    *, db_session, company_id: int, month: int, year: int
+):
     """Returns all attendances for a given month and year."""
     list_attendances = retrieve_multi_attendances_by_month(
-        db_session=db_session, month=month, year=year
+        db_session=db_session, month=month, year=year, company_id=company_id
     )
 
     if not list_attendances["count"]:
@@ -178,7 +182,9 @@ def create_multi_attendances(
         attendance_list_in.to_date = date.today()
 
     if attendance_list_in.apply_all:
-        for employee in retrieve_all_employees(db_session=db_session)["data"]:
+        for employee in retrieve_all_employees(
+            db_session=db_session, company_id=attendance_list_in.company_id
+        )["data"]:
             if check_exist_schedule_by_employee_id(
                 db_session=db_session, employee_id=employee.id
             ):
@@ -206,6 +212,7 @@ def create_multi_attendances(
                 day_attendance=current_date,
                 work_hours=attendance_list_in.work_hours,
                 is_holiday=attendance_list_in.is_holiday,
+                company_id=attendance_list_in.company_id,
             )
             if check_exist_attendance_by_employee_and_day(
                 db_session=db_session,
@@ -382,6 +389,7 @@ def attendance_handler(
                     day_attendance=attendance_in.day_attendance,
                     work_hours=attendance_in.work_hours,
                     is_holiday=attendance_in.is_holiday,
+                    company_id=attendance_in.company_id,
                 ),
             )
             db_session.commit()
@@ -408,6 +416,7 @@ def attendance_handler(
                 employee_id=employee.id,
                 day_attendance=attendance_in.day_attendance,
                 check_time=attendance_in.checkin,
+                company_id=attendance_in.company_id,
             ),
         )
         add_attendance(
@@ -416,6 +425,7 @@ def attendance_handler(
                 employee_id=employee.id,
                 day_attendance=attendance_in.day_attendance,
                 check_time=attendance_in.checkout,
+                company_id=attendance_in.company_id,
             ),
         )
 

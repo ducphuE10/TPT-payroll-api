@@ -83,10 +83,14 @@ def retrieve_contract_history_addendums_by_employee_and_period(
     return query.all()
 
 
-def retrieve_all_contract_histories(*, db_session):
+def retrieve_all_contract_histories(*, db_session, company_id: int):
     query = db_session.query(PayrollContractHistory)
     count = query.count()
-    contract_histories = query.order_by(PayrollContractHistory.id.asc()).all()
+    contract_histories = (
+        query.filter(PayrollContractHistory.company_id == company_id)
+        .order_by(PayrollContractHistory.id.asc())
+        .all()
+    )
 
     return {"count": count, "data": contract_histories}
 

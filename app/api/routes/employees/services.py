@@ -64,10 +64,12 @@ def check_exist_employee_by_id(*, db_session, employee_id: int):
     return bool(retrieve_employee_by_id(db_session=db_session, employee_id=employee_id))
 
 
-def check_exist_employee_by_code(*, db_session, employee_code: str):
+def check_exist_employee_by_code(*, db_session, employee_code: str, company_id: int):
     """Check if employee exists in the database."""
     return bool(
-        retrieve_employee_by_code(db_session=db_session, employee_code=employee_code)
+        retrieve_employee_by_code(
+            db_session=db_session, employee_code=employee_code, company_id=company_id
+        )
     )
 
 
@@ -87,14 +89,20 @@ def validate_create_employee(*, db_session, employee_in: EmployeeCreate):
         raise AppException(ErrorMessages.ResourceNotFound(), "schedule")
 
     if check_exist_employee_by_code(
-        db_session=db_session, employee_code=employee_in.code
+        db_session=db_session,
+        employee_code=employee_in.code,
+        company_id=employee_in.company_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "employee")
 
-    if check_exist_person_by_cccd(db_session=db_session, cccd=employee_in.cccd):
+    if check_exist_person_by_cccd(
+        db_session=db_session, cccd=employee_in.cccd, company_id=employee_in.company_id
+    ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
 
-    if check_exist_person_by_mst(db_session=db_session, mst=employee_in.mst):
+    if check_exist_person_by_mst(
+        db_session=db_session, mst=employee_in.mst, company_id=employee_in.company_id
+    ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
     return True
 
@@ -105,6 +113,7 @@ def validate_update_employee_personal(
     if employee_in.cccd and check_exist_person_by_cccd(
         db_session=db_session,
         cccd=employee_in.cccd,
+        company_id=employee_in.company_id,
         exclude_id=employee_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "cccd")
@@ -113,6 +122,7 @@ def validate_update_employee_personal(
         db_session=db_session,
         mst=employee_in.mst,
         exclude_id=employee_id,
+        company_id=employee_in.company_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "mst")
     return True
@@ -138,9 +148,11 @@ def get_employee_by_code(*, db_session, employee_code: str):
 
 
 # GET /employees
-def get_all_employees(*, db_session):
+def get_all_employees(*, db_session, company_id: int):
     """Returns all employees."""
-    list_employees = retrieve_all_employees(db_session=db_session)
+    list_employees = retrieve_all_employees(
+        db_session=db_session, company_id=company_id
+    )
     if not list_employees["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "employee")
 
@@ -172,10 +184,13 @@ def create_employee(*, db_session, employee_in: EmployeeCreate):
         try:
             employee = add_employee(db_session=db_session, employee_in=employee_in)
             retrieve_employee_by_code(
-                db_session=db_session, employee_code=employee.code
+                db_session=db_session,
+                employee_code=employee.code,
+                company_id=employee_in.company_id,
             )
             contract_history_create = ContractHistoryCreate(
                 employee_id=employee.id,
+                company_id=employee.company_id,
                 department_id=employee.department_id,
                 position_id=employee.position_id,
                 is_probation=employee_in.is_probation,
@@ -487,7 +502,11 @@ def upsert_employee(
 
 
 def upload_employees_XLSX(
-    *, db_session, file: UploadFile = File(...), update_on_exists: bool = False
+    *,
+    db_session,
+    file: UploadFile = File(...),
+    update_on_exists: bool = False,
+    company_id: int,
 ):
     data = BytesIO(file.file.read())
 
@@ -518,6 +537,8 @@ def upload_employees_XLSX(
                 continue
 
             employee_data = row.to_dict()
+            # Add company_id to the employee data
+            employee_data["company_id"] = company_id
             for key, value in employee_data.items():
                 if value == "nan" or value is pd.NaT:
                     employee_data[key] = None
@@ -548,6 +569,10 @@ def upload_employees_XLSX(
     return {"message": "Nhân viên đã được thêm thành công từ tệp Excel"}
 
 
-def search_employee_by_name(*, db_session, name: str) -> PayrollEmployee:
-    employees = search_employees_by_partial_name(db_session=db_session, name=name)
+def search_employee_by_name(
+    *, db_session, name: str, company_id: int
+) -> PayrollEmployee:
+    employees = search_employees_by_partial_name(
+        db_session=db_session, name=name, company_id=company_id
+    )
     return employees

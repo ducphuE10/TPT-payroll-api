@@ -21,12 +21,15 @@ def retrieve_department_by_id(*, db_session, department_id: int) -> PayrollDepar
 
 
 def retrieve_department_by_code(
-    *, db_session, department_code: str
+    *, db_session, department_code: str, company_id: int
 ) -> PayrollDepartment:
     """Returns a department based on the given code."""
     return (
         db_session.query(PayrollDepartment)
-        .filter(PayrollDepartment.code == department_code)
+        .filter(
+            PayrollDepartment.code == department_code
+            and PayrollDepartment.company_id == company_id
+        )
         .first()
     )
 
@@ -37,6 +40,21 @@ def retrieve_all_departments(*, db_session) -> PayrollDepartment:
     query = db_session.query(PayrollDepartment)
     count = query.count()
     departments = query.order_by(PayrollDepartment.id.asc()).all()
+
+    return {"count": count, "data": departments}
+
+
+def retrieve_all_departments_by_company_id(
+    *, db_session, company_id: int
+) -> PayrollDepartment:
+    """Returns all departments."""
+    query = db_session.query(PayrollDepartment)
+    count = query.count()
+    departments = (
+        query.filter(PayrollDepartment.company_id == company_id)
+        .order_by(PayrollDepartment.id.asc())
+        .all()
+    )
 
     return {"count": count, "data": departments}
 

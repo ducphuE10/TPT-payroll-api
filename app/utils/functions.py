@@ -71,11 +71,13 @@ def check_exist_person_by_cccd(
     db_session,
     cccd: str,
     exclude_id: int = None,
+    company_id: int,
 ):
     employee = retrieve_employee_by_cccd(
         db_session=db_session,
         employee_cccd=cccd,
         exclude_employee_id=exclude_id,
+        company_id=company_id,
     )
 
     return bool(employee)
@@ -86,16 +88,19 @@ def check_exist_person_by_mst(
     db_session,
     mst: str,
     exclude_id: int = None,
+    company_id: int,
 ):
     employee = retrieve_employee_by_mst(
         db_session=db_session,
         employee_mst=mst,
         exclude_employee_id=exclude_id,
+        company_id=company_id,
     )
     dependant = retrieve_dependant_by_mst(
         db_session=db_session,
         dependant_mst=mst,
         exclude_dependant_id=exclude_id,
+        company_id=company_id,
     )
     return bool(employee or dependant)
 

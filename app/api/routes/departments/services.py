@@ -2,7 +2,7 @@ from app.api.routes.departments.repositories import (
     add_department,
     modify_department,
     remove_department,
-    retrieve_all_departments,
+    retrieve_all_departments_by_company_id,
     retrieve_department_by_code,
     retrieve_department_by_id,
 )
@@ -19,11 +19,15 @@ def check_exist_department_by_id(*, db_session, department_id: int):
     )
 
 
-def check_exist_department_by_code(*, db_session, department_code: str):
+def check_exist_department_by_code(
+    *, db_session, department_code: str, company_id: int
+):
     """Check if department exists in the database."""
     return bool(
         retrieve_department_by_code(
-            db_session=db_session, department_code=department_code
+            db_session=db_session,
+            department_code=department_code,
+            company_id=company_id,
         )
     )
 
@@ -39,22 +43,24 @@ def get_department_by_id(*, db_session, department_id: int):
     return retrieve_department_by_id(db_session=db_session, department_id=department_id)
 
 
-def get_department_by_code(*, db_session, department_code: int):
+def get_department_by_code(*, db_session, department_code: int, company_id: int):
     """Returns a department based on the given code."""
     if not check_exist_department_by_code(
-        db_session=db_session, department_code=department_code
+        db_session=db_session, department_code=department_code, company_id=company_id
     ):
         raise AppException(ErrorMessages.ResourceNotFound(), "department")
 
     return retrieve_department_by_code(
-        db_session=db_session, department_code=department_code
+        db_session=db_session, department_code=department_code, company_id=company_id
     )
 
 
 # GET /departments
-def get_all_department(*, db_session):
+def get_all_department(*, db_session, company_id: int):
     """Returns all departments."""
-    departments = retrieve_all_departments(db_session=db_session)
+    departments = retrieve_all_departments_by_company_id(
+        db_session=db_session, company_id=company_id
+    )
     if not departments["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "department")
 
