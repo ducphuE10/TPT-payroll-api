@@ -8,6 +8,7 @@ class CompanyBase(PayrollBase):
     code: str  # required
     name: str  # required
     description: Optional[str] = None
+    owner_id: int  # required
 
 
 class CompanyRead(CompanyBase):

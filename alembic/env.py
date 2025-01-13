@@ -6,6 +6,9 @@ from sqlalchemy import pool
 from alembic import context
 
 from app.db.models import Base  # noqa
+
+from app.auth.models import PayrollUser, Role, UserRegister  # noqa
+from app.db.models import *  # noqa
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides

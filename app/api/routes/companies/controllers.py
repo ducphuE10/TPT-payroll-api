@@ -14,6 +14,7 @@ from app.api.routes.companies.services import (
     get_company_by_id,
     update_company,
 )
+from app.auth.service import CurrentUser
 
 company_router = APIRouter()
 
@@ -23,28 +24,43 @@ company_router = APIRouter()
 def retrieve_companies(
     *,
     db_session: DbSession,
+    current_user: CurrentUser,
 ):
     """Retrieve all companies."""
-    return get_all_company(db_session=db_session)
+    return get_all_company(db_session=db_session, owner_id=current_user.id)
 
 
 # GET /companies/{company_id}
 @company_router.get("/{company_id}", response_model=CompanyRead)
-def retrieve_company(*, db_session: DbSession, company_id: int):
+def retrieve_company(
+    *, db_session: DbSession, current_user: CurrentUser, company_id: int
+):
     """Retrieve a company by id."""
-    return get_company_by_id(db_session=db_session, company_id=company_id)
+    return get_company_by_id(
+        db_session=db_session, company_id=company_id, owner_id=current_user.id
+    )
 
 
 # POST /companies
 @company_router.post("", response_model=CompanyRead)
-def create(*, company_in: CompanyCreate, db_session: DbSession):
+def create(
+    *, company_in: CompanyCreate, current_user: CurrentUser, db_session: DbSession
+):
     """Creates a new company."""
-    return create_company(db_session=db_session, company_in=company_in)
+    return create_company(
+        db_session=db_session, company_in=company_in, owner_id=current_user.id
+    )
 
 
 # PUT /companies/{company_id}
 @company_router.put("/{company_id}", response_model=CompanyRead)
-def update(*, db_session: DbSession, company_id: int, company_in: CompanyUpdate):
+def update(
+    *,
+    db_session: DbSession,
+    current_user: CurrentUser,
+    company_id: int,
+    company_in: CompanyUpdate,
+):
     """Update a company by id."""
     return update_company(
         db_session=db_session, company_id=company_id, company_in=company_in

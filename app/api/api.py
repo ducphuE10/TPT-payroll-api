@@ -4,6 +4,7 @@ from pydantic import BaseModel
 from typing import List, Optional
 
 from app.auth.service import get_current_user
+from app.auth.views import auth_router, user_router
 from app.api.routes.companies.controllers import company_router
 from app.api.routes.departments.controllers import department_router
 from app.api.routes.positions.controllers import position_router
@@ -20,7 +21,7 @@ from app.api.routes.payroll_managements.controllers import payroll_management_ro
 from app.core.config import settings
 
 # WARNING: Don't use this unless you want unauthenticated routes
-authenticated_api_router = APIRouter()
+# authenticated_api_router = APIRouter()
 
 
 class ErrorMessage(BaseModel):
@@ -41,7 +42,10 @@ api_router = APIRouter(
         500: {"model": ErrorResponse},
     },
 )
-router = APIRouter(prefix=settings.API_VERSION_PREFIX)
+router = APIRouter(
+    prefix=settings.API_VERSION_PREFIX,
+    dependencies=[Depends(get_current_user)],  # Enforce authentication here
+)
 
 router.include_router(company_router, prefix="/companies", tags=["companies"])
 router.include_router(department_router, prefix="/departments", tags=["departments"])
@@ -71,8 +75,8 @@ router.include_router(
 #     prefix="/addendums",
 #     tags=["addendums"],
 # )
-# api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
-# authenticated_api_router.include_router(user_router, prefix="/users", tags=["users"])
+api_router.include_router(auth_router, prefix="/auth", tags=["auth"])
+api_router.include_router(user_router, prefix="/users", tags=["users"])
 api_router.include_router(
-    authenticated_api_router, dependencies=[Depends(get_current_user)]
+    router,
 )

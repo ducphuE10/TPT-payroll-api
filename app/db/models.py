@@ -30,6 +30,9 @@ class PayrollCompany(Base, TimeStampMixin):
     name: Mapped[str] = mapped_column(String(50))  # required
     description: Mapped[Optional[str]] = mapped_column(String(255))
     created_by: Mapped[str] = mapped_column(String(30))  # required
+    owner_id: Mapped[int] = mapped_column(ForeignKey("users.id"))  # Add ForeignKey here
+
+    owner = relationship("PayrollUser", back_populates="company")
 
     departments: Mapped[List["PayrollDepartment"]] = relationship(
         "PayrollDepartment", back_populates="company"

@@ -4,6 +4,7 @@ from enum import Enum
 import string
 from datetime import datetime, timedelta, timezone
 from typing import List, Optional
+from sqlalchemy.orm import relationship
 
 import bcrypt
 from jose import jwt
@@ -51,6 +52,8 @@ class PayrollUser(Base, TimeStampMixin):
     fullname: Mapped[Optional[str]]
     password: Mapped[bytes] = mapped_column(LargeBinary)
     role: Mapped[Role]
+
+    company = relationship("PayrollCompany", back_populates="owner")
 
     def __repr__(self) -> str:
         return f"User(name={self.name!r}, fullname={self.fullname!r})"
@@ -105,7 +108,10 @@ class UserRegister(UserLogin):
 
 class UserLoginResponse(PayrollBase):
     # company
-    token: Optional[str] = None
+    access_token: Optional[str] = None
+    access_token_expires_at: Optional[str] = None
+    refresh_token: Optional[str] = None
+    refresh_token_expires_at: Optional[str] = None
 
 
 class UserRead(UserBase):

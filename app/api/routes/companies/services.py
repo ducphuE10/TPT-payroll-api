@@ -18,10 +18,12 @@ def check_exist_company_by_id(*, db_session, company_id: int):
     return bool(retrieve_company_by_id(db_session=db_session, company_id=company_id))
 
 
-def check_exist_company_by_code(*, db_session, company_code: str):
+def check_exist_company_by_code(*, db_session, company_code: str, owner_id: int):
     """Check if company exists in the database."""
     return bool(
-        retrieve_company_by_code(db_session=db_session, company_code=company_code)
+        retrieve_company_by_code(
+            db_session=db_session, company_code=company_code, owner_id=owner_id
+        )
     )
 
 
@@ -45,9 +47,9 @@ def get_company_by_code(*, db_session, company_code: int):
 
 
 # GET /companies
-def get_all_company(*, db_session):
+def get_all_company(*, db_session, owner_id: int):
     """Returns all companies."""
-    companies = retrieve_all_companies(db_session=db_session)
+    companies = retrieve_all_companies(db_session=db_session, owner_id=owner_id)
     if not companies["count"]:
         raise AppException(ErrorMessages.ResourceNotFound(), "company")
 
@@ -55,12 +57,15 @@ def get_all_company(*, db_session):
 
 
 # POST /companies
-def create_company(*, db_session, company_in: CompanyCreate):
+def create_company(*, db_session, company_in: CompanyCreate, owner_id: int):
     """Creates a new company."""
-    if check_exist_company_by_code(db_session=db_session, company_code=company_in.code):
+    if check_exist_company_by_code(
+        db_session=db_session, company_code=company_in.code, owner_id=owner_id
+    ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "company")
 
     try:
+        company_in.owner_id = owner_id
         company = add_company(db_session=db_session, company_in=company_in)
         db_session.commit()
     except Exception as e:
