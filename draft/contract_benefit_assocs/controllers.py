@@ -1,13 +1,13 @@
 from fastapi import APIRouter
 
-from payroll.contract_benefit_assocs.schemas import (
+from app.contract_benefit_assocs.schemas import (
     CBAssocRead,
     CBAssocCreate,
     CBAssocsRead,
     CBAssocUpdate,
 )
-from payroll.database.core import DbSession
-from payroll.contract_benefit_assocs.services import (
+from app.db.core import DbSession
+from app.contract_benefit_assocs.services import (
     create_cbassoc,
     delete_cbassoc,
     get_all_cbassoc,

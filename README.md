@@ -50,5 +50,5 @@ python -m bin.run
 or develop with the following command:
 
 ```console
-uvicorn payroll.main:app --reload
+uvicorn app.main:app --reload
 ```

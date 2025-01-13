@@ -1,7 +1,7 @@
 import logging
 
-from payroll.addendums.schemas import AddendumCreate, AddendumUpdate
-from payroll.models import PayrollAddendum
+from app.addendums.schemas import AddendumCreate, AddendumUpdate
+from app.db.models import PayrollAddendum
 
 log = logging.getLogger(__name__)
 

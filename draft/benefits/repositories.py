@@ -1,10 +1,10 @@
 import logging
 
-from payroll.benefits.schemas import (
+from app.benefits.schemas import (
     BenefitCreate,
     BenefitUpdate,
 )
-from payroll.models import PayrollBenefit
+from app.db.models import PayrollBenefit
 
 # add, retrieve, modify, remove
 log = logging.getLogger(__name__)
