@@ -13,11 +13,10 @@ from app.auth.service import CurrentUser, create, get_by_email
 from app.db.core import DbSession
 from app.exception.app_exception import AppException
 from app.exception.error_message import ErrorMessages
-from app.core.config import settings
 
 
-auth_router = APIRouter(prefix=settings.API_VERSION_PREFIX)
-user_router = APIRouter(prefix=settings.API_VERSION_PREFIX)
+auth_router = APIRouter()
+user_router = APIRouter()
 
 
 @user_router.post(
