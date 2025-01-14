@@ -33,6 +33,7 @@ class ErrorResponse(BaseModel):
 
 
 api_router = APIRouter(
+    prefix=settings.API_VERSION_PREFIX,
     default_response_class=JSONResponse,
     responses={
         400: {"model": ErrorResponse},
@@ -43,7 +44,6 @@ api_router = APIRouter(
     },
 )
 router = APIRouter(
-    prefix=settings.API_VERSION_PREFIX,
     dependencies=[Depends(get_current_user)],  # Enforce authentication here
 )
 
