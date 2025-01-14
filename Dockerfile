@@ -17,7 +17,7 @@ RUN bash -c "if [ $INSTALL_DEV == 'true' ] ; then poetry install --no-root ; els
 
 ENV PYTHONPATH=/app
 
-COPY ./app /app/payroll
+COPY ./app /app
 
 # Copy the alembic.ini file
 COPY ./alembic.ini /app/
