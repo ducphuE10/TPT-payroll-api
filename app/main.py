@@ -8,7 +8,7 @@ from app.middlewares.exception_handle import (
 )
 from app.core.config import settings
 from app.core.log import configure_logging
-from app.api.api import api_router, router
+from app.api.api import api_router
 import logging
 
 log = logging.getLogger(__name__)
@@ -45,4 +45,3 @@ app.add_exception_handler(SystemException, system_error_handler)
 app.add_exception_handler(AppException, application_error_handler)
 # we add all API routes to the Web API framework
 app.include_router(api_router)
-app.include_router(router)

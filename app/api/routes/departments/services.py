@@ -71,7 +71,9 @@ def get_all_department(*, db_session, company_id: int):
 def create_department(*, db_session, department_in: DepartmentCreate):
     """Creates a new department."""
     if check_exist_department_by_code(
-        db_session=db_session, department_code=department_in.code
+        db_session=db_session,
+        department_code=department_in.code,
+        company_id=department_in.company_id,
     ):
         raise AppException(ErrorMessages.ResourceAlreadyExists(), "department")
 

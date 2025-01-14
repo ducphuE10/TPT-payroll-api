@@ -55,7 +55,12 @@ def login_user(
 ):
     user = get_by_email(db_session=db_session, email=user_in.email)
     if user and user.check_password(user_in.password):
-        return {"token": user.token}
+        return {
+            "access_token": user.token,
+            "refresh_token": "",
+            "access_token_expires_at": "",
+            "refresh_token_expires_at": "",
+        }
     raise AppException(ErrorMessages.InvalidUsernameOrPassword())
 
 

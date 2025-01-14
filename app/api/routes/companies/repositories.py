@@ -18,19 +18,23 @@ def retrieve_company_by_id(*, db_session, company_id: int) -> PayrollCompany:
     )
 
 
-def retrieve_company_by_code(*, db_session, company_code: str) -> PayrollCompany:
+def retrieve_company_by_code(
+    *, db_session, company_code: str, owner_id: int
+) -> PayrollCompany:
     """Returns a company based on the given code."""
     return (
         db_session.query(PayrollCompany)
-        .filter(PayrollCompany.code == company_code)
+        .filter(
+            PayrollCompany.code == company_code and PayrollCompany.owner_id == owner_id
+        )
         .first()
     )
 
 
 # GET /companies
-def retrieve_all_companies(*, db_session) -> PayrollCompany:
+def retrieve_all_companies(*, db_session, owner_id: int) -> PayrollCompany:
     """Returns all companies."""
-    query = db_session.query(PayrollCompany)
+    query = db_session.query(PayrollCompany).filter(PayrollCompany.owner_id == owner_id)
     count = query.count()
     companies = query.order_by(PayrollCompany.id.asc()).all()
 
